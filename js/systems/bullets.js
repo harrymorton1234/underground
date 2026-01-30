@@ -179,6 +179,36 @@ const Bullets = {
             ]
         };
 
+        // ==================== SWAMP CREATURE PATTERNS ====================
+
+        this.patterns['swamp_bubbles'] = {
+            duration: 4,
+            spawners: [
+                {
+                    type: 'burst',
+                    delay: 0.5,
+                    interval: 0.6,
+                    count: 5,
+                    bullet: { type: 'circle', speed: 45, size: 8, color: '#4a6' },
+                    position: 'random_bottom'
+                }
+            ]
+        };
+
+        this.patterns['swamp_tentacles'] = {
+            duration: 5,
+            spawners: [
+                {
+                    type: 'wave',
+                    delay: 0.3,
+                    interval: 0.4,
+                    bullet: { type: 'rectangle', speed: 50, width: 8, height: 20, color: '#363' },
+                    position: 'bottom_sweep',
+                    amplitude: 30
+                }
+            ]
+        };
+
         // ==================== CRYSTAL GUARDIAN PATTERNS ====================
 
         this.patterns['guardian_crystals'] = {

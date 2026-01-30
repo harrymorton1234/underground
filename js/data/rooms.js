@@ -431,187 +431,257 @@ const Rooms = {
             ],
             transitions: [
                 { x: 136, y: 0, width: 16, height: 8, to: 'caverns_2', playerX: 160, playerY: 280 },
-                { x: 136, y: 208, width: 16, height: 8, to: 'hall_1', playerX: 160, playerY: 32, requiresFlag: 'guardian_spared|guardian_killed' }
+                { x: 136, y: 208, width: 16, height: 8, to: 'swamp_1', playerX: 160, playerY: 32, requiresFlag: 'crystal_guardian_spared|crystal_guardian_killed' }
             ],
             encounterRate: 0,
             music: 'boss_theme'
         },
 
-        // ==================== AREA 3: ANCIENT HALL ====================
-        'hall_1': {
-            name: 'Ancient Hall - Entrance',
-            area: 'hall',
+        // ==================== AREA 3: THE MURKY DEPTHS (SWAMP) ====================
+        'swamp_1': {
+            name: 'The Murky Depths - Entrance',
+            area: 'swamp',
+            width: 25,
+            height: 20,
+            playerStart: { x: 160, y: 32 },
+            tileData: `
+                1111111111311111111111111
+                1800000000000000000000081
+                1000000000000000000000001
+                1800000000000000000000081
+                1000000000000000000000001
+                1080000000000000000008001
+                1000000000000000000000001
+                1300000000020000000000031
+                1000000000000000000000001
+                1080000000000000000008001
+                1000000000000000000000001
+                1800000000000000000000081
+                1000000000000000000000001
+                1800000000000000000000081
+                1000000000000000000000001
+                1800000000000000000000081
+                1000000000000000000000001
+                1800000000000000000000081
+                1000000000030000000000001
+                1111111111111111111111111
+            `,
+            theme: 'swamp',
+            decorations: [
+                { type: 'swamp_tree', x: 48, y: 48 },
+                { type: 'swamp_tree', x: 336, y: 48 },
+                { type: 'swamp_tree', x: 48, y: 200 },
+                { type: 'swamp_tree', x: 336, y: 200 },
+                { type: 'lily_pad', x: 120, y: 80 },
+                { type: 'lily_pad', x: 264, y: 80 },
+                { type: 'lily_pad', x: 120, y: 240 },
+                { type: 'lily_pad', x: 264, y: 240 }
+            ],
+            npcs: [
+                {
+                    id: 'swamp_guide',
+                    sprite: 'npc',
+                    x: 280,
+                    y: 100,
+                    dialogue: 'swamp_guide_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'swamp_guide_hint'
+                }
+            ],
+            transitions: [
+                { x: 168, y: 0, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 192 },
+                { x: 8, y: 104, width: 8, height: 16, to: 'swamp_2', playerX: 288, playerY: 120 },
+                { x: 384, y: 104, width: 8, height: 16, to: 'swamp_3', playerX: 32, playerY: 120 },
+                { x: 168, y: 296, width: 16, height: 8, to: 'swamp_4', playerX: 160, playerY: 32 }
+            ],
+            savePoints: [
+                { x: 168, y: 104, dialogue: 'swamp_save_point' }
+            ],
+            onEnter: 'swamp_entrance',
+            onEnterOnce: true,
+            music: 'swamp_theme',
+            encounterRate: 0.15,
+            encounterEnemies: ['swamp_creature', 'ancient_spirit']
+        },
+
+        'swamp_2': {
+            name: 'Twisted Grotto',
+            area: 'swamp',
+            width: 20,
+            height: 15,
+            playerStart: { x: 288, y: 120 },
+            tileData: `
+                11111111111111111111
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                10000000000000000031
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                11111111111111111111
+            `,
+            theme: 'swamp',
+            decorations: [
+                { type: 'swamp_tree', x: 64, y: 32 },
+                { type: 'swamp_tree', x: 64, y: 160 },
+                { type: 'mushroom_cluster', x: 160, y: 80 },
+                { type: 'mushroom_cluster', x: 160, y: 160 }
+            ],
+            interactables: [
+                { x: 80, y: 100, width: 32, height: 32, type: 'lore', dialogue: 'swamp_lore_tablet' }
+            ],
+            transitions: [
+                { x: 304, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 24, playerY: 104 }
+            ],
+            encounterRate: 0.2,
+            encounterEnemies: ['swamp_creature', 'mushroom_dancer']
+        },
+
+        'swamp_3': {
+            name: 'Foggy Marsh',
+            area: 'swamp',
+            width: 20,
+            height: 15,
+            playerStart: { x: 32, y: 120 },
+            tileData: `
+                11111111111111111111
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                13000000002000000001
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                10000000000000000001
+                18000000000000000081
+                11111111111111111111
+            `,
+            theme: 'swamp',
+            decorations: [
+                { type: 'swamp_tree', x: 240, y: 32 },
+                { type: 'swamp_tree', x: 240, y: 160 },
+                { type: 'lily_pad', x: 120, y: 60 },
+                { type: 'lily_pad', x: 180, y: 140 }
+            ],
+            npcs: [
+                {
+                    id: 'lost_spirit',
+                    sprite: 'npc',
+                    x: 200,
+                    y: 100,
+                    dialogue: 'lost_spirit_talk',
+                    dialogueOnce: true,
+                    afterDialogue: 'lost_spirit_hint'
+                }
+            ],
+            transitions: [
+                { x: 8, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 368, playerY: 104 }
+            ],
+            savePoints: [
+                { x: 136, y: 104, dialogue: 'swamp_save_point' }
+            ],
+            encounterRate: 0.2,
+            encounterEnemies: ['ancient_spirit', 'swamp_creature']
+        },
+
+        'swamp_4': {
+            name: 'The Sunken Path',
+            area: 'swamp',
             width: 25,
             height: 15,
             playerStart: { x: 160, y: 32 },
             tileData: `
                 1111111111311111111111111
+                1800000000000000000000081
                 1000000000000000000000001
+                1800000000000000000000081
                 1000000000000000000000001
+                1800000000000000000000081
                 1000000000000000000000001
+                1080000000000000000008001
                 1000000000000000000000001
+                1800000000000000000000081
                 1000000000000000000000001
-                1000000000020000000000001
+                1800000000000000000000081
                 1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000030000000000001
+                1300000000030000000000071
                 1111111111111111111111111
             `,
-            npcs: [
-                {
-                    id: 'mysterious_figure',
-                    sprite: 'npc',
-                    x: 280,
-                    y: 100,
-                    dialogue: 'mysterious_figure_intro',
-                    dialogueOnce: true
-                }
+            theme: 'swamp',
+            decorations: [
+                { type: 'swamp_tree', x: 48, y: 48 },
+                { type: 'swamp_tree', x: 336, y: 48 },
+                { type: 'bone_pile', x: 180, y: 100 },
+                { type: 'skull', x: 200, y: 100 }
             ],
             transitions: [
-                { x: 168, y: 0, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 192 },
-                { x: 168, y: 208, width: 16, height: 8, to: 'hall_2', playerX: 160, playerY: 32 }
-            ],
-            savePoints: [
-                { x: 168, y: 88, dialogue: 'descent_save_point' }
-            ],
-            onEnter: 'hall_entrance',
-            onEnterOnce: true,
-            music: 'hall_theme',
-            encounterRate: 0.15,
-            encounterEnemies: ['ancient_spirit']
-        },
-
-        'hall_2': {
-            name: 'Ancient Hall - History',
-            area: 'hall',
-            width: 20,
-            height: 15,
-            playerStart: { x: 160, y: 32 },
-            tileData: `
-                11111111131111111111
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000030000000001
-                11111111111111111111
-            `,
-            interactables: [
-                { x: 80, y: 100, width: 32, height: 32, type: 'lore', dialogue: 'history_lesson' }
-            ],
-            transitions: [
-                { x: 136, y: 0, width: 16, height: 8, to: 'hall_1', playerX: 168, playerY: 192 },
-                { x: 136, y: 208, width: 16, height: 8, to: 'hall_choice', playerX: 160, playerY: 32 }
+                { x: 168, y: 0, width: 16, height: 8, to: 'swamp_1', playerX: 168, playerY: 280 },
+                { x: 8, y: 200, width: 8, height: 16, to: 'swamp_keeper', playerX: 288, playerY: 120 },
+                { x: 368, y: 200, width: 16, height: 8, to: 'mega_chamber', playerX: 240, playerY: 32, requiresItem: 'keeper_key', lockedDialogue: 'locked_door_keeper' }
             ],
             encounterRate: 0.15,
-            encounterEnemies: ['ancient_spirit']
+            encounterEnemies: ['ancient_spirit', 'swamp_creature']
         },
 
-        'hall_choice': {
-            name: 'Chamber of Choice',
-            area: 'hall',
+        'swamp_keeper': {
+            name: 'The Keeper\'s Lair',
+            area: 'swamp',
             width: 20,
-            height: 15,
-            playerStart: { x: 160, y: 32 },
-            tileData: `
-                11111111131111111111
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000030000000001
-                11111111111111111111
-            `,
-            npcs: [
-                {
-                    id: 'choice_figure',
-                    sprite: 'npc',
-                    x: 160,
-                    y: 100,
-                    dialogue: 'moral_choice',
-                    dialogueOnce: true,
-                    requiresFlag: '!moral_choice_made'
-                }
-            ],
-            transitions: [
-                { x: 136, y: 0, width: 16, height: 8, to: 'hall_2', playerX: 160, playerY: 192 },
-                { x: 136, y: 208, width: 16, height: 8, to: 'hall_final', playerX: 160, playerY: 32 }
-            ],
-            encounterRate: 0
-        },
-
-        'hall_final': {
-            name: 'The Keeper\'s Domain',
-            area: 'hall',
-            width: 25,
             height: 20,
-            playerStart: { x: 200, y: 32 },
+            playerStart: { x: 288, y: 120 },
             tileData: `
-                1111111111131111111111111
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000000000000000001
-                1500000000200000000000051
-                1000000000000000000000001
-                1500000000000000000000051
-                1000000000030000000000001
-                1111111111111111111111111
+                11111111111111111111
+                15000000000000000051
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                10000000000000000031
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                15000000020000000051
+                10000000000000000001
+                15000000000000000051
+                10000000000000000001
+                11111111111111111111
             `,
             theme: 'dark',
             decorations: [
-                { type: 'skull', x: 64, y: 48 },
-                { type: 'skull', x: 320, y: 48 },
-                { type: 'skull', x: 64, y: 144 },
-                { type: 'skull', x: 320, y: 144 },
-                { type: 'skull', x: 64, y: 240 },
-                { type: 'skull', x: 320, y: 240 },
-                { type: 'bone_pile', x: 96, y: 80 },
-                { type: 'bone_pile', x: 288, y: 80 },
-                { type: 'bone_pile', x: 96, y: 200 },
-                { type: 'bone_pile', x: 288, y: 200 },
-                { type: 'dark_pillar', x: 48, y: 64 },
-                { type: 'dark_pillar', x: 336, y: 64 },
-                { type: 'dark_pillar', x: 48, y: 192 },
-                { type: 'dark_pillar', x: 336, y: 192 }
+                { type: 'skull', x: 48, y: 48 },
+                { type: 'skull', x: 256, y: 48 },
+                { type: 'skull', x: 48, y: 240 },
+                { type: 'skull', x: 256, y: 240 },
+                { type: 'bone_pile', x: 80, y: 120 },
+                { type: 'bone_pile', x: 224, y: 120 },
+                { type: 'dark_pillar', x: 32, y: 80 },
+                { type: 'dark_pillar', x: 272, y: 80 },
+                { type: 'dark_pillar', x: 32, y: 200 },
+                { type: 'dark_pillar', x: 272, y: 200 }
             ],
             npcs: [
                 {
                     id: 'the_keeper',
                     sprite: 'the_keeper',
-                    x: 192,
-                    y: 140,
-                    dialogue: 'final_boss_intro',
+                    x: 152,
+                    y: 100,
+                    dialogue: 'keeper_intro',
                     isBoss: true,
                     enemyId: 'the_keeper',
                     blocksPath: true,
@@ -620,14 +690,15 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 192, y: 0, width: 16, height: 8, to: 'hall_choice', playerX: 160, playerY: 192 },
-                { x: 168, y: 296, width: 16, height: 8, to: 'mega_chamber', playerX: 240, playerY: 32, requiresFlag: 'final_boss_spared|final_boss_killed' }
+                { x: 304, y: 104, width: 8, height: 16, to: 'swamp_4', playerX: 24, playerY: 200 }
             ],
             savePoints: [
-                { x: 168, y: 240, dialogue: 'keeper_save_point' }
+                { x: 136, y: 240, dialogue: 'keeper_save_point' }
             ],
+            onEnter: 'keeper_lair_enter',
+            onEnterOnce: true,
             encounterRate: 0,
-            music: 'final_boss_theme'
+            music: 'boss_theme'
         },
 
         // ==================== MEGA BOSS ====================

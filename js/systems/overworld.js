@@ -544,6 +544,12 @@ const Overworld = {
                         Renderer.drawRect(screenX + 5, screenY + 4, 6, 8, '#543');
                         Renderer.drawRect(screenX + 6, screenY + 6, 4, 4, '#ff0');
                         break;
+                    case 8: // Swamp water
+                        Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#243');
+                        // Ripple effect
+                        const ripple = Math.sin(performance.now() / 500 + col * 0.7 + row * 0.5) * 0.2 + 0.4;
+                        Renderer.drawRect(screenX + 2, screenY + 6, 12, 4, `rgba(60,120,80,${ripple})`);
+                        break;
                 }
             }
         }
@@ -641,6 +647,48 @@ const Overworld = {
                     for (let i = 0; i < 3; i++) {
                         Renderer.drawRect(screenX + 6, screenY + 6 + i * 3, 10 + Math.random() * 8, 2, '#0f0');
                     }
+                    break;
+
+                case 'swamp_tree':
+                    // Gnarled swamp tree
+                    Renderer.drawRect(screenX + 6, screenY + 20, 12, 28, '#432');
+                    // Branches
+                    Renderer.drawRect(screenX, screenY + 8, 24, 16, '#354');
+                    Renderer.drawRect(screenX + 4, screenY, 16, 12, '#243');
+                    // Moss/vines
+                    const mossWave = Math.sin(time * 0.5 + deco.x * 0.1) * 2;
+                    Renderer.drawRect(screenX + 2, screenY + 20 + mossWave, 3, 8, '#363');
+                    Renderer.drawRect(screenX + 18, screenY + 18 + mossWave, 3, 10, '#363');
+                    break;
+
+                case 'lily_pad':
+                    // Lily pad floating on water
+                    const bobY = Math.sin(time * 2 + deco.x * 0.2) * 1;
+                    Renderer.ctx.fillStyle = '#4a4';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 8, screenY + 8 + bobY, 8, 6, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Flower
+                    Renderer.ctx.fillStyle = '#faf';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 8, screenY + 6 + bobY, 3, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'mushroom_cluster':
+                    // Glowing mushrooms
+                    const mushroomGlow = Math.sin(time * 3 + deco.y * 0.1) * 0.3 + 0.7;
+                    // Stems
+                    Renderer.drawRect(screenX + 2, screenY + 10, 4, 8, '#ddd');
+                    Renderer.drawRect(screenX + 10, screenY + 12, 3, 6, '#ddd');
+                    // Caps
+                    Renderer.ctx.fillStyle = `rgba(200,100,255,${mushroomGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 4, screenY + 8, 6, 4, 0, Math.PI, 0);
+                    Renderer.ctx.fill();
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 11, screenY + 10, 4, 3, 0, Math.PI, 0);
+                    Renderer.ctx.fill();
                     break;
             }
         }

@@ -186,6 +186,48 @@ const Enemies = {
             ]
         },
 
+        // ==================== SWAMP ENEMIES ====================
+        'swamp_creature': {
+            name: 'Swamp Creature',
+            hp: 30,
+            maxHp: 30,
+            attack: 9,
+            defense: 4,
+            exp: 12,
+            gold: 10,
+            flavorText: '* Emerged from the murky waters.',
+            checkText: '* SWAMP CREATURE - ATK 9 DEF 4\n* Once a normal creature, now twisted by the swamp.',
+            canSpare: false,
+            spareCondition: 'clean',
+            cleaned: false,
+            actOptions: ['Check', 'Clean', 'Sing', 'Splash'],
+            actResponses: {
+                'Clean': {
+                    text: '* You wiped some mud off its face.\n* It looks... almost grateful?',
+                    effect: 'clean',
+                    spareable: 'checkClean'
+                },
+                'Sing': {
+                    text: '* You hummed a gentle tune.\n* The creature sways peacefully.',
+                    effect: 'calm',
+                    spareable: false
+                },
+                'Splash': {
+                    text: '* You splashed water at it!\n* It got angrier!',
+                    effect: 'enrage'
+                }
+            },
+            patterns: ['swamp_bubbles', 'swamp_tentacles'],
+            encounterText: '* Something rises from the murky water!',
+            spareText: '* The creature sinks back into the swamp.\n* It seems at peace.',
+            deathText: '* The creature dissolves into the water.\n* The swamp is quieter now.',
+            drops: [
+                { item: 'swamp_moss', chance: 0.5 },
+                { item: 'glowing_mushroom', chance: 0.3 },
+                { item: 'ancient_fruit', chance: 0.1 }
+            ]
+        },
+
         // ==================== MINI-BOSS ====================
         'crystal_guardian': {
             name: 'Crystal Guardian',

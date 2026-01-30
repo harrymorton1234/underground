@@ -161,6 +161,13 @@ const Items = {
             price: 0
         },
 
+        'keeper_key': {
+            name: 'Keeper\'s Key',
+            type: 'key',
+            description: 'An ancient key dropped by The Keeper. Opens the path to the core.',
+            price: 0
+        },
+
         // Enemy drops
         'spider_leg': {
             name: 'Spider Leg',
@@ -240,6 +247,16 @@ const Items = {
             description: 'Ethereal essence from an ancient spirit.',
             price: 50,
             sellPrice: 25
+        },
+
+        'swamp_moss': {
+            name: 'Swamp Moss',
+            type: 'consumable',
+            description: 'Slimy but nutritious moss. Heals 15 HP.',
+            healAmount: 15,
+            price: 20,
+            sellPrice: 10,
+            battleText: '* You ate the Swamp Moss.\n* Slimy... but filling!'
         },
 
         // Boss drops

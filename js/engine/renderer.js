@@ -858,6 +858,37 @@ const Renderer = {
         tempCtx.fill();
         this.sprites['enemy_ancient_spirit'] = this.canvasToImage(tempCanvas);
 
+        // Swamp Creature (40x36)
+        tempCanvas.width = 40;
+        tempCanvas.height = 36;
+        tempCtx.clearRect(0, 0, 40, 36);
+        // Murky body blob
+        tempCtx.fillStyle = '#354';
+        tempCtx.beginPath();
+        tempCtx.ellipse(20, 22, 16, 12, 0, 0, Math.PI * 2);
+        tempCtx.fill();
+        // Head
+        tempCtx.beginPath();
+        tempCtx.ellipse(20, 10, 10, 8, 0, 0, Math.PI * 2);
+        tempCtx.fill();
+        // Dripping effect
+        tempCtx.fillStyle = '#243';
+        tempCtx.fillRect(8, 28, 4, 8);
+        tempCtx.fillRect(18, 30, 4, 6);
+        tempCtx.fillRect(28, 28, 4, 8);
+        // Eyes (glowing)
+        tempCtx.fillStyle = '#ff0';
+        tempCtx.beginPath();
+        tempCtx.arc(15, 10, 3, 0, Math.PI * 2);
+        tempCtx.arc(25, 10, 3, 0, Math.PI * 2);
+        tempCtx.fill();
+        // Mouth
+        tempCtx.fillStyle = '#121';
+        tempCtx.beginPath();
+        tempCtx.ellipse(20, 16, 5, 3, 0, 0, Math.PI);
+        tempCtx.fill();
+        this.sprites['enemy_swamp_creature'] = this.canvasToImage(tempCanvas);
+
         // MEGA DESTROYER (64x64) - Mega Boss
         tempCanvas.width = 64;
         tempCanvas.height = 64;

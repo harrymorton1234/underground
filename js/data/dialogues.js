@@ -575,6 +575,112 @@ const Dialogues = {
             ]
         },
 
+        'locked_door_keeper': {
+            speaker: null,
+            lines: [
+                { text: 'A massive door blocks the way.' },
+                { text: 'An ancient lock seals it shut.' },
+                { text: "You'll need a special key to open it." },
+                { text: '(Find and defeat The Keeper to obtain the key.)' }
+            ]
+        },
+
+        // ==================== SWAMP AREA ====================
+        'swamp_entrance': {
+            speaker: null,
+            lines: [
+                { text: 'The air becomes thick and humid.' },
+                { text: 'You step into a murky underground swamp.' },
+                { text: 'Strange sounds echo in the distance...' }
+            ],
+            setFlags: { 'swamp_entered': true }
+        },
+
+        'swamp_save_point': {
+            speaker: null,
+            lines: [
+                { text: 'The glow cuts through the fog...' },
+                { text: 'You feel determination despite the gloom.' },
+                { text: '(HP fully restored.)' }
+            ]
+        },
+
+        'swamp_guide_intro': {
+            speaker: 'Wanderer',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: "Oh! A traveler in these parts?" },
+                { text: "Be careful. This swamp hides many secrets." },
+                { text: "There's something dark deeper in..." },
+                { text: 'The Keeper guards the way forward.' },
+                { text: "You'll need to find its lair to proceed." }
+            ],
+            setFlags: { 'met_swamp_guide': true }
+        },
+
+        'swamp_guide_hint': {
+            speaker: 'Wanderer',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: "The Keeper's lair is to the south, then west." },
+                { text: 'Defeat it to obtain the key you need.' }
+            ]
+        },
+
+        'swamp_lore_tablet': {
+            speaker: null,
+            lines: [
+                { text: 'An old stone tablet, covered in moss:' },
+                { text: '"The Keeper watches over the final gate."' },
+                { text: '"Only those who prove themselves may pass."' },
+                { text: '"But beyond the gate lies greater danger..."' }
+            ]
+        },
+
+        'lost_spirit_talk': {
+            speaker: 'Lost Spirit',
+            portrait: 'npc_sad',
+            lines: [
+                { text: '...hello...' },
+                { text: "I've been wandering here for so long..." },
+                { text: 'The Keeper... it guards the only way out.' },
+                { text: "I wasn't strong enough to pass..." },
+                { text: 'Maybe you will be different.' }
+            ],
+            setFlags: { 'met_lost_spirit': true }
+        },
+
+        'lost_spirit_hint': {
+            speaker: 'Lost Spirit',
+            portrait: 'npc_sad',
+            lines: [
+                { text: "The Keeper isn't evil..." },
+                { text: "It's just... doing its duty." },
+                { text: 'Perhaps you can reach its heart.' }
+            ]
+        },
+
+        'keeper_lair_enter': {
+            speaker: null,
+            lines: [
+                { text: 'A chill runs down your spine.' },
+                { text: 'You have entered the domain of The Keeper.' },
+                { text: 'There is no turning back now.' }
+            ]
+        },
+
+        'keeper_intro': {
+            speaker: 'The Keeper',
+            portrait: 'keeper_neutral',
+            lines: [
+                { text: '...' },
+                { text: 'Another soul seeks passage.' },
+                { text: 'I am The Keeper. Guardian of the gate.' },
+                { text: 'None may pass without facing me.' },
+                { text: 'Prepare yourself.' }
+            ]
+        },
+
         'locked_door_boss': {
             speaker: null,
             lines: [
