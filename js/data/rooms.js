@@ -182,7 +182,8 @@ const Rooms = {
                 111111111111111
             `,
             interactables: [
-                { x: 180, y: 80, width: 32, height: 32, type: 'lore', dialogue: 'descent_lore_tablet' }
+                { x: 180, y: 80, width: 32, height: 32, type: 'lore', dialogue: 'descent_lore_tablet' },
+                { x: 180, y: 120, width: 24, height: 16, type: 'hidden_key', dialogue: 'found_crystal_key', requiresFlag: '!got_crystal_key' }
             ],
             transitions: [
                 { x: 8, y: 152, width: 8, height: 16, to: 'descent_2', playerX: 288, playerY: 264 }
@@ -231,7 +232,7 @@ const Rooms = {
             height: 15,
             playerStart: { x: 32, y: 120 },
             tileData: `
-                1111111111111111111111111
+                1111111111111111711111111
                 1000000000000000000000001
                 1000000000000000000000001
                 1000000000000000000000001
@@ -250,7 +251,8 @@ const Rooms = {
             transitions: [
                 { x: 8, y: 104, width: 8, height: 16, to: 'descent_3', playerX: 288, playerY: 8 },
                 { x: 384, y: 104, width: 8, height: 16, to: 'caverns_shop', playerX: 32, playerY: 120 },
-                { x: 168, y: 208, width: 16, height: 8, to: 'caverns_2', playerX: 160, playerY: 32 }
+                { x: 168, y: 208, width: 16, height: 8, to: 'caverns_2', playerX: 160, playerY: 32 },
+                { x: 256, y: 0, width: 16, height: 8, to: 'caverns_treasure', playerX: 120, playerY: 160, requiresItem: 'crystal_key', lockedDialogue: 'locked_door_key' }
             ],
             savePoints: [
                 { x: 168, y: 104, dialogue: 'descent_save_point' }
@@ -260,6 +262,44 @@ const Rooms = {
             music: 'caverns_theme',
             encounterRate: 0.15,
             encounterEnemies: ['crystal_bat', 'mushroom_dancer']
+        },
+
+        'caverns_treasure': {
+            name: 'Crystal Treasury',
+            area: 'caverns',
+            width: 15,
+            height: 12,
+            playerStart: { x: 120, y: 160 },
+            tileData: `
+                111111111111111
+                140000000000041
+                100000000000001
+                140000000000041
+                100000000000001
+                140000000000041
+                100000000000001
+                140000000000041
+                100000000000001
+                140000000000041
+                100000000000031
+                111111111111111
+            `,
+            theme: 'crystal',
+            decorations: [
+                { type: 'crystal_cluster', x: 32, y: 32 },
+                { type: 'crystal_cluster', x: 192, y: 32 },
+                { type: 'crystal_cluster', x: 32, y: 128 },
+                { type: 'crystal_cluster', x: 192, y: 128 }
+            ],
+            interactables: [
+                { x: 96, y: 48, width: 48, height: 32, type: 'treasure_chest', dialogue: 'treasure_chest_crystal' }
+            ],
+            transitions: [
+                { x: 224, y: 152, width: 8, height: 16, to: 'caverns_1', playerX: 256, playerY: 16 }
+            ],
+            secret: true,
+            secretId: 'crystal_treasury_found',
+            encounterRate: 0
         },
 
         'caverns_shop': {
@@ -341,34 +381,45 @@ const Rooms = {
         },
 
         'caverns_guardian': {
-            name: 'Guardian Chamber',
+            name: 'Crystal Sanctum',
             area: 'caverns',
             width: 20,
             height: 15,
             playerStart: { x: 160, y: 32 },
             tileData: `
                 11111111131111111111
+                14000004000004000041
                 10000000000000000001
+                14000000000000000041
                 10000000000000000001
+                14000000000000000041
                 10000000000000000001
+                14000000000000000041
                 10000000000000000001
+                14000000000000000041
                 10000000000000000001
+                14000000000000000041
                 10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000030000000001
+                14000004030004000041
                 11111111111111111111
             `,
+            theme: 'crystal',
+            decorations: [
+                { type: 'crystal_pillar', x: 48, y: 32 },
+                { type: 'crystal_pillar', x: 256, y: 32 },
+                { type: 'crystal_pillar', x: 48, y: 160 },
+                { type: 'crystal_pillar', x: 256, y: 160 },
+                { type: 'crystal_cluster', x: 80, y: 80 },
+                { type: 'crystal_cluster', x: 224, y: 80 },
+                { type: 'crystal_cluster', x: 80, y: 144 },
+                { type: 'crystal_cluster', x: 224, y: 144 }
+            ],
             npcs: [
                 {
                     id: 'crystal_guardian',
-                    sprite: 'npc',
-                    x: 160,
-                    y: 120,
+                    sprite: 'crystal_guardian',
+                    x: 152,
+                    y: 100,
                     dialogue: 'guardian_intro',
                     isBoss: true,
                     enemyId: 'crystal_guardian',
@@ -509,39 +560,56 @@ const Rooms = {
         },
 
         'hall_final': {
-            name: 'The Final Chamber',
+            name: 'The Keeper\'s Domain',
             area: 'hall',
             width: 25,
             height: 20,
-            playerStart: { x: 160, y: 32 },
+            playerStart: { x: 200, y: 32 },
             tileData: `
-                1111111111311111111111111
+                1111111111131111111111111
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000000000000000051
                 1000000000000000000000001
+                1500000000200000000000051
                 1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000000000000000001
-                1000000000200000000000001
-                1000000000000000000000001
-                1000000000000000000000001
+                1500000000000000000000051
                 1000000000030000000000001
                 1111111111111111111111111
             `,
+            theme: 'dark',
+            decorations: [
+                { type: 'skull', x: 64, y: 48 },
+                { type: 'skull', x: 320, y: 48 },
+                { type: 'skull', x: 64, y: 144 },
+                { type: 'skull', x: 320, y: 144 },
+                { type: 'skull', x: 64, y: 240 },
+                { type: 'skull', x: 320, y: 240 },
+                { type: 'bone_pile', x: 96, y: 80 },
+                { type: 'bone_pile', x: 288, y: 80 },
+                { type: 'bone_pile', x: 96, y: 200 },
+                { type: 'bone_pile', x: 288, y: 200 },
+                { type: 'dark_pillar', x: 48, y: 64 },
+                { type: 'dark_pillar', x: 336, y: 64 },
+                { type: 'dark_pillar', x: 48, y: 192 },
+                { type: 'dark_pillar', x: 336, y: 192 }
+            ],
             npcs: [
                 {
                     id: 'the_keeper',
-                    sprite: 'npc',
-                    x: 200,
-                    y: 160,
+                    sprite: 'the_keeper',
+                    x: 192,
+                    y: 140,
                     dialogue: 'final_boss_intro',
                     isBoss: true,
                     enemyId: 'the_keeper',
@@ -551,11 +619,11 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 168, y: 0, width: 16, height: 8, to: 'hall_choice', playerX: 160, playerY: 192 },
-                { x: 168, y: 296, width: 16, height: 8, to: 'mega_chamber', playerX: 160, playerY: 32, requiresFlag: 'final_boss_spared|final_boss_killed' }
+                { x: 192, y: 0, width: 16, height: 8, to: 'hall_choice', playerX: 160, playerY: 192 },
+                { x: 168, y: 296, width: 16, height: 8, to: 'mega_chamber', playerX: 240, playerY: 32, requiresFlag: 'final_boss_spared|final_boss_killed' }
             ],
             savePoints: [
-                { x: 168, y: 240, dialogue: 'descent_save_point' }
+                { x: 168, y: 240, dialogue: 'keeper_save_point' }
             ],
             encounterRate: 0,
             music: 'final_boss_theme'
@@ -563,39 +631,55 @@ const Rooms = {
 
         // ==================== MEGA BOSS ====================
         'mega_chamber': {
-            name: 'The Core',
+            name: 'The Core Chamber',
             area: 'mega',
             width: 30,
             height: 20,
-            playerStart: { x: 160, y: 32 },
+            playerStart: { x: 240, y: 32 },
             tileData: `
                 111111111111131111111111111111
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000000000000000000061
                 100000000000000000000000000001
+                160000000000020000000000000061
                 100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000020000000000000001
-                100000000000000000000000000001
-                100000000000000000000000000001
-                100000000000030000000000000001
+                160000000000000000000000000061
+                100000000000070000000000000001
                 111111111111111111111111111111
             `,
+            theme: 'tech',
+            decorations: [
+                { type: 'tech_pillar', x: 64, y: 48 },
+                { type: 'tech_pillar', x: 416, y: 48 },
+                { type: 'tech_pillar', x: 64, y: 160 },
+                { type: 'tech_pillar', x: 416, y: 160 },
+                { type: 'tech_pillar', x: 64, y: 272 },
+                { type: 'tech_pillar', x: 416, y: 272 },
+                { type: 'energy_conduit', x: 160, y: 80 },
+                { type: 'energy_conduit', x: 320, y: 80 },
+                { type: 'energy_conduit', x: 160, y: 200 },
+                { type: 'energy_conduit', x: 320, y: 200 },
+                { type: 'core_terminal', x: 224, y: 240 }
+            ],
             npcs: [
                 {
                     id: 'mega_destroyer',
-                    sprite: 'npc',
-                    x: 220,
-                    y: 160,
+                    sprite: 'mega_destroyer',
+                    x: 208,
+                    y: 120,
+                    width: 64,
+                    height: 64,
                     dialogue: 'mega_boss_intro',
                     isBoss: true,
                     isMegaBoss: true,
@@ -606,11 +690,11 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 200, y: 0, width: 16, height: 8, to: 'hall_final', playerX: 168, playerY: 280 },
-                { x: 200, y: 296, width: 16, height: 8, to: 'next_level', playerX: 160, playerY: 32, requiresItem: 'mega_core' }
+                { x: 232, y: 0, width: 16, height: 8, to: 'hall_final', playerX: 200, playerY: 280 },
+                { x: 224, y: 296, width: 16, height: 8, to: 'next_level', playerX: 160, playerY: 32, requiresItem: 'mega_core', lockedDialogue: 'locked_door_core' }
             ],
             savePoints: [
-                { x: 200, y: 240, dialogue: 'descent_save_point' }
+                { x: 224, y: 240, dialogue: 'mega_save_point' }
             ],
             encounterRate: 0,
             music: 'mega_boss_theme'

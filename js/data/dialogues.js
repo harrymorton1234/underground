@@ -130,9 +130,18 @@ const Dialogues = {
             speaker: 'Glint',
             portrait: 'shopkeeper_happy',
             lines: [
-                { text: "Business is slow, but I can't complain." },
-                { text: "At least I'm not stuck in the deeper caves." },
-                { text: "Those places... they give me the creeps." }
+                { text: "Welcome back! Want to buy something?" },
+                { text: "I've got the best goods in the underground!" }
+            ]
+        },
+
+        'shopkeeper_buy_hint': {
+            speaker: 'Glint',
+            portrait: 'shopkeeper_neutral',
+            lines: [
+                { text: "Use LEFT and RIGHT to switch between BUY and SELL." },
+                { text: "UP and DOWN to pick items, Z to confirm!" },
+                { text: "Press X when you're done shopping." }
             ]
         },
 
@@ -545,6 +554,85 @@ const Dialogues = {
                 { text: '...' },
                 { text: 'THE END' },
                 { text: '(VIOLENCE ENDING)' }
+            ]
+        },
+
+        // ==================== LOCKED DOORS ====================
+        'locked_door_core': {
+            speaker: null,
+            lines: [
+                { text: 'The door is sealed with ancient technology.' },
+                { text: 'It seems to require some kind of CORE to open.' },
+                { text: "(You need the MEGA CORE to pass.)" }
+            ]
+        },
+
+        'locked_door_key': {
+            speaker: null,
+            lines: [
+                { text: 'The door is locked.' },
+                { text: 'You need a KEY to open it.' }
+            ]
+        },
+
+        'locked_door_boss': {
+            speaker: null,
+            lines: [
+                { text: 'Something powerful blocks the way.' },
+                { text: "You can't proceed until it's dealt with." }
+            ]
+        },
+
+        'treasure_chest_crystal': {
+            speaker: null,
+            lines: [
+                { text: 'You found a treasure chest!' },
+                { text: 'Inside you find valuable items...' },
+                { text: '* Obtained ANCIENT BLADE!' },
+                { text: '* Obtained ANCIENT ROBE!' },
+                { text: '* Obtained 100 GOLD!' }
+            ],
+            setFlags: { 'crystal_treasury_opened': true },
+            giveItem: 'ancient_blade'
+        },
+
+        'treasure_chest_opened': {
+            speaker: null,
+            lines: [
+                { text: 'The treasure chest is empty.' },
+                { text: 'You already took everything.' }
+            ]
+        },
+
+        'found_crystal_key': {
+            speaker: null,
+            lines: [
+                { text: 'Hidden behind the tablet, you find something...' },
+                { text: 'A key made of pure crystal!' },
+                { text: '* Obtained CRYSTAL KEY!' },
+                { text: 'It must open something in the caves...' }
+            ],
+            setFlags: { 'got_crystal_key': true },
+            giveItem: 'crystal_key'
+        },
+
+        // ==================== SAVE POINTS ====================
+        'keeper_save_point': {
+            speaker: null,
+            lines: [
+                { text: 'A sense of dread fills the air...' },
+                { text: 'But the gentle glow fills you with determination.' },
+                { text: '(HP fully restored.)' }
+            ]
+        },
+
+        'mega_save_point': {
+            speaker: null,
+            lines: [
+                { text: 'The hum of machinery surrounds you.' },
+                { text: 'Despite the danger ahead...' },
+                { text: 'You are filled with determination.' },
+                { text: '(HP fully restored.)' }
             ]
         },
 

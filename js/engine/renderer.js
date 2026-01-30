@@ -422,6 +422,114 @@ const Renderer = {
         }
         this.sprites['npc'] = this.canvasToImage(tempCanvas);
 
+        // Crystal Guardian NPC sprite (24x24) - 4 frames x 4 directions
+        tempCanvas.width = 96;
+        tempCanvas.height = 96;
+        tempCtx.clearRect(0, 0, 96, 96);
+
+        for (let dir = 0; dir < 4; dir++) {
+            for (let frame = 0; frame < 4; frame++) {
+                const x = frame * 24;
+                const y = dir * 24;
+
+                // Crystal body
+                tempCtx.fillStyle = '#808';
+                tempCtx.beginPath();
+                tempCtx.moveTo(x + 12, y + 2);
+                tempCtx.lineTo(x + 20, y + 10);
+                tempCtx.lineTo(x + 18, y + 22);
+                tempCtx.lineTo(x + 6, y + 22);
+                tempCtx.lineTo(x + 4, y + 10);
+                tempCtx.closePath();
+                tempCtx.fill();
+
+                // Crystal crown
+                tempCtx.fillStyle = '#f0f';
+                tempCtx.beginPath();
+                tempCtx.moveTo(x + 12, y);
+                tempCtx.lineTo(x + 14, y + 6);
+                tempCtx.lineTo(x + 10, y + 6);
+                tempCtx.closePath();
+                tempCtx.fill();
+
+                // Eyes
+                tempCtx.fillStyle = '#fff';
+                tempCtx.fillRect(x + 7, y + 10, 3, 3);
+                tempCtx.fillRect(x + 14, y + 10, 3, 3);
+            }
+        }
+        this.sprites['crystal_guardian'] = this.canvasToImage(tempCanvas);
+
+        // The Keeper NPC sprite (24x24) - 4 frames x 4 directions
+        tempCanvas.width = 96;
+        tempCanvas.height = 96;
+        tempCtx.clearRect(0, 0, 96, 96);
+
+        for (let dir = 0; dir < 4; dir++) {
+            for (let frame = 0; frame < 4; frame++) {
+                const x = frame * 24;
+                const y = dir * 24;
+
+                // Hooded robe
+                tempCtx.fillStyle = '#111';
+                tempCtx.beginPath();
+                tempCtx.moveTo(x + 12, y + 4);
+                tempCtx.lineTo(x + 20, y + 10);
+                tempCtx.lineTo(x + 18, y + 22);
+                tempCtx.lineTo(x + 6, y + 22);
+                tempCtx.lineTo(x + 4, y + 10);
+                tempCtx.closePath();
+                tempCtx.fill();
+
+                // Hood
+                tempCtx.beginPath();
+                tempCtx.arc(x + 12, y + 8, 6, Math.PI, 0);
+                tempCtx.fill();
+
+                // Glowing eyes
+                tempCtx.fillStyle = '#ff0';
+                tempCtx.fillRect(x + 9, y + 9, 2, 2);
+                tempCtx.fillRect(x + 13, y + 9, 2, 2);
+            }
+        }
+        this.sprites['the_keeper'] = this.canvasToImage(tempCanvas);
+
+        // Mega Destroyer NPC sprite (32x32) - 4 frames x 4 directions
+        tempCanvas.width = 128;
+        tempCanvas.height = 128;
+        tempCtx.clearRect(0, 0, 128, 128);
+
+        for (let dir = 0; dir < 4; dir++) {
+            for (let frame = 0; frame < 4; frame++) {
+                const x = frame * 32;
+                const y = dir * 32;
+
+                // Main body
+                tempCtx.fillStyle = '#334';
+                tempCtx.fillRect(x + 4, y + 8, 24, 20);
+
+                // Head/sensor array
+                tempCtx.fillStyle = '#445';
+                tempCtx.fillRect(x + 8, y + 2, 16, 8);
+
+                // Eye/sensor
+                const blink = frame % 2 === 0;
+                tempCtx.fillStyle = blink ? '#f00' : '#800';
+                tempCtx.fillRect(x + 12, y + 4, 8, 4);
+
+                // Mechanical arms
+                tempCtx.fillStyle = '#556';
+                tempCtx.fillRect(x + 2, y + 12, 4, 12);
+                tempCtx.fillRect(x + 26, y + 12, 4, 12);
+
+                // Legs/treads
+                tempCtx.fillStyle = '#223';
+                tempCtx.fillRect(x + 6, y + 26, 8, 4);
+                tempCtx.fillRect(x + 18, y + 26, 8, 4);
+            }
+        }
+        this.sprites['mega_destroyer'] = this.canvasToImage(tempCanvas);
+
         // Soul (heart) placeholder (16x16)
         tempCanvas.width = 16;
         tempCanvas.height = 16;

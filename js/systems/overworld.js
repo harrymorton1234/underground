@@ -213,6 +213,9 @@ const Overworld = {
         this.camera.y = Utils.lerp(this.camera.y, targetY, 0.1);
     },
 
+    // Track which locked doors we've shown dialogue for this session
+    lockedDoorsShown: {},
+
     /**
      * Check room transitions
      */
@@ -238,7 +241,19 @@ const Overworld = {
 
                 // Check item requirements
                 if (transition.requiresItem && !Inventory.hasItem(transition.requiresItem)) {
-                    // Need specific item to pass
+                    // Show locked door dialogue if available and not shown recently
+                    const doorKey = `${this.roomId}_${transition.to}`;
+                    if (transition.lockedDialogue && !this.lockedDoorsShown[doorKey]) {
+                        this.lockedDoorsShown[doorKey] = true;
+                        Audio.playSFX('cancel');
+                        Game.setState(Game.states.DIALOGUE, {
+                            dialogueId: transition.lockedDialogue
+                        });
+                        // Reset after a short delay so it can show again later
+                        setTimeout(() => {
+                            this.lockedDoorsShown[doorKey] = false;
+                        }, 3000);
+                    }
                     continue;
                 }
 
@@ -341,6 +356,11 @@ const Overworld = {
         // Check interactables
         if (this.currentRoom.interactables) {
             for (const interactable of this.currentRoom.interactables) {
+                // Check flag requirements
+                if (interactable.requiresFlag && !this.checkFlag(interactable.requiresFlag)) {
+                    continue;
+                }
+
                 const rect = {
                     x: interactable.x,
                     y: interactable.y,
@@ -440,6 +460,9 @@ const Overworld = {
         // Render room tiles
         this.renderTiles();
 
+        // Render decorations
+        this.renderDecorations();
+
         // Render interactables
         this.renderInteractables();
 
@@ -497,7 +520,128 @@ const Overworld = {
                     case 3: // Door/transition
                         Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#111');
                         break;
+                    case 4: // Crystal tile
+                        Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#224');
+                        // Crystal shimmer
+                        const shimmer = Math.sin(performance.now() / 300 + col * 0.5) * 0.2 + 0.6;
+                        Renderer.drawRect(screenX + 4, screenY + 4, 8, 8, `rgba(100,200,255,${shimmer})`);
+                        break;
+                    case 5: // Dark pillar tile (skull room)
+                        Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#111');
+                        // Skull glow
+                        const skullGlow = Math.sin(performance.now() / 600 + row * 0.3) * 0.15 + 0.3;
+                        Renderer.drawRect(screenX + 3, screenY + 3, 10, 10, `rgba(100,0,0,${skullGlow})`);
+                        break;
+                    case 6: // Tech panel
+                        Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#112');
+                        // Blinking light
+                        const blink = Math.sin(performance.now() / 200 + col + row) > 0 ? 1 : 0.3;
+                        Renderer.drawRect(screenX + 6, screenY + 6, 4, 4, `rgba(0,255,100,${blink})`);
+                        break;
+                    case 7: // Locked door
+                        Renderer.drawRect(screenX, screenY, tileSize, tileSize, '#321');
+                        // Lock symbol
+                        Renderer.drawRect(screenX + 5, screenY + 4, 6, 8, '#543');
+                        Renderer.drawRect(screenX + 6, screenY + 6, 4, 4, '#ff0');
+                        break;
                 }
+            }
+        }
+    },
+
+    /**
+     * Render decorations
+     */
+    renderDecorations() {
+        if (!this.currentRoom || !this.currentRoom.decorations) return;
+
+        const time = performance.now() / 1000;
+
+        for (const deco of this.currentRoom.decorations) {
+            const screenX = deco.x - this.camera.x;
+            const screenY = deco.y - this.camera.y;
+
+            switch (deco.type) {
+                case 'crystal_pillar':
+                    // Tall crystal pillar
+                    Renderer.drawRect(screenX, screenY, 16, 48, '#226');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 12, 44, '#338');
+                    const crystalGlow = Math.sin(time * 2 + deco.x * 0.1) * 0.3 + 0.7;
+                    Renderer.drawRect(screenX + 4, screenY + 8, 8, 32, `rgba(100,180,255,${crystalGlow})`);
+                    break;
+
+                case 'crystal_cluster':
+                    // Small crystal cluster
+                    const cGlow = Math.sin(time * 3 + deco.x * 0.2) * 0.2 + 0.8;
+                    Renderer.ctx.fillStyle = `rgba(100,200,255,${cGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 8, screenY);
+                    Renderer.ctx.lineTo(screenX + 16, screenY + 12);
+                    Renderer.ctx.lineTo(screenX + 12, screenY + 16);
+                    Renderer.ctx.lineTo(screenX + 4, screenY + 16);
+                    Renderer.ctx.lineTo(screenX, screenY + 12);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'skull':
+                    // Skull decoration
+                    Renderer.drawRect(screenX, screenY, 16, 16, '#888');
+                    Renderer.drawRect(screenX + 2, screenY + 4, 4, 4, '#000'); // Left eye
+                    Renderer.drawRect(screenX + 10, screenY + 4, 4, 4, '#000'); // Right eye
+                    Renderer.drawRect(screenX + 6, screenY + 10, 4, 4, '#000'); // Nose
+                    break;
+
+                case 'bone_pile':
+                    // Bone pile
+                    Renderer.drawRect(screenX, screenY + 8, 16, 4, '#ccc');
+                    Renderer.drawRect(screenX + 4, screenY + 4, 8, 4, '#ddd');
+                    Renderer.drawRect(screenX + 2, screenY, 4, 8, '#bbb');
+                    break;
+
+                case 'dark_pillar':
+                    // Dark stone pillar
+                    Renderer.drawRect(screenX, screenY, 16, 64, '#222');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 12, 60, '#333');
+                    // Red glow cracks
+                    const dGlow = Math.sin(time * 1.5 + deco.y * 0.05) * 0.3 + 0.5;
+                    Renderer.drawRect(screenX + 6, screenY + 16, 4, 32, `rgba(150,0,0,${dGlow})`);
+                    break;
+
+                case 'tech_pillar':
+                    // Tech pillar with lights
+                    Renderer.drawRect(screenX, screenY, 16, 64, '#223');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 12, 60, '#334');
+                    // Blinking lights
+                    for (let i = 0; i < 4; i++) {
+                        const on = Math.sin(time * 4 + i * 1.5 + deco.x * 0.1) > 0;
+                        Renderer.drawRect(screenX + 6, screenY + 8 + i * 14, 4, 4, on ? '#0f0' : '#030');
+                    }
+                    break;
+
+                case 'energy_conduit':
+                    // Energy conduit with flowing effect
+                    Renderer.drawRect(screenX, screenY, 8, 32, '#334');
+                    const flow = (time * 2 + deco.y * 0.1) % 1;
+                    for (let i = 0; i < 4; i++) {
+                        const yOffset = ((flow + i * 0.25) % 1) * 32;
+                        const alpha = 1 - Math.abs(yOffset / 32 - 0.5) * 2;
+                        Renderer.drawRect(screenX + 2, screenY + yOffset, 4, 4, `rgba(0,255,200,${alpha})`);
+                    }
+                    break;
+
+                case 'core_terminal':
+                    // Terminal/console
+                    Renderer.drawRect(screenX, screenY, 32, 24, '#223');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 28, 16, '#000');
+                    // Screen flicker
+                    const flicker = Math.random() > 0.95 ? 0.3 : 1;
+                    Renderer.drawRect(screenX + 4, screenY + 4, 24, 12, `rgba(0,100,50,${flicker})`);
+                    // Text lines
+                    for (let i = 0; i < 3; i++) {
+                        Renderer.drawRect(screenX + 6, screenY + 6 + i * 3, 10 + Math.random() * 8, 2, '#0f0');
+                    }
+                    break;
             }
         }
     },
@@ -509,6 +653,11 @@ const Overworld = {
         if (!this.currentRoom || !this.currentRoom.interactables) return;
 
         for (const interactable of this.currentRoom.interactables) {
+            // Check flag requirements - don't render if not visible
+            if (interactable.requiresFlag && !this.checkFlag(interactable.requiresFlag)) {
+                continue;
+            }
+
             const screenX = interactable.x - this.camera.x;
             const screenY = interactable.y - this.camera.y;
 
@@ -526,6 +675,18 @@ const Overworld = {
                     for (let i = 0; i < 4; i++) {
                         Renderer.drawRect(screenX + 4 + i * 7, screenY + interactable.height - 8, 6, 6, '#fff');
                     }
+                    break;
+                case 'treasure_chest':
+                    // Treasure chest
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#876');
+                    // Lock
+                    Renderer.drawRect(screenX + interactable.width/2 - 4, screenY + interactable.height/2 - 2, 8, 8, '#ff0');
+                    break;
+                case 'hidden_key':
+                    // Small glint to hint at something hidden
+                    const glint = Math.sin(performance.now() / 400) * 0.3 + 0.5;
+                    Renderer.drawRect(screenX + 8, screenY + 4, 4, 4, `rgba(150,200,255,${glint})`);
                     break;
                 default:
                     // Generic interactable
