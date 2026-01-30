@@ -152,7 +152,8 @@ const Rooms = {
             `,
             transitions: [
                 { x: 8, y: 8, width: 8, height: 16, to: 'descent_1', playerX: 200, playerY: 192 },
-                { x: 304, y: 264, width: 8, height: 16, to: 'descent_secret', playerX: 32, playerY: 160 },
+                { x: 288, y: 272, width: 16, height: 8, to: 'descent_3', playerX: 32, playerY: 104 },
+                { x: 304, y: 264, width: 8, height: 16, to: 'descent_secret', playerX: 32, playerY: 160 }
             ],
             savePoints: [
                 { x: 136, y: 288, dialogue: 'descent_save_point' }
