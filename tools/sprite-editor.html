@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: monospace;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #ff0;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background: #16213e;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .panel h3 {
+            margin-bottom: 10px;
+            color: #0f4;
+        }
+
+        #canvas-container {
+            position: relative;
+        }
+
+        #sprite-canvas {
+            border: 2px solid #fff;
+            cursor: crosshair;
+            image-rendering: pixelated;
+        }
+
+        #preview-canvas {
+            border: 2px solid #666;
+            image-rendering: pixelated;
+            margin-top: 10px;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            margin-bottom: 15px;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #333;
+            cursor: pointer;
+        }
+
+        .color-swatch.selected {
+            border-color: #fff;
+        }
+
+        .tools {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #0e4d92;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: monospace;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #1a6db8;
+        }
+
+        button.active {
+            background: #ff0;
+            color: #000;
+        }
+
+        .size-controls {
+            margin-bottom: 15px;
+        }
+
+        .size-controls label {
+            margin-right: 10px;
+        }
+
+        .size-controls input {
+            width: 60px;
+            padding: 4px;
+            font-family: monospace;
+        }
+
+        #output {
+            width: 100%;
+            height: 100px;
+            background: #0d1b2a;
+            color: #0f4;
+            border: 1px solid #333;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .info {
+            margin-top: 10px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .frame-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .frame-nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        #frame-display {
+            min-width: 80px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pixel Sprite Editor</h1>
+
+    <div class="container">
+        <div class="panel">
+            <h3>Canvas</h3>
+            <div class="size-controls">
+                <label>Size:</label>
+                <input type="number" id="width" value="16" min="1" max="64">
+                x
+                <input type="number" id="height" value="16" min="1" max="64">
+                <button onclick="resizeCanvas()">Resize</button>
+            </div>
+
+            <div class="tools">
+                <button id="tool-pencil" class="active" onclick="setTool('pencil')">Pencil</button>
+                <button id="tool-eraser" onclick="setTool('eraser')">Eraser</button>
+                <button id="tool-fill" onclick="setTool('fill')">Fill</button>
+                <button id="tool-picker" onclick="setTool('picker')">Picker</button>
+            </div>
+
+            <div id="canvas-container">
+                <canvas id="sprite-canvas" width="256" height="256"></canvas>
+            </div>
+
+            <div class="frame-controls">
+                <span>Animation:</span>
+                <div class="frame-nav">
+                    <button onclick="prevFrame()">&lt;</button>
+                    <span id="frame-display">1/1</span>
+                    <button onclick="nextFrame()">&gt;</button>
+                </div>
+                <button onclick="addFrame()">+ Frame</button>
+                <button onclick="deleteFrame()">- Frame</button>
+                <button onclick="playAnimation()">Play</button>
+            </div>
+
+            <div class="info">
+                Click to draw. Right-click to erase. Middle-click to pick color.
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Colors</h3>
+            <div class="color-palette" id="palette"></div>
+
+            <label>Custom:</label>
+            <input type="color" id="custom-color" value="#ffffff" onchange="addCustomColor(this.value)">
+
+            <h3 style="margin-top: 20px;">Preview</h3>
+            <canvas id="preview-canvas" width="64" height="64"></canvas>
+            <div>
+                <label><input type="checkbox" id="show-grid" checked onchange="render()"> Show Grid</label>
+            </div>
+
+            <h3 style="margin-top: 20px;">Export</h3>
+            <div class="tools">
+                <button onclick="exportPNG()">Save PNG</button>
+                <button onclick="exportData()">Copy Data</button>
+                <button onclick="importData()">Import</button>
+                <button onclick="clearCanvas()">Clear</button>
+            </div>
+
+            <textarea id="output" readonly placeholder="Export data will appear here..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        // Editor state
+        const state = {
+            width: 16,
+            height: 16,
+            scale: 16,
+            tool: 'pencil',
+            color: '#ffffff',
+            frames: [null],
+            currentFrame: 0,
+            playing: false,
+            playInterval: null
+        };
+
+        // Default palette (Undertale-ish colors)
+        const defaultPalette = [
+            '#000000', '#ffffff', '#ff0000', '#00ff00',
+            '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
+            '#ff8800', '#88ff00', '#0088ff', '#ff0088',
+            '#888888', '#444444', '#ffccaa', '#aaccff'
+        ];
+
+        // Canvas setup
+        const canvas = document.getElementById('sprite-canvas');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('preview-canvas');
+        const previewCtx = previewCanvas.getContext('2d');
+
+        // Initialize
+        function init() {
+            // Create palette
+            const paletteEl = document.getElementById('palette');
+            defaultPalette.forEach((color, i) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch' + (i === 1 ? ' selected' : '');
+                swatch.style.background = color;
+                swatch.onclick = () => selectColor(color, swatch);
+                paletteEl.appendChild(swatch);
+            });
+
+            // Initialize first frame
+            state.frames[0] = createFrame();
+
+            // Set up canvas events
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            render();
+        }
+
+        // Create empty frame
+        function createFrame() {
+            const frame = [];
+            for (let y = 0; y < state.height; y++) {
+                frame[y] = [];
+                for (let x = 0; x < state.width; x++) {
+                    frame[y][x] = null; // null = transparent
+                }
+            }
+            return frame;
+        }
+
+        // Get current frame
+        function getCurrentFrame() {
+            return state.frames[state.currentFrame];
+        }
+
+        // Mouse handling
+        let isDrawing = false;
+        let lastX = -1, lastY = -1;
+
+        function onMouseDown(e) {
+            isDrawing = true;
+            const pos = getPixelPos(e);
+
+            if (e.button === 2) {
+                // Right click - erase
+                setPixel(pos.x, pos.y, null);
+            } else if (e.button === 1 || state.tool === 'picker') {
+                // Middle click or picker tool - pick color
+                const color = getCurrentFrame()[pos.y]?.[pos.x];
+                if (color) selectColorByValue(color);
+            } else {
+                handleTool(pos.x, pos.y);
+            }
+
+            lastX = pos.x;
+            lastY = pos.y;
+            render();
+        }
+
+        function onMouseMove(e) {
+            if (!isDrawing) return;
+
+            const pos = getPixelPos(e);
+            if (pos.x === lastX && pos.y === lastY) return;
+
+            if (e.buttons === 2) {
+                setPixel(pos.x, pos.y, null);
+            } else if (state.tool === 'pencil') {
+                // Draw line between points for smooth drawing
+                drawLine(lastX, lastY, pos.x, pos.y);
+            }
+
+            lastX = pos.x;
+            lastY = pos.y;
+            render();
+        }
+
+        function onMouseUp() {
+            isDrawing = false;
+        }
+
+        function getPixelPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: Math.floor((e.clientX - rect.left) / state.scale),
+                y: Math.floor((e.clientY - rect.top) / state.scale)
+            };
+        }
+
+        // Drawing functions
+        function handleTool(x, y) {
+            switch (state.tool) {
+                case 'pencil':
+                    setPixel(x, y, state.color);
+                    break;
+                case 'eraser':
+                    setPixel(x, y, null);
+                    break;
+                case 'fill':
+                    floodFill(x, y, state.color);
+                    break;
+                case 'picker':
+                    const color = getCurrentFrame()[y]?.[x];
+                    if (color) selectColorByValue(color);
+                    break;
+            }
+        }
+
+        function setPixel(x, y, color) {
+            const frame = getCurrentFrame();
+            if (x >= 0 && x < state.width && y >= 0 && y < state.height) {
+                frame[y][x] = color;
+            }
+        }
+
+        function drawLine(x0, y0, x1, y1) {
+            const dx = Math.abs(x1 - x0);
+            const dy = Math.abs(y1 - y0);
+            const sx = x0 < x1 ? 1 : -1;
+            const sy = y0 < y1 ? 1 : -1;
+            let err = dx - dy;
+
+            while (true) {
+                setPixel(x0, y0, state.tool === 'eraser' ? null : state.color);
+
+                if (x0 === x1 && y0 === y1) break;
+                const e2 = 2 * err;
+                if (e2 > -dy) { err -= dy; x0 += sx; }
+                if (e2 < dx) { err += dx; y0 += sy; }
+            }
+        }
+
+        function floodFill(x, y, newColor) {
+            const frame = getCurrentFrame();
+            const targetColor = frame[y]?.[x];
+            if (targetColor === newColor) return;
+
+            const stack = [[x, y]];
+            while (stack.length > 0) {
+                const [cx, cy] = stack.pop();
+                if (cx < 0 || cx >= state.width || cy < 0 || cy >= state.height) continue;
+                if (frame[cy][cx] !== targetColor) continue;
+
+                frame[cy][cx] = newColor;
+                stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+            }
+        }
+
+        // Rendering
+        function render() {
+            // Clear
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw checkerboard for transparency
+            const checkSize = state.scale / 2;
+            for (let y = 0; y < state.height * 2; y++) {
+                for (let x = 0; x < state.width * 2; x++) {
+                    ctx.fillStyle = (x + y) % 2 === 0 ? '#333' : '#444';
+                    ctx.fillRect(x * checkSize, y * checkSize, checkSize, checkSize);
+                }
+            }
+
+            // Draw pixels
+            const frame = getCurrentFrame();
+            for (let y = 0; y < state.height; y++) {
+                for (let x = 0; x < state.width; x++) {
+                    const color = frame[y][x];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x * state.scale, y * state.scale, state.scale, state.scale);
+                    }
+                }
+            }
+
+            // Draw grid
+            if (document.getElementById('show-grid').checked) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x <= state.width; x++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x * state.scale + 0.5, 0);
+                    ctx.lineTo(x * state.scale + 0.5, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = 0; y <= state.height; y++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y * state.scale + 0.5);
+                    ctx.lineTo(canvas.width, y * state.scale + 0.5);
+                    ctx.stroke();
+                }
+            }
+
+            // Update preview
+            renderPreview();
+            updateFrameDisplay();
+        }
+
+        function renderPreview() {
+            const scale = 4;
+            previewCanvas.width = state.width * scale;
+            previewCanvas.height = state.height * scale;
+            previewCtx.imageSmoothingEnabled = false;
+
+            const frame = getCurrentFrame();
+            for (let y = 0; y < state.height; y++) {
+                for (let x = 0; x < state.width; x++) {
+                    const color = frame[y][x];
+                    if (color) {
+                        previewCtx.fillStyle = color;
+                        previewCtx.fillRect(x * scale, y * scale, scale, scale);
+                    }
+                }
+            }
+        }
+
+        // Tool selection
+        function setTool(tool) {
+            state.tool = tool;
+            document.querySelectorAll('.tools button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('tool-' + tool).classList.add('active');
+        }
+
+        // Color selection
+        function selectColor(color, element) {
+            state.color = color;
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function selectColorByValue(color) {
+            state.color = color;
+            document.getElementById('custom-color').value = color;
+        }
+
+        function addCustomColor(color) {
+            state.color = color;
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        }
+
+        // Frame management
+        function addFrame() {
+            state.frames.push(createFrame());
+            state.currentFrame = state.frames.length - 1;
+            render();
+        }
+
+        function deleteFrame() {
+            if (state.frames.length <= 1) return;
+            state.frames.splice(state.currentFrame, 1);
+            state.currentFrame = Math.min(state.currentFrame, state.frames.length - 1);
+            render();
+        }
+
+        function prevFrame() {
+            state.currentFrame = (state.currentFrame - 1 + state.frames.length) % state.frames.length;
+            render();
+        }
+
+        function nextFrame() {
+            state.currentFrame = (state.currentFrame + 1) % state.frames.length;
+            render();
+        }
+
+        function updateFrameDisplay() {
+            document.getElementById('frame-display').textContent =
+                `${state.currentFrame + 1}/${state.frames.length}`;
+        }
+
+        function playAnimation() {
+            if (state.playing) {
+                clearInterval(state.playInterval);
+                state.playing = false;
+            } else {
+                state.playing = true;
+                state.playInterval = setInterval(() => {
+                    nextFrame();
+                }, 200);
+            }
+        }
+
+        // Canvas operations
+        function resizeCanvas() {
+            const newWidth = parseInt(document.getElementById('width').value) || 16;
+            const newHeight = parseInt(document.getElementById('height').value) || 16;
+
+            state.width = Math.min(64, Math.max(1, newWidth));
+            state.height = Math.min(64, Math.max(1, newHeight));
+
+            // Update canvas size
+            state.scale = Math.max(4, Math.min(16, Math.floor(256 / Math.max(state.width, state.height))));
+            canvas.width = state.width * state.scale;
+            canvas.height = state.height * state.scale;
+
+            // Resize all frames
+            state.frames = state.frames.map(frame => {
+                const newFrame = createFrame();
+                for (let y = 0; y < Math.min(frame.length, state.height); y++) {
+                    for (let x = 0; x < Math.min(frame[y].length, state.width); x++) {
+                        newFrame[y][x] = frame[y][x];
+                    }
+                }
+                return newFrame;
+            });
+
+            render();
+        }
+
+        function clearCanvas() {
+            state.frames[state.currentFrame] = createFrame();
+            render();
+        }
+
+        // Export functions
+        function exportPNG() {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = state.width;
+            exportCanvas.height = state.height;
+            const exportCtx = exportCanvas.getContext('2d');
+
+            const frame = getCurrentFrame();
+            for (let y = 0; y < state.height; y++) {
+                for (let x = 0; x < state.width; x++) {
+                    const color = frame[y][x];
+                    if (color) {
+                        exportCtx.fillStyle = color;
+                        exportCtx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+
+            const link = document.createElement('a');
+            link.download = 'sprite.png';
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function exportData() {
+            const data = {
+                width: state.width,
+                height: state.height,
+                frames: state.frames
+            };
+            const json = JSON.stringify(data);
+            document.getElementById('output').value = json;
+            navigator.clipboard.writeText(json);
+        }
+
+        function importData() {
+            const json = prompt('Paste sprite data:');
+            if (!json) return;
+
+            try {
+                const data = JSON.parse(json);
+                state.width = data.width;
+                state.height = data.height;
+                state.frames = data.frames;
+                state.currentFrame = 0;
+
+                document.getElementById('width').value = state.width;
+                document.getElementById('height').value = state.height;
+
+                resizeCanvas();
+            } catch (e) {
+                alert('Invalid data format');
+            }
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

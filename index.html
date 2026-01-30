@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Underground</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Engine -->
+    <script src="js/engine/utils.js"></script>
+    <script src="js/engine/input.js"></script>
+    <script src="js/engine/audio.js"></script>
+    <script src="js/engine/renderer.js"></script>
+    <script src="js/engine/save.js"></script>
+    <script src="js/engine/game.js"></script>
+
+    <!-- Data -->
+    <script src="js/data/flags.js"></script>
+    <script src="js/data/items.js"></script>
+    <script src="js/data/dialogues.js"></script>
+    <script src="js/data/enemies.js"></script>
+    <script src="js/data/rooms.js"></script>
+
+    <!-- Entities -->
+    <script src="js/entities/player.js"></script>
+    <script src="js/entities/npc.js"></script>
+    <script src="js/entities/enemy.js"></script>
+    <script src="js/entities/soul.js"></script>
+
+    <!-- Systems -->
+    <script src="js/systems/dialogue.js"></script>
+    <script src="js/systems/inventory.js"></script>
+    <script src="js/systems/bullets.js"></script>
+    <script src="js/systems/battle.js"></script>
+    <script src="js/systems/overworld.js"></script>
+    <script src="js/systems/secrets.js"></script>
+
+    <!-- Main -->
+    <script src="js/main.js"></script>
+</body>
+</html>

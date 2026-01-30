@@ -1,0 +1,42 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background-color: #000;
+}
+
+/* Fullscreen styling */
+#game-container:fullscreen {
+    width: 100%;
+    height: 100%;
+}
+
+#game-container:-webkit-full-screen {
+    width: 100%;
+    height: 100%;
+}
+
+/* Hide cursor during gameplay (optional) */
+.hide-cursor {
+    cursor: none;
+}
