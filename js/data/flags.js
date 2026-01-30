@@ -29,7 +29,15 @@ const Flags = {
         'guardian_spared': { default: false, description: 'Spared the Crystal Guardian' },
         'guardian_killed': { default: false, description: 'Killed the Crystal Guardian' },
 
-        // Area 3 - Ancient Hall
+        // Area 3 - Swamp Underground
+        'swamp_entered': { default: false, description: 'Entered the Swamp Underground' },
+        'fairy_ring_blessed': { default: false, description: 'Received blessing from the fairy ring' },
+        'mystic_pool_vision_seen': { default: false, description: 'Saw the vision in the mystic pool' },
+        'keeper_fought': { default: false, description: 'Fought The Keeper' },
+        'keeper_spared': { default: false, description: 'Spared The Keeper' },
+        'keeper_killed': { default: false, description: 'Killed The Keeper' },
+
+        // Area 4 - Ancient Hall
         'hall_entered': { default: false, description: 'Entered the Ancient Hall' },
         'mysterious_figure_met': { default: false, description: 'Met the mysterious figure' },
         'learned_history': { default: false, description: 'Learned the world history' },

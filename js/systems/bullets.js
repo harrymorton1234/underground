@@ -287,27 +287,42 @@ const Bullets = {
         // ==================== ANCIENT HALL PATTERNS ====================
 
         this.patterns['spirit_wisps'] = {
-            duration: 5,
+            duration: 3,
             spawners: [
                 {
                     type: 'homing',
-                    delay: 0.5,
-                    interval: 1.5,
-                    bullet: { type: 'circle', speed: 40, size: 5, color: '#8ff', homing: 0.5 },
+                    delay: 0.2,
+                    interval: 0.5,
+                    bullet: { type: 'circle', speed: 55, size: 5, color: '#8ff', homing: 0.6 },
                     position: 'random_edge'
+                },
+                {
+                    type: 'single',
+                    delay: 0.3,
+                    interval: 0.6,
+                    bullet: { type: 'circle', speed: 50, size: 4, color: '#aff' },
+                    position: 'random_top'
                 }
             ]
         };
 
         this.patterns['spirit_wail'] = {
-            duration: 4,
+            duration: 3,
             spawners: [
                 {
                     type: 'wave_horizontal',
-                    delay: 0,
-                    count: 5,
-                    bullet: { type: 'circle', speed: 60, size: 6, color: '#8ff' },
-                    gapY: 160
+                    delay: 0.1,
+                    count: 6,
+                    bullet: { type: 'circle', speed: 70, size: 6, color: '#8ff' },
+                    gapY: 140
+                },
+                {
+                    type: 'burst',
+                    delay: 1,
+                    interval: 0.8,
+                    count: 4,
+                    bullet: { type: 'circle', speed: 45, size: 5, color: '#aff' },
+                    position: 'center'
                 }
             ]
         };

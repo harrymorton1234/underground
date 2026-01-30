@@ -254,6 +254,26 @@ const Dialogue = {
             Inventory.addItem(this.currentDialogue.giveItem);
         }
 
+        // Heal player if specified
+        if (this.currentDialogue && this.currentDialogue.healPlayer) {
+            const save = Save.getCurrent();
+            if (save) {
+                save.hp = save.maxHp;
+                Save.save(save.slot);
+                Audio.playSFX('heal');
+            }
+        }
+
+        // Discover secrets for special dialogues
+        if (this.currentDialogue && this.currentDialogue.setFlags) {
+            if (this.currentDialogue.setFlags['fairy_ring_blessed']) {
+                Secrets.discover('fairy_ring_blessed');
+            }
+            if (this.currentDialogue.setFlags['mystic_pool_vision_seen']) {
+                Secrets.discover('mystic_pool_vision_seen');
+            }
+        }
+
         // Store callback and previous state before clearing
         const callback = this.callback;
         const previousState = Game.previousState;

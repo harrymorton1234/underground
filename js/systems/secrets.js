@@ -22,6 +22,18 @@ const Secrets = {
             hint: "There's a crack in the wall somewhere..."
         },
 
+        'fairy_ring_blessed': {
+            name: 'Fae Touched',
+            description: 'Received the blessing of the fairy ring',
+            hint: 'A circle of mushrooms glows in the Twisted Grotto...'
+        },
+
+        'mystic_pool_vision_seen': {
+            name: 'Oracle',
+            description: 'Gazed into the mystic pool and saw the future',
+            hint: 'In the Foggy Marsh, still waters run deep...'
+        },
+
         'all_spared': {
             name: 'Pacifist',
             description: 'Completed the game without killing anyone',

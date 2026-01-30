@@ -369,8 +369,26 @@ const Overworld = {
                 };
 
                 if (Utils.pointInRect(interactionPoint.x, interactionPoint.y, rect)) {
+                    // Handle dialogueOnce - track which interactables have been interacted with
+                    let dialogueId = interactable.dialogue;
+                    if (interactable.dialogueOnce) {
+                        const interactedKey = `${this.roomId}_${interactable.type}_interacted`;
+                        if (Save.getFlag(interactedKey)) {
+                            // Use afterDialogue if available
+                            dialogueId = interactable.afterDialogue || interactable.dialogue;
+                        } else {
+                            // Mark as interacted after dialogue
+                            Game.setState(Game.states.DIALOGUE, {
+                                dialogueId: dialogueId,
+                                callback: () => {
+                                    Save.setFlag(interactedKey, true);
+                                }
+                            });
+                            return;
+                        }
+                    }
                     Game.setState(Game.states.DIALOGUE, {
-                        dialogueId: interactable.dialogue
+                        dialogueId: dialogueId
                     });
                     return;
                 }
@@ -735,6 +753,59 @@ const Overworld = {
                     // Small glint to hint at something hidden
                     const glint = Math.sin(performance.now() / 400) * 0.3 + 0.5;
                     Renderer.drawRect(screenX + 8, screenY + 4, 4, 4, `rgba(150,200,255,${glint})`);
+                    break;
+                case 'fairy_ring':
+                    // Mushroom fairy ring - glowing circle of mushrooms
+                    const ringPulse = Math.sin(performance.now() / 600) * 0.3 + 0.6;
+                    const ringGlow = Math.sin(performance.now() / 300) * 0.2 + 0.4;
+                    // Draw glowing ground circle
+                    Renderer.ctx.fillStyle = `rgba(100,200,150,${ringGlow * 0.3})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 16, screenY + 16, 14, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Draw mushrooms in circle
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i / 6) * Math.PI * 2 + performance.now() / 3000;
+                        const mx = screenX + 16 + Math.cos(angle) * 10;
+                        const my = screenY + 16 + Math.sin(angle) * 10;
+                        // Mushroom cap
+                        Renderer.ctx.fillStyle = `rgba(200,100,150,${ringPulse})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(mx, my, 3, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                        // Mushroom stem
+                        Renderer.drawRect(mx - 1, my + 2, 2, 3, `rgba(220,200,180,${ringPulse})`);
+                    }
+                    // Center sparkle
+                    if (Math.sin(performance.now() / 200) > 0.7) {
+                        Renderer.drawRect(screenX + 15, screenY + 15, 2, 2, '#fff');
+                    }
+                    break;
+                case 'mystic_pool':
+                    // Mysterious glowing pool
+                    const poolPulse = Math.sin(performance.now() / 800) * 0.3 + 0.5;
+                    const poolRipple = Math.sin(performance.now() / 400);
+                    // Pool base
+                    Renderer.ctx.fillStyle = `rgba(40,80,100,0.9)`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 16, screenY + 12, 14, 10, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Water surface with ripples
+                    Renderer.ctx.fillStyle = `rgba(80,150,180,${poolPulse})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 16, screenY + 12, 12 + poolRipple, 8 + poolRipple * 0.5, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Mysterious glow from center
+                    Renderer.ctx.fillStyle = `rgba(150,220,255,${poolPulse * 0.6})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 16, screenY + 12, 6, 4, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Occasional sparkle
+                    if (Math.sin(performance.now() / 150) > 0.8) {
+                        const sparkX = screenX + 10 + Math.random() * 12;
+                        const sparkY = screenY + 8 + Math.random() * 8;
+                        Renderer.drawRect(sparkX, sparkY, 2, 2, '#aef');
+                    }
                     break;
                 default:
                     // Generic interactable

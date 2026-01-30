@@ -535,7 +535,8 @@ const Rooms = {
                 { type: 'mushroom_cluster', x: 160, y: 160 }
             ],
             interactables: [
-                { x: 80, y: 100, width: 32, height: 32, type: 'lore', dialogue: 'swamp_lore_tablet' }
+                { x: 80, y: 100, width: 32, height: 32, type: 'lore', dialogue: 'swamp_lore_tablet' },
+                { x: 200, y: 140, width: 32, height: 32, type: 'fairy_ring', dialogue: 'fairy_ring_interact', dialogueOnce: true, afterDialogue: 'fairy_ring_return' }
             ],
             transitions: [
                 { x: 304, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 24, playerY: 104 }
@@ -584,6 +585,9 @@ const Rooms = {
                     dialogueOnce: true,
                     afterDialogue: 'lost_spirit_hint'
                 }
+            ],
+            interactables: [
+                { x: 260, y: 160, width: 32, height: 24, type: 'mystic_pool', dialogue: 'mystic_pool_interact', dialogueOnce: true, afterDialogue: 'mystic_pool_return' }
             ],
             transitions: [
                 { x: 8, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 368, playerY: 104 }

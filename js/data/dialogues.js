@@ -637,6 +637,105 @@ const Dialogues = {
             ]
         },
 
+        'fairy_ring_interact': {
+            speaker: null,
+            lines: [
+                { text: 'A circle of glowing mushrooms...' },
+                { text: 'They pulse with an otherworldly light.' },
+                { text: 'You feel compelled to step into the ring.' }
+            ],
+            choices: [
+                {
+                    text: 'Step inside',
+                    next: 'fairy_ring_enter'
+                },
+                {
+                    text: 'Stay back',
+                    next: 'fairy_ring_refuse'
+                }
+            ]
+        },
+
+        'fairy_ring_enter': {
+            speaker: null,
+            lines: [
+                { text: 'You step into the fairy ring...' },
+                { text: 'The mushrooms glow brighter!' },
+                { text: 'A warm light envelops you.' },
+                { text: '* Your HP was fully restored!' },
+                { text: "* You feel... lucky. Like something good will happen." }
+            ],
+            setFlags: { 'fairy_ring_blessed': true },
+            giveItem: 'glowing_mushroom',
+            healPlayer: true
+        },
+
+        'fairy_ring_refuse': {
+            speaker: null,
+            lines: [
+                { text: 'You decide not to risk it.' },
+                { text: 'The mushrooms seem to dim slightly.' },
+                { text: '...Was that disappointment?' }
+            ]
+        },
+
+        'fairy_ring_return': {
+            speaker: null,
+            lines: [
+                { text: 'The fairy ring still glows softly.' },
+                { text: "But its magic seems spent... for now." }
+            ]
+        },
+
+        'mystic_pool_interact': {
+            speaker: null,
+            lines: [
+                { text: 'A strange pool in the fog...' },
+                { text: 'The water glows with an inner light.' },
+                { text: 'Something stirs beneath the surface.' }
+            ],
+            choices: [
+                {
+                    text: 'Gaze into the pool',
+                    next: 'mystic_pool_vision'
+                },
+                {
+                    text: 'Look away',
+                    next: 'mystic_pool_ignore'
+                }
+            ]
+        },
+
+        'mystic_pool_vision': {
+            speaker: null,
+            lines: [
+                { text: 'You gaze into the depths...' },
+                { text: 'Images swirl in the water:' },
+                { text: 'A great machine... pulsing with power.' },
+                { text: 'A choice that will change everything.' },
+                { text: 'And... a familiar face, watching.' },
+                { text: 'The vision fades.' },
+                { text: "* You gained insight into what's to come." }
+            ],
+            setFlags: { 'mystic_pool_vision_seen': true }
+        },
+
+        'mystic_pool_ignore': {
+            speaker: null,
+            lines: [
+                { text: 'Some things are better left unknown.' },
+                { text: 'You turn away from the pool.' }
+            ]
+        },
+
+        'mystic_pool_return': {
+            speaker: null,
+            lines: [
+                { text: 'The pool has grown dark.' },
+                { text: 'It has shown you all it will.' }
+            ]
+        },
+
         'lost_spirit_talk': {
             speaker: 'Lost Spirit',
             portrait: 'npc_sad',
