@@ -254,6 +254,21 @@ const Dialogue = {
             Inventory.addItem(this.currentDialogue.giveItem);
         }
 
+        // Give multiple items
+        if (this.currentDialogue && this.currentDialogue.giveItems) {
+            for (const itemId of this.currentDialogue.giveItems) {
+                Inventory.addItem(itemId);
+            }
+        }
+
+        // Give gold
+        if (this.currentDialogue && this.currentDialogue.giveGold) {
+            const save = Save.getCurrent();
+            if (save) {
+                save.gold += this.currentDialogue.giveGold;
+            }
+        }
+
         // Heal player if specified
         if (this.currentDialogue && this.currentDialogue.healPlayer) {
             const save = Save.getCurrent();

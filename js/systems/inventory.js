@@ -16,7 +16,12 @@ const Inventory = {
      */
     getItems() {
         const save = Save.getCurrent();
-        return save ? save.items : [];
+        if (!save) return [];
+        // Ensure items array exists
+        if (!save.items) {
+            save.items = [];
+        }
+        return save.items;
     },
 
     /**
@@ -26,7 +31,8 @@ const Inventory = {
         const save = Save.getCurrent();
         if (!save) return false;
 
-        if (save.items.length >= this.maxItems) {
+        const maxItems = this.getMaxItems();
+        if (save.items.length >= maxItems) {
             return false; // Inventory full
         }
 
@@ -91,7 +97,7 @@ const Inventory = {
      * Check if inventory is full
      */
     isFull() {
-        return this.getItems().length >= this.maxItems;
+        return this.getItems().length >= this.getMaxItems();
     },
 
     /**
@@ -185,12 +191,67 @@ const Inventory = {
                 success: true,
                 text: item.equipText || `* You equipped ${item.name}.`
             };
+        } else if (item.type === 'backpack') {
+            // Unequip current backpack
+            const oldBackpack = save.backpack;
+            if (oldBackpack) {
+                save.items.push(oldBackpack);
+            }
+
+            // Equip new backpack
+            save.backpack = itemId;
+            this.removeItem(index);
+
+            // Update max items
+            this.updateMaxItems();
+
+            result = {
+                success: true,
+                text: item.equipText || `* You equipped ${item.name}.`
+            };
         }
 
         // Update stats
         this.updateStats();
 
         return result;
+    },
+
+    /**
+     * Update max inventory size based on backpack
+     */
+    updateMaxItems() {
+        const save = Save.getCurrent();
+        if (!save) return;
+
+        // Base inventory size
+        let maxItems = 8;
+
+        // Add backpack bonus
+        if (save.backpack) {
+            const backpack = Items.get(save.backpack);
+            if (backpack && backpack.inventoryBonus) {
+                maxItems += backpack.inventoryBonus;
+            }
+        }
+
+        save.maxItems = maxItems;
+        this.maxItems = maxItems;
+    },
+
+    /**
+     * Get current max items (considering backpack)
+     */
+    getMaxItems() {
+        const save = Save.getCurrent();
+        if (!save) return 8;
+
+        // Ensure maxItems is set
+        if (!save.maxItems) {
+            this.updateMaxItems();
+        }
+
+        return save.maxItems || 8;
     },
 
     /**
@@ -203,6 +264,7 @@ const Inventory = {
         // Base stats (could be level-based)
         let attack = 10;
         let defense = 10;
+        let baseMaxHp = 20 + (save.level - 1) * 4; // Base HP scales with level
 
         // Add weapon bonus
         if (save.weapon) {
@@ -212,10 +274,24 @@ const Inventory = {
         // Add armor bonus
         if (save.armor) {
             defense += Items.getDefense(save.armor);
+            baseMaxHp += Items.getHpBonus(save.armor);
         }
 
         save.attack = attack;
         save.defense = defense;
+
+        // Update max HP (keep current HP ratio)
+        const oldMaxHp = save.maxHp || 20;
+        const hpRatio = save.hp / oldMaxHp;
+        save.maxHp = baseMaxHp;
+
+        // If HP was at max, keep it at max
+        if (save.hp >= oldMaxHp) {
+            save.hp = save.maxHp;
+        } else {
+            // Otherwise maintain the ratio
+            save.hp = Math.ceil(hpRatio * save.maxHp);
+        }
     },
 
     /**

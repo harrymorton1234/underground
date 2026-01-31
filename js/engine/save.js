@@ -41,11 +41,12 @@ const Save = {
             x: 160,
             y: 120,
 
-            // Inventory
-            items: [],
+            // Inventory - start with a healing item
+            items: ['cave_water'],
             maxItems: 8,
             weapon: null,
             armor: null,
+            backpack: null,
 
             // Story progress
             flags: {},

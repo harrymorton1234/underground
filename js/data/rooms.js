@@ -100,7 +100,7 @@ const Rooms = {
                 1000000000000000000000001
                 1000000000000000000000001
                 1000000000000000000000001
-                1000000000000000000000001
+                3000000000000000000000001
                 1000000000000000000000001
                 1000000000000000000000001
                 1000000000000000000000001
@@ -112,8 +112,9 @@ const Rooms = {
             `,
             npcs: [],
             transitions: [
-                { x: 168, y: 0, width: 16, height: 8, to: 'intro_2', playerX: 160, playerY: 192 },
-                { x: 200, y: 208, width: 16, height: 8, to: 'descent_2', playerX: 64, playerY: 32 }
+                { x: 160, y: 0, width: 16, height: 16, to: 'intro_2', playerX: 160, playerY: 192 },
+                { x: 208, y: 208, width: 16, height: 16, to: 'descent_2', playerX: 32, playerY: 48 },
+                { x: 0, y: 96, width: 16, height: 16, to: 'descent_shop', playerX: 200, playerY: 120 }
             ],
             onEnter: 'descent_entrance',
             onEnterOnce: true,
@@ -151,9 +152,9 @@ const Rooms = {
                 11111111111111111111
             `,
             transitions: [
-                { x: 8, y: 8, width: 8, height: 16, to: 'descent_1', playerX: 200, playerY: 192 },
-                { x: 288, y: 272, width: 16, height: 8, to: 'descent_3', playerX: 32, playerY: 104 },
-                { x: 304, y: 264, width: 8, height: 16, to: 'descent_secret', playerX: 32, playerY: 160 }
+                { x: 16, y: 16, width: 16, height: 16, to: 'descent_1', playerX: 220, playerY: 192 },
+                { x: 288, y: 272, width: 16, height: 16, to: 'descent_3', playerX: 32, playerY: 120 },
+                { x: 288, y: 160, width: 16, height: 16, to: 'descent_secret', playerX: 60, playerY: 140 }
             ],
             savePoints: [
                 { x: 136, y: 288, dialogue: 'descent_save_point' }
@@ -167,7 +168,7 @@ const Rooms = {
             area: 'descent',
             width: 15,
             height: 12,
-            playerStart: { x: 32, y: 160 },
+            playerStart: { x: 60, y: 140 },
             tileData: `
                 111111111111111
                 100000000000001
@@ -183,11 +184,11 @@ const Rooms = {
                 111111111111111
             `,
             interactables: [
-                { x: 180, y: 80, width: 32, height: 32, type: 'lore', dialogue: 'descent_lore_tablet' },
-                { x: 180, y: 120, width: 24, height: 16, type: 'hidden_key', dialogue: 'found_crystal_key', requiresFlag: '!got_crystal_key' }
+                { x: 100, y: 60, width: 32, height: 32, type: 'lore', dialogue: 'descent_lore_tablet' },
+                { x: 100, y: 100, width: 32, height: 24, type: 'hidden_key', dialogue: 'found_crystal_key', requiresFlag: '!got_crystal_key' }
             ],
             transitions: [
-                { x: 8, y: 152, width: 8, height: 16, to: 'descent_2', playerX: 288, playerY: 264 }
+                { x: 16, y: 160, width: 16, height: 16, to: 'descent_2', playerX: 270, playerY: 170 }
             ],
             secret: true,
             secretId: 'descent_hidden_chamber',
@@ -218,8 +219,8 @@ const Rooms = {
                 11111111111111111111
             `,
             transitions: [
-                { x: 8, y: 104, width: 8, height: 16, to: 'descent_2', playerX: 288, playerY: 280 },
-                { x: 304, y: 8, width: 8, height: 16, to: 'caverns_1', playerX: 32, playerY: 120 }
+                { x: 16, y: 112, width: 16, height: 16, to: 'descent_2', playerX: 270, playerY: 260 },
+                { x: 288, y: 16, width: 16, height: 16, to: 'caverns_1', playerX: 48, playerY: 120 }
             ],
             encounterRate: 0.15,
             encounterEnemies: ['cave_spider', 'rock_critter']
@@ -250,8 +251,8 @@ const Rooms = {
                 1111111111111111111111111
             `,
             transitions: [
-                { x: 8, y: 104, width: 8, height: 16, to: 'descent_3', playerX: 288, playerY: 8 },
-                { x: 384, y: 104, width: 8, height: 16, to: 'caverns_shop', playerX: 32, playerY: 120 },
+                { x: 8, y: 112, width: 8, height: 16, to: 'descent_3', playerX: 288, playerY: 24 },
+                { x: 368, y: 112, width: 16, height: 16, to: 'caverns_shop', playerX: 32, playerY: 120 },
                 { x: 168, y: 208, width: 16, height: 8, to: 'caverns_2', playerX: 160, playerY: 32 },
                 { x: 256, y: 0, width: 16, height: 8, to: 'caverns_treasure', playerX: 120, playerY: 160, requiresItem: 'crystal_key', lockedDialogue: 'locked_door_key' }
             ],
@@ -293,10 +294,11 @@ const Rooms = {
                 { type: 'crystal_cluster', x: 192, y: 128 }
             ],
             interactables: [
-                { x: 96, y: 48, width: 48, height: 32, type: 'treasure_chest', dialogue: 'treasure_chest_crystal' }
+                { x: 96, y: 48, width: 48, height: 32, type: 'treasure_chest', dialogue: 'treasure_chest_crystal', requiresFlag: '!crystal_treasury_opened' },
+                { x: 96, y: 48, width: 48, height: 32, type: 'opened_chest', dialogue: 'treasure_chest_opened', requiresFlag: 'crystal_treasury_opened' }
             ],
             transitions: [
-                { x: 224, y: 152, width: 8, height: 16, to: 'caverns_1', playerX: 256, playerY: 16 }
+                { x: 208, y: 160, width: 16, height: 16, to: 'caverns_1', playerX: 270, playerY: 32 }
             ],
             secret: true,
             secretId: 'crystal_treasury_found',
@@ -333,11 +335,11 @@ const Rooms = {
                     dialogueOnce: true,
                     afterDialogue: 'shopkeeper_talk',
                     isShop: true,
-                    shopItems: ['crystal_candy', 'moss_sandwich', 'glowing_mushroom', 'spider_cider', 'crystal_dagger', 'crystal_sword', 'torn_cloak', 'crystal_mail']
+                    shopItems: ['crystal_candy', 'moss_sandwich', 'glowing_mushroom', 'spider_cider', 'crystal_dagger', 'crystal_sword', 'torn_cloak', 'crystal_mail', 'travelers_bag']
                 }
             ],
             transitions: [
-                { x: 8, y: 104, width: 8, height: 16, to: 'caverns_1', playerX: 368, playerY: 104 }
+                { x: 16, y: 112, width: 16, height: 16, to: 'caverns_1', playerX: 352, playerY: 120 }
             ],
             encounterRate: 0
         },
@@ -426,7 +428,8 @@ const Rooms = {
                     enemyId: 'crystal_guardian',
                     blocksPath: true,
                     removeOnSpare: true,
-                    removeOnKill: true
+                    removeOnKill: true,
+                    interactionRadius: 40
                 }
             ],
             transitions: [
@@ -457,7 +460,7 @@ const Rooms = {
                 1080000000000000000008001
                 1000000000000000000000001
                 1800000000000000000000081
-                1000000000000000000000001
+                3000000000000000000000001
                 1800000000000000000000081
                 1000000000000000000000001
                 1800000000000000000000081
@@ -470,7 +473,6 @@ const Rooms = {
             decorations: [
                 { type: 'swamp_tree', x: 48, y: 48 },
                 { type: 'swamp_tree', x: 336, y: 48 },
-                { type: 'swamp_tree', x: 48, y: 200 },
                 { type: 'swamp_tree', x: 336, y: 200 },
                 { type: 'lily_pad', x: 120, y: 80 },
                 { type: 'lily_pad', x: 264, y: 80 },
@@ -489,10 +491,11 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 168, y: 0, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 192 },
-                { x: 8, y: 104, width: 8, height: 16, to: 'swamp_2', playerX: 288, playerY: 120 },
-                { x: 384, y: 104, width: 8, height: 16, to: 'swamp_3', playerX: 32, playerY: 120 },
-                { x: 168, y: 296, width: 16, height: 8, to: 'swamp_4', playerX: 160, playerY: 32 }
+                { x: 160, y: 0, width: 16, height: 16, to: 'caverns_guardian', playerX: 160, playerY: 192 },
+                { x: 16, y: 112, width: 16, height: 16, to: 'swamp_2', playerX: 260, playerY: 120 },
+                { x: 368, y: 112, width: 16, height: 16, to: 'swamp_3', playerX: 60, playerY: 120 },
+                { x: 176, y: 288, width: 16, height: 16, to: 'swamp_4', playerX: 160, playerY: 48 },
+                { x: 0, y: 192, width: 16, height: 16, to: 'swamp_shop', playerX: 200, playerY: 120 }
             ],
             savePoints: [
                 { x: 168, y: 104, dialogue: 'swamp_save_point' }
@@ -539,7 +542,7 @@ const Rooms = {
                 { x: 200, y: 140, width: 32, height: 32, type: 'fairy_ring', dialogue: 'fairy_ring_interact', dialogueOnce: true, afterDialogue: 'fairy_ring_return' }
             ],
             transitions: [
-                { x: 304, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 24, playerY: 104 }
+                { x: 288, y: 112, width: 16, height: 16, to: 'swamp_1', playerX: 50, playerY: 120 }
             ],
             encounterRate: 0.2,
             encounterEnemies: ['swamp_creature', 'mushroom_dancer']
@@ -590,7 +593,7 @@ const Rooms = {
                 { x: 260, y: 160, width: 32, height: 24, type: 'mystic_pool', dialogue: 'mystic_pool_interact', dialogueOnce: true, afterDialogue: 'mystic_pool_return' }
             ],
             transitions: [
-                { x: 8, y: 104, width: 8, height: 16, to: 'swamp_1', playerX: 368, playerY: 104 }
+                { x: 8, y: 104, width: 32, height: 32, to: 'swamp_1', playerX: 350, playerY: 120 }
             ],
             savePoints: [
                 { x: 136, y: 104, dialogue: 'swamp_save_point' }
@@ -630,9 +633,10 @@ const Rooms = {
                 { type: 'skull', x: 200, y: 100 }
             ],
             transitions: [
-                { x: 168, y: 0, width: 16, height: 8, to: 'swamp_1', playerX: 168, playerY: 280 },
-                { x: 8, y: 200, width: 8, height: 16, to: 'swamp_keeper', playerX: 288, playerY: 120 },
-                { x: 368, y: 200, width: 16, height: 8, to: 'mega_chamber', playerX: 240, playerY: 32, requiresItem: 'keeper_key', lockedDialogue: 'locked_door_keeper' }
+                { x: 160, y: 0, width: 16, height: 16, to: 'swamp_1', playerX: 184, playerY: 260 },
+                { x: 16, y: 208, width: 16, height: 16, to: 'swamp_keeper', playerX: 260, playerY: 120 },
+                { x: 176, y: 208, width: 16, height: 16, to: 'keeper_shrine', playerX: 120, playerY: 48 },
+                { x: 368, y: 208, width: 16, height: 16, to: 'mega_chamber', playerX: 240, playerY: 48, requiresItem: 'keeper_key', lockedDialogue: 'locked_door_keeper' }
             ],
             encounterRate: 0.15,
             encounterEnemies: ['ancient_spirit', 'swamp_creature']
@@ -690,11 +694,12 @@ const Rooms = {
                     enemyId: 'the_keeper',
                     blocksPath: true,
                     removeOnSpare: true,
-                    removeOnKill: true
+                    removeOnKill: true,
+                    interactionRadius: 40
                 }
             ],
             transitions: [
-                { x: 304, y: 104, width: 8, height: 16, to: 'swamp_4', playerX: 24, playerY: 200 }
+                { x: 288, y: 112, width: 16, height: 16, to: 'swamp_4', playerX: 32, playerY: 200 }
             ],
             savePoints: [
                 { x: 136, y: 240, dialogue: 'keeper_save_point' }
@@ -703,6 +708,48 @@ const Rooms = {
             onEnterOnce: true,
             encounterRate: 0,
             music: 'boss_theme'
+        },
+
+        'keeper_shrine': {
+            name: 'Shrine of Wisdom',
+            area: 'swamp',
+            width: 15,
+            height: 10,
+            playerStart: { x: 120, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            theme: 'dark',
+            decorations: [
+                { type: 'skull', x: 32, y: 48 },
+                { type: 'skull', x: 192, y: 48 },
+                { type: 'dark_pillar', x: 48, y: 80 },
+                { type: 'dark_pillar', x: 176, y: 80 }
+            ],
+            npcs: [
+                {
+                    id: 'shrine_spirit',
+                    sprite: 'npc',
+                    x: 112,
+                    y: 80,
+                    dialogue: 'shrine_spirit_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'shrine_spirit_advice'
+                }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 16, to: 'swamp_4', playerX: 168, playerY: 190 }
+            ],
+            encounterRate: 0
         },
 
         // ==================== MEGA BOSS ====================
@@ -762,7 +809,8 @@ const Rooms = {
                     enemyId: 'mega_destroyer',
                     blocksPath: true,
                     removeOnSpare: true,
-                    removeOnKill: true
+                    removeOnKill: true,
+                    interactionRadius: 56
                 }
             ],
             transitions: [
@@ -816,6 +864,86 @@ const Rooms = {
             ],
             encounterRate: 0,
             music: 'victory_theme'
+        },
+
+        // ==================== SHOP ROOMS ====================
+        'descent_shop': {
+            name: 'Dusty Hollow Shop',
+            area: 'descent',
+            width: 15,
+            height: 12,
+            playerStart: { x: 32, y: 120 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                130000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            npcs: [
+                {
+                    id: 'dusty',
+                    sprite: 'npc',
+                    x: 180,
+                    y: 80,
+                    dialogue: 'descent_shopkeeper_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'descent_shopkeeper_talk',
+                    isShop: true,
+                    shopItems: ['cave_water', 'crystal_candy', 'moss_sandwich', 'worn_notebook', 'torn_cloak', 'small_pouch']
+                }
+            ],
+            transitions: [
+                { x: 16, y: 112, width: 16, height: 16, to: 'descent_1', playerX: 32, playerY: 104 }
+            ],
+            encounterRate: 0
+        },
+
+        'swamp_shop': {
+            name: 'Murky Market',
+            area: 'swamp',
+            width: 15,
+            height: 12,
+            playerStart: { x: 32, y: 120 },
+            tileData: `
+                111111111111111
+                180000000000081
+                100000000000001
+                180000000000081
+                100000000000001
+                180000000000081
+                100000000000001
+                130000000000001
+                100000000000001
+                180000000000081
+                100000000000001
+                111111111111111
+            `,
+            theme: 'swamp',
+            npcs: [
+                {
+                    id: 'bogsworth',
+                    sprite: 'npc',
+                    x: 180,
+                    y: 80,
+                    dialogue: 'swamp_shopkeeper_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'swamp_shopkeeper_talk',
+                    isShop: true,
+                    shopItems: ['glowing_mushroom', 'spider_cider', 'ancient_fruit', 'ancient_blade', 'ancient_robe', 'explorers_pack', 'dimensional_satchel']
+                }
+            ],
+            transitions: [
+                { x: 16, y: 112, width: 16, height: 16, to: 'swamp_1', playerX: 32, playerY: 200 }
+            ],
+            encounterRate: 0
         },
 
         // Developer room (easter egg)

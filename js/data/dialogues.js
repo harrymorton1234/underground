@@ -11,7 +11,15 @@ const Dialogues = {
                 { text: '......' },
                 { text: 'Where... am I?' },
                 { text: 'You fell a long way down.' },
-                { text: 'But it seems you survived.' }
+                { text: 'But it seems you survived.' },
+                { text: '...' },
+                { text: '= CONTROLS =' },
+                { text: 'ARROW KEYS - Move around' },
+                { text: 'Z or ENTER - Confirm / Interact' },
+                { text: 'X - Cancel / Open Menu' },
+                { text: 'C - Open Menu (alternate)' },
+                { text: '...' },
+                { text: 'You should explore this place.' }
             ]
         },
 
@@ -167,6 +175,81 @@ const Dialogues = {
             ],
             setFlags: { 'shopkeeper_befriended': true },
             giveItem: 'ancient_fruit'
+        },
+
+        // ==================== DESCENT SHOP ====================
+        'descent_shopkeeper_intro': {
+            speaker: 'Dusty',
+            portrait: 'shopkeeper_neutral',
+            lines: [
+                { text: 'Oh! A visitor!' },
+                { text: "Haven't seen a human in ages..." },
+                { text: "Name's DUSTY. Been running this little shop for centuries." },
+                { text: "It's not much, but I've got supplies for travelers." },
+                { text: 'Take a look around!' }
+            ],
+            setFlags: { 'met_dusty': true }
+        },
+
+        'descent_shopkeeper_talk': {
+            speaker: 'Dusty',
+            portrait: 'shopkeeper_happy',
+            lines: [
+                { text: 'Back again? Good to see a familiar face.' },
+                { text: 'What can I get for you today?' }
+            ]
+        },
+
+        // ==================== SWAMP SHOP ====================
+        'swamp_shopkeeper_intro': {
+            speaker: 'Bogsworth',
+            portrait: 'shopkeeper_neutral',
+            lines: [
+                { text: '*bubble* *bubble*' },
+                { text: 'Ah, a customer emerges from the murk!' },
+                { text: "I am BOGSWORTH, purveyor of the swamp's finest goods." },
+                { text: 'The deeper items are... more potent.' },
+                { text: 'But also more expensive. Such is the way of things.' }
+            ],
+            setFlags: { 'met_bogsworth': true }
+        },
+
+        'swamp_shopkeeper_talk': {
+            speaker: 'Bogsworth',
+            portrait: 'shopkeeper_happy',
+            lines: [
+                { text: '*glub* Welcome back to the Murky Market!' },
+                { text: 'The swamp provides, and I sell. Simple as that.' }
+            ]
+        },
+
+        // ==================== KEEPER SHRINE ====================
+        'shrine_spirit_intro': {
+            speaker: 'Ancient Spirit',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '...' },
+                { text: 'You seek The Keeper.' },
+                { text: 'Many have tried. Few have survived.' },
+                { text: 'Heed my warning, young one...' },
+                { text: 'The Keeper is no ordinary foe.' },
+                { text: 'You should be at least LEVEL 8 before facing them.' },
+                { text: 'Their attacks are swift and deadly.' },
+                { text: 'Stock up on healing items. You will need them.' },
+                { text: 'And remember... mercy is always an option.' }
+            ],
+            setFlags: { 'shrine_visited': true }
+        },
+
+        'shrine_spirit_advice': {
+            speaker: 'Ancient Spirit',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: 'Remember... LEVEL 8 at minimum.' },
+                { text: 'Bring healing items.' },
+                { text: 'The Keeper can be spared... if you are patient.' },
+                { text: 'Good luck, traveler.' }
+            ]
         },
 
         'piano_interact': {
@@ -798,7 +881,8 @@ const Dialogues = {
                 { text: '* Obtained 100 GOLD!' }
             ],
             setFlags: { 'crystal_treasury_opened': true },
-            giveItem: 'ancient_blade'
+            giveItems: ['ancient_blade', 'ancient_robe'],
+            giveGold: 100
         },
 
         'treasure_chest_opened': {

@@ -14,7 +14,8 @@ const Game = {
         SAVE_MENU: 'save_menu',
         SHOP: 'shop',
         ENDING: 'ending',
-        GAME_OVER: 'game_over'
+        GAME_OVER: 'game_over',
+        SETTINGS: 'settings'
     },
 
     // Current state
@@ -137,6 +138,9 @@ const Game = {
         // Update renderer effects
         Renderer.update(dt);
 
+        // Check for pending transitions
+        this.checkTransition();
+
         // Update current state
         switch (this.currentState) {
             case this.states.LOADING:
@@ -171,6 +175,9 @@ const Game = {
                 break;
             case this.states.ENDING:
                 this.updateEnding(dt);
+                break;
+            case this.states.SETTINGS:
+                this.updateSettings(dt);
                 break;
         }
 
@@ -241,6 +248,9 @@ const Game = {
             case this.states.ENDING:
                 this.renderEnding();
                 break;
+            case this.states.SETTINGS:
+                this.renderSettings();
+                break;
         }
 
         // Debug overlay
@@ -290,6 +300,9 @@ const Game = {
                 break;
             case this.states.GAME_OVER:
                 this.initGameOver();
+                break;
+            case this.states.SETTINGS:
+                this.initSettings();
                 break;
         }
     },
@@ -414,7 +427,9 @@ const Game = {
                     }
                     break;
                 case 2: // Settings
-                    // TODO: Settings menu
+                    Audio.playSFX('confirm');
+                    this.menuReturnState = this.states.TITLE;
+                    this.setState(this.states.SETTINGS);
                     break;
             }
         }
@@ -606,6 +621,10 @@ const Game = {
         saveData.name = name;
         Save.setCurrent(saveData);
 
+        // Initialize stats based on equipment
+        Inventory.updateStats();
+        Inventory.updateMaxItems();
+
         // Reset overworld state for new game
         Overworld.enteredDialogues = {};
 
@@ -617,23 +636,41 @@ const Game = {
     // ==================== MENU STATE ====================
 
     menuSelection: 0,
-    menuOptions: ['ITEM', 'STAT', 'SAVE', 'EXIT'],
+    menuOptions: ['ITEM', 'SETTINGS', 'SAVE', 'EXIT'],
+    inItemMenu: false,
+    itemMenuSelection: 0,
+    showExitConfirm: false,
+    exitConfirmSelection: 0,
 
     initMenu() {
         this.menuSelection = 0;
+        this.inItemMenu = false;
+        this.itemMenuSelection = 0;
+        this.showExitConfirm = false;
+        this.exitConfirmSelection = 0;
     },
 
     updateMenu(dt) {
+        if (this.inItemMenu) {
+            this.updateItemMenu(dt);
+            return;
+        }
+
+        if (this.showExitConfirm) {
+            this.updateExitConfirm(dt);
+            return;
+        }
+
         if (Input.isPressed('up')) {
             this.menuSelection--;
             if (this.menuSelection < 0) this.menuSelection = this.menuOptions.length - 1;
-            Audio.playSFX('menu_move');
+            Audio.playSFX('select');
         }
 
         if (Input.isPressed('down')) {
             this.menuSelection++;
             if (this.menuSelection >= this.menuOptions.length) this.menuSelection = 0;
-            Audio.playSFX('menu_move');
+            Audio.playSFX('select');
         }
 
         if (Input.isPressed('confirm')) {
@@ -641,16 +678,19 @@ const Game = {
 
             switch (this.menuSelection) {
                 case 0: // Item
-                    Inventory.openMenu();
+                    this.inItemMenu = true;
+                    this.itemMenuSelection = 0;
                     break;
-                case 1: // Stat
-                    // Show stats (could be separate state)
+                case 1: // Settings
+                    this.menuReturnState = this.states.MENU;
+                    this.setState(this.states.SETTINGS);
                     break;
                 case 2: // Save
                     this.setState(this.states.SAVE_MENU, { mode: 'save' });
                     break;
                 case 3: // Exit
-                    this.setState(this.states.OVERWORLD);
+                    this.showExitConfirm = true;
+                    this.exitConfirmSelection = 0;
                     break;
             }
         }
@@ -658,6 +698,86 @@ const Game = {
         if (Input.isPressed('cancel') || Input.isPressed('menu')) {
             Audio.playSFX('cancel');
             this.setState(this.states.OVERWORLD);
+        }
+    },
+
+    updateExitConfirm(dt) {
+        // 0 = Save & Exit, 1 = Exit without saving, 2 = Cancel
+        if (Input.isPressed('up')) {
+            this.exitConfirmSelection--;
+            if (this.exitConfirmSelection < 0) this.exitConfirmSelection = 2;
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('down')) {
+            this.exitConfirmSelection++;
+            if (this.exitConfirmSelection > 2) this.exitConfirmSelection = 0;
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('confirm')) {
+            Audio.playSFX('confirm');
+            if (this.exitConfirmSelection === 0) {
+                // Save & Exit to title
+                this.setState(this.states.SAVE_MENU, { mode: 'save_and_exit' });
+            } else if (this.exitConfirmSelection === 1) {
+                // Exit without saving
+                this.transitionTo(this.states.TITLE);
+            } else {
+                // Cancel
+                this.showExitConfirm = false;
+            }
+        }
+
+        if (Input.isPressed('cancel')) {
+            Audio.playSFX('cancel');
+            this.showExitConfirm = false;
+        }
+    },
+
+    updateItemMenu(dt) {
+        const items = Inventory.getItems();
+
+        if (Input.isPressed('up')) {
+            this.itemMenuSelection--;
+            if (this.itemMenuSelection < 0) this.itemMenuSelection = Math.max(0, items.length - 1);
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('down')) {
+            this.itemMenuSelection++;
+            if (this.itemMenuSelection >= items.length) this.itemMenuSelection = 0;
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('confirm') && items.length > 0) {
+            const itemId = items[this.itemMenuSelection];
+            const item = Items.get(itemId);
+            if (item && item.type === 'consumable') {
+                // Use the item
+                const result = Inventory.useItem(this.itemMenuSelection);
+                if (result && result.success) {
+                    Audio.playSFX('heal');
+                } else {
+                    Audio.playSFX('cancel');
+                }
+                // Adjust selection after removal
+                const newItems = Inventory.getItems();
+                if (this.itemMenuSelection >= newItems.length) {
+                    this.itemMenuSelection = Math.max(0, newItems.length - 1);
+                }
+            } else if (item && (item.type === 'weapon' || item.type === 'armor' || item.type === 'backpack')) {
+                // Equip the item
+                Audio.playSFX('confirm');
+                Inventory.equipItem(this.itemMenuSelection);
+            } else {
+                Audio.playSFX('cancel');
+            }
+        }
+
+        if (Input.isPressed('cancel')) {
+            Audio.playSFX('cancel');
+            this.inItemMenu = false;
         }
     },
 
@@ -683,21 +803,81 @@ const Game = {
         Renderer.drawText(`ATK: ${save.attack}  DEF: ${save.defense}`, 35, 80, '#fff');
         Renderer.drawText(`EXP: ${save.exp}  GOLD: ${save.gold}`, 35, 95, '#fff');
 
-        // Menu options
-        const optionStartY = 130;
-        for (let i = 0; i < this.menuOptions.length; i++) {
-            const y = optionStartY + i * 16;
-            const isSelected = i === this.menuSelection;
-
-            if (isSelected) {
-                Renderer.drawText('>', 35, y, '#ff0');
-            }
-
-            Renderer.drawText(this.menuOptions[i], 50, y, isSelected ? '#ff0' : '#fff');
-        }
-
         // Play time
         Renderer.drawText(`TIME: ${Save.formatPlayTime()}`, 200, 35, '#888');
+
+        if (this.showExitConfirm) {
+            // Exit confirmation dialog
+            Renderer.drawBox(60, 80, 180, 80);
+            Renderer.drawText('Exit to Title?', 150, 90, '#fff', 'center');
+
+            const options = ['Save & Exit', 'Exit without saving', 'Cancel'];
+            for (let i = 0; i < options.length; i++) {
+                const y = 110 + i * 16;
+                const isSelected = i === this.exitConfirmSelection;
+
+                if (isSelected) {
+                    Renderer.drawText('>', 75, y, '#ff0');
+                }
+                Renderer.drawText(options[i], 90, y, isSelected ? '#ff0' : '#fff');
+            }
+        } else if (this.inItemMenu) {
+            // Show item list with scrolling
+            const maxItems = Inventory.getMaxItems();
+            const items = Inventory.getItems();
+            Renderer.drawText(`ITEMS (${items.length}/${maxItems})`, 35, 115, '#ff0');
+            if (items.length === 0) {
+                Renderer.drawText('No items', 50, 135, '#888');
+            } else {
+                const maxVisible = 5;
+                // Calculate scroll offset to keep selection visible
+                let scrollOffset = 0;
+                if (this.itemMenuSelection >= maxVisible) {
+                    scrollOffset = this.itemMenuSelection - maxVisible + 1;
+                }
+
+                // Show scroll up indicator
+                if (scrollOffset > 0) {
+                    Renderer.drawText('^', 270, 135, '#888');
+                }
+
+                for (let i = 0; i < Math.min(items.length - scrollOffset, maxVisible); i++) {
+                    const itemIndex = i + scrollOffset;
+                    const y = 135 + i * 14;
+                    const item = Items.get(items[itemIndex]);
+                    const isSelected = itemIndex === this.itemMenuSelection;
+
+                    if (isSelected) {
+                        Renderer.drawText('>', 35, y, '#ff0');
+                    }
+
+                    const name = item ? item.name : items[itemIndex];
+                    Renderer.drawText(name, 50, y, isSelected ? '#ff0' : '#fff');
+                }
+
+                // Show scroll down indicator
+                if (scrollOffset + maxVisible < items.length) {
+                    Renderer.drawText('v', 270, 135 + (maxVisible - 1) * 14, '#888');
+                }
+
+                // Show item count
+                Renderer.drawText(`${this.itemMenuSelection + 1}/${items.length}`, 250, 115, '#888');
+            }
+            Renderer.drawText('X to go back', 35, 195, '#555');
+        } else {
+            // Menu options
+            const optionStartY = 130;
+            for (let i = 0; i < this.menuOptions.length; i++) {
+                const y = optionStartY + i * 16;
+                const isSelected = i === this.menuSelection;
+
+                if (isSelected) {
+                    Renderer.drawText('>', 35, y, '#ff0');
+                }
+
+                Renderer.drawText(this.menuOptions[i], 50, y, isSelected ? '#ff0' : '#fff');
+            }
+        }
     },
 
     // ==================== SAVE MENU STATE ====================
@@ -724,16 +904,23 @@ const Game = {
         }
 
         if (Input.isPressed('confirm')) {
-            if (this.saveMenuMode === 'save') {
+            if (this.saveMenuMode === 'save' || this.saveMenuMode === 'save_and_exit') {
                 Save.saveToSlot(this.saveMenuSelection);
                 Audio.playSFX('save');
-                this.setState(this.states.OVERWORLD);
+                if (this.saveMenuMode === 'save_and_exit') {
+                    this.transitionTo(this.states.TITLE);
+                } else {
+                    this.setState(this.states.OVERWORLD);
+                }
             } else {
                 // Load
                 if (Save.slotExists(this.saveMenuSelection)) {
                     const loadedSave = Save.loadFromSlot(this.saveMenuSelection);
                     if (loadedSave) {
                         Audio.playSFX('confirm');
+                        // Update stats based on equipment
+                        Inventory.updateStats();
+                        Inventory.updateMaxItems();
                         // Make sure roomId exists, default to intro_1 if not
                         const roomId = loadedSave.roomId || 'intro_1';
                         this.setState(this.states.OVERWORLD);
@@ -752,6 +939,9 @@ const Game = {
             Audio.playSFX('cancel');
             if (this.saveMenuMode === 'save') {
                 this.setState(this.states.MENU);
+            } else if (this.saveMenuMode === 'save_and_exit') {
+                this.setState(this.states.MENU);
+                this.showExitConfirm = true;
             } else {
                 this.transitionTo(this.states.TITLE);
             }
@@ -763,7 +953,8 @@ const Game = {
 
         Renderer.drawBox(40, 30, 240, 180);
 
-        Renderer.drawText(this.saveMenuMode === 'save' ? 'SAVE' : 'LOAD', centerX, 45, '#fff', 'center');
+        const saveTitle = this.saveMenuMode === 'load' ? 'LOAD' : 'SAVE';
+        Renderer.drawText(saveTitle, centerX, 45, '#fff', 'center');
 
         for (let i = 0; i < Save.numSlots; i++) {
             const y = 70 + i * 45;
@@ -798,31 +989,112 @@ const Game = {
     // ==================== GAME OVER STATE ====================
 
     gameOverTimer: 0,
+    gameOverShards: [],
+    gameOverSelection: 0,
 
     initGameOver() {
         this.gameOverTimer = 0;
+        this.gameOverSelection = 0;
+        Audio.playSFX('cancel');
+
+        // Create heart shard particles
+        this.gameOverShards = [];
+        const centerX = Renderer.width / 2;
+        const centerY = Renderer.height / 2 - 40;
+        for (let i = 0; i < 6; i++) {
+            this.gameOverShards.push({
+                x: centerX,
+                y: centerY,
+                vx: (Math.random() - 0.5) * 80,
+                vy: (Math.random() - 0.5) * 60 - 30,
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 5,
+                size: 4 + Math.random() * 4
+            });
+        }
     },
 
     updateGameOver(dt) {
         this.gameOverTimer += dt;
 
-        if (this.gameOverTimer > 2 && Input.isPressed('confirm')) {
-            // Return to title or last save
-            this.transitionTo(this.states.TITLE);
+        // Update shards
+        for (const shard of this.gameOverShards) {
+            shard.x += shard.vx * dt;
+            shard.y += shard.vy * dt;
+            shard.vy += 120 * dt; // gravity
+            shard.rotation += shard.rotSpeed * dt;
+        }
+
+        if (this.gameOverTimer > 2.5) {
+            // Menu navigation
+            if (Input.isPressed('up') || Input.isPressed('down')) {
+                this.gameOverSelection = this.gameOverSelection === 0 ? 1 : 0;
+                Audio.playSFX('select');
+            }
+
+            if (Input.isPressed('confirm')) {
+                Audio.playSFX('confirm');
+                if (this.gameOverSelection === 0) {
+                    // Continue - go to load save menu
+                    this.transitionTo(this.states.SAVE_MENU, { mode: 'load' });
+                } else {
+                    // Return to title
+                    this.transitionTo(this.states.TITLE);
+                }
+            }
         }
     },
 
     renderGameOver() {
-        // Clear to black first
         Renderer.clear('#000');
 
         const centerX = Renderer.width / 2;
         const centerY = Renderer.height / 2;
 
-        Renderer.drawText('GAME OVER', centerX, centerY - 20, '#f00', 'center', 12);
+        // Draw shattered heart pieces
+        if (this.gameOverTimer < 2) {
+            Renderer.ctx.save();
+            for (const shard of this.gameOverShards) {
+                Renderer.ctx.translate(shard.x, shard.y);
+                Renderer.ctx.rotate(shard.rotation);
+                Renderer.ctx.fillStyle = '#f00';
+                Renderer.ctx.beginPath();
+                Renderer.ctx.moveTo(0, -shard.size);
+                Renderer.ctx.lineTo(shard.size * 0.6, 0);
+                Renderer.ctx.lineTo(0, shard.size);
+                Renderer.ctx.lineTo(-shard.size * 0.6, 0);
+                Renderer.ctx.closePath();
+                Renderer.ctx.fill();
+                Renderer.ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+            Renderer.ctx.restore();
+        }
 
-        if (this.gameOverTimer > 2) {
-            Renderer.drawText('Press Z to continue', centerX, centerY + 30, '#888', 'center', 8);
+        // Fade in GAME OVER text
+        if (this.gameOverTimer > 0.5) {
+            const alpha = Math.min(1, (this.gameOverTimer - 0.5) / 1);
+            const red = Math.floor(200 * alpha);
+            Renderer.drawText('GAME OVER', centerX, centerY - 30, `rgb(${red}, 0, 0)`, 'center', 16);
+        }
+
+        // Show menu options
+        if (this.gameOverTimer > 2.5) {
+            const continueColor = this.gameOverSelection === 0 ? '#ff0' : '#888';
+            const titleColor = this.gameOverSelection === 1 ? '#ff0' : '#888';
+
+            // Draw soul cursor
+            const cursorY = this.gameOverSelection === 0 ? centerY + 20 : centerY + 40;
+            Renderer.ctx.fillStyle = '#f00';
+            Renderer.ctx.beginPath();
+            Renderer.ctx.moveTo(centerX - 50, cursorY + 4);
+            Renderer.ctx.lineTo(centerX - 42, cursorY);
+            Renderer.ctx.lineTo(centerX - 50, cursorY + 8);
+            Renderer.ctx.lineTo(centerX - 46, cursorY + 4);
+            Renderer.ctx.closePath();
+            Renderer.ctx.fill();
+
+            Renderer.drawText('Continue', centerX, centerY + 20, continueColor, 'center', 8);
+            Renderer.drawText('Title Screen', centerX, centerY + 40, titleColor, 'center', 8);
         }
     },
 
@@ -836,6 +1108,139 @@ const Game = {
 
     renderEnding() {
         // Render ending
+    },
+
+    // ==================== SETTINGS STATE ====================
+
+    settingsSelection: 0,
+    settingsOptions: ['Sound Volume', 'Music Volume', 'Fullscreen', 'Back'],
+    soundVolume: 100,
+    musicVolume: 100,
+    menuReturnState: null,
+
+    initSettings() {
+        this.settingsSelection = 0;
+        // If not set, default to title
+        if (!this.menuReturnState) {
+            this.menuReturnState = this.states.TITLE;
+        }
+    },
+
+    updateSettings(dt) {
+        // Navigation
+        if (Input.isPressed('up')) {
+            this.settingsSelection = Math.max(0, this.settingsSelection - 1);
+            Audio.playSFX('select');
+        }
+        if (Input.isPressed('down')) {
+            this.settingsSelection = Math.min(this.settingsOptions.length - 1, this.settingsSelection + 1);
+            Audio.playSFX('select');
+        }
+
+        // Adjust values
+        if (Input.isPressed('left')) {
+            if (this.settingsSelection === 0) {
+                this.soundVolume = Math.max(0, this.soundVolume - 10);
+                Audio.setSFXVolume(this.soundVolume / 100);
+                Audio.playSFX('select');
+            } else if (this.settingsSelection === 1) {
+                this.musicVolume = Math.max(0, this.musicVolume - 10);
+                Audio.setMusicVolume(this.musicVolume / 100);
+            }
+        }
+        if (Input.isPressed('right')) {
+            if (this.settingsSelection === 0) {
+                this.soundVolume = Math.min(100, this.soundVolume + 10);
+                Audio.setSFXVolume(this.soundVolume / 100);
+                Audio.playSFX('select');
+            } else if (this.settingsSelection === 1) {
+                this.musicVolume = Math.min(100, this.musicVolume + 10);
+                Audio.setMusicVolume(this.musicVolume / 100);
+            }
+        }
+
+        // Confirm
+        if (Input.isPressed('confirm')) {
+            if (this.settingsSelection === 2) {
+                // Toggle fullscreen
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen();
+                }
+                Audio.playSFX('confirm');
+            } else if (this.settingsSelection === 3) {
+                // Back
+                Audio.playSFX('cancel');
+                const returnTo = this.menuReturnState || this.states.TITLE;
+                this.menuReturnState = null;
+                this.setState(returnTo);
+            }
+        }
+
+        // Cancel
+        if (Input.isPressed('cancel')) {
+            Audio.playSFX('cancel');
+            const returnTo = this.menuReturnState || this.states.TITLE;
+            this.menuReturnState = null;
+            this.setState(returnTo);
+        }
+    },
+
+    renderSettings() {
+        Renderer.clear('#000');
+
+        const centerX = Renderer.width / 2;
+
+        Renderer.drawText('SETTINGS', centerX, 30, '#fff', 'center', 12);
+
+        const startY = 70;
+        const spacing = 25;
+
+        for (let i = 0; i < this.settingsOptions.length; i++) {
+            const y = startY + i * spacing;
+            const isSelected = i === this.settingsSelection;
+            const color = isSelected ? '#ff0' : '#888';
+
+            // Draw cursor
+            if (isSelected) {
+                Renderer.ctx.fillStyle = '#f00';
+                Renderer.ctx.beginPath();
+                Renderer.ctx.moveTo(40, y + 4);
+                Renderer.ctx.lineTo(48, y);
+                Renderer.ctx.lineTo(40, y + 8);
+                Renderer.ctx.lineTo(44, y + 4);
+                Renderer.ctx.closePath();
+                Renderer.ctx.fill();
+            }
+
+            Renderer.drawText(this.settingsOptions[i], 55, y, color, 'left', 8);
+
+            // Draw values for volume options
+            if (i === 0) {
+                this.renderVolumeBar(180, y, this.soundVolume, isSelected);
+            } else if (i === 1) {
+                this.renderVolumeBar(180, y, this.musicVolume, isSelected);
+            } else if (i === 2) {
+                const fsText = document.fullscreenElement ? 'ON' : 'OFF';
+                Renderer.drawText(fsText, 200, y, color, 'left', 8);
+            }
+        }
+
+        Renderer.drawText('Use LEFT/RIGHT to adjust', centerX, 200, '#555', 'center', 6);
+    },
+
+    renderVolumeBar(x, y, value, isSelected) {
+        const barWidth = 60;
+        const barHeight = 8;
+        const fillWidth = (value / 100) * barWidth;
+
+        // Background
+        Renderer.drawRect(x, y, barWidth, barHeight, '#333');
+        // Fill
+        Renderer.drawRect(x, y, fillWidth, barHeight, isSelected ? '#ff0' : '#888');
+        // Value text
+        Renderer.drawText(`${value}%`, x + barWidth + 10, y, isSelected ? '#ff0' : '#888', 'left', 7);
     },
 
     // ==================== DEBUG ====================
@@ -857,7 +1262,9 @@ const Game = {
      * Trigger game over
      */
     gameOver() {
-        this.transitionTo(this.states.GAME_OVER);
+        // Direct state change without fade (battle already has dramatic effect)
+        this.setState(this.states.GAME_OVER);
+        Renderer.fadeEffect.alpha = 0; // Clear any fade
     },
 
     /**

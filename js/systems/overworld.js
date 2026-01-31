@@ -173,8 +173,8 @@ const Overworld = {
         // Check for save points
         this.checkSavePoints();
 
-        // Check for random encounters
-        if (Player.velX !== 0 || Player.velY !== 0) {
+        // Check for random encounters (but not during transitions)
+        if (!this.transitioning && (Player.velX !== 0 || Player.velY !== 0)) {
             this.checkEncounter(dt);
         }
 
@@ -355,20 +355,24 @@ const Overworld = {
 
         // Check interactables
         if (this.currentRoom.interactables) {
+            const playerCenter = Player.getCenter();
+
             for (const interactable of this.currentRoom.interactables) {
                 // Check flag requirements
                 if (interactable.requiresFlag && !this.checkFlag(interactable.requiresFlag)) {
                     continue;
                 }
 
-                const rect = {
-                    x: interactable.x,
-                    y: interactable.y,
-                    width: interactable.width,
-                    height: interactable.height
+                // Check distance to interactable center
+                const interactableCenter = {
+                    x: interactable.x + interactable.width / 2,
+                    y: interactable.y + interactable.height / 2
                 };
 
-                if (Utils.pointInRect(interactionPoint.x, interactionPoint.y, rect)) {
+                const dist = Utils.distance(playerCenter.x, playerCenter.y, interactableCenter.x, interactableCenter.y);
+                const interactionRange = Math.max(interactable.width, interactable.height) + 20;
+
+                if (dist < interactionRange) {
                     // Handle dialogueOnce - track which interactables have been interacted with
                     let dialogueId = interactable.dialogue;
                     if (interactable.dialogueOnce) {
@@ -408,10 +412,13 @@ const Overworld = {
             const dist = Utils.distance(playerCenter.x, playerCenter.y, savePoint.x + 8, savePoint.y + 8);
 
             if (dist < 16 && Input.isPressed('confirm')) {
-                // Heal player
+                // Heal player and store save location
                 const save = Save.getCurrent();
                 if (save) {
                     save.hp = save.maxHp;
+                    save.lastSaveRoom = this.roomId;
+                    save.lastSaveX = savePoint.x + 8;
+                    save.lastSaveY = savePoint.y + 16;
                 }
 
                 // Show save dialogue
@@ -743,16 +750,61 @@ const Overworld = {
                     }
                     break;
                 case 'treasure_chest':
-                    // Treasure chest
+                    // Closed treasure chest
                     Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#654');
                     Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#876');
                     // Lock
                     Renderer.drawRect(screenX + interactable.width/2 - 4, screenY + interactable.height/2 - 2, 8, 8, '#ff0');
                     break;
+                case 'opened_chest':
+                    // Opened treasure chest (empty)
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#654');
+                    // Open lid
+                    Renderer.drawRect(screenX + 2, screenY - 6, interactable.width - 4, 8, '#654');
+                    Renderer.drawRect(screenX + 4, screenY - 4, interactable.width - 8, 4, '#765');
+                    // Empty inside (dark)
+                    Renderer.drawRect(screenX + 4, screenY + 4, interactable.width - 8, interactable.height - 8, '#321');
+                    break;
                 case 'hidden_key':
-                    // Small glint to hint at something hidden
-                    const glint = Math.sin(performance.now() / 400) * 0.3 + 0.5;
-                    Renderer.drawRect(screenX + 8, screenY + 4, 4, 4, `rgba(150,200,255,${glint})`);
+                    // Floating crystal key
+                    const keyFloat = Math.sin(performance.now() / 500) * 3;
+                    const keyGlow = Math.sin(performance.now() / 300) * 0.3 + 0.7;
+                    const keyX = screenX + interactable.width / 2;
+                    const keyY = screenY + interactable.height / 2 + keyFloat;
+
+                    // Glow effect behind key
+                    Renderer.ctx.fillStyle = `rgba(100,200,255,${keyGlow * 0.4})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(keyX, keyY, 12, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+
+                    // Key handle (circle part)
+                    Renderer.ctx.fillStyle = `rgba(150,220,255,${keyGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(keyX, keyY - 4, 5, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+
+                    // Key handle hole
+                    Renderer.ctx.fillStyle = `rgba(50,100,150,${keyGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(keyX, keyY - 4, 2, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+
+                    // Key shaft
+                    Renderer.ctx.fillStyle = `rgba(150,220,255,${keyGlow})`;
+                    Renderer.ctx.fillRect(keyX - 2, keyY, 4, 10);
+
+                    // Key teeth
+                    Renderer.ctx.fillRect(keyX - 4, keyY + 6, 3, 2);
+                    Renderer.ctx.fillRect(keyX - 4, keyY + 9, 4, 2);
+
+                    // Sparkle effect
+                    if (Math.sin(performance.now() / 150) > 0.6) {
+                        const sparkX = keyX - 6 + Math.random() * 12;
+                        const sparkY = keyY - 8 + Math.random() * 16;
+                        Renderer.drawRect(sparkX, sparkY, 2, 2, '#fff');
+                    }
                     break;
                 case 'fairy_ring':
                     // Mushroom fairy ring - glowing circle of mushrooms

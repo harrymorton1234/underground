@@ -101,6 +101,7 @@ const Items = {
             type: 'armor',
             description: 'A simple cloth bandage.',
             defense: 0,
+            hpBonus: 0,
             price: 0,
             equipText: 'It has already been used.'
         },
@@ -108,28 +109,31 @@ const Items = {
         'crystal_mail': {
             name: 'Crystal Mail',
             type: 'armor',
-            description: 'Armor made of interlocking crystals.',
+            description: 'Armor made of interlocking crystals. +10 HP',
             defense: 3,
+            hpBonus: 10,
             price: 60,
-            equipText: 'Fashionable AND protective!'
+            equipText: 'Fashionable AND protective! Max HP +10!'
         },
 
         'ancient_robe': {
             name: 'Ancient Robe',
             type: 'armor',
-            description: 'A robe from a bygone age.',
+            description: 'A robe from a bygone age. +15 HP',
             defense: 5,
+            hpBonus: 15,
             price: 100,
-            equipText: 'It smells like old books.'
+            equipText: 'Ancient power flows through you! Max HP +15!'
         },
 
         'torn_cloak': {
             name: 'Torn Cloak',
             type: 'armor',
-            description: 'A damaged but still useful cloak.',
+            description: 'A damaged but still useful cloak. +5 HP',
             defense: 2,
+            hpBonus: 5,
             price: 20,
-            equipText: 'Better than nothing!'
+            equipText: 'Better than nothing! Max HP +5!'
         },
 
         // Key items
@@ -285,41 +289,45 @@ const Items = {
         'wooden_shield': {
             name: 'Wooden Shield',
             type: 'armor',
-            description: 'A simple wooden shield. Better than nothing.',
+            description: 'A simple wooden shield. +3 HP',
             defense: 1,
+            hpBonus: 3,
             price: 30,
             sellPrice: 15,
-            equipText: 'You feel slightly safer.'
+            equipText: 'You feel slightly safer. Max HP +3!'
         },
 
         'crystal_shield': {
             name: 'Crystal Shield',
             type: 'armor',
-            description: 'A shield made of crystal. Sparkles defensively.',
+            description: 'A shield made of crystal. +12 HP',
             defense: 4,
+            hpBonus: 12,
             price: 80,
             sellPrice: 40,
-            equipText: 'It shimmers with protection!'
+            equipText: 'It shimmers with protection! Max HP +12!'
         },
 
         'spirit_cloak': {
             name: 'Spirit Cloak',
             type: 'armor',
-            description: 'A cloak infused with spirit essence. Very protective.',
+            description: 'A cloak infused with spirit essence. +20 HP',
             defense: 6,
+            hpBonus: 20,
             price: 120,
             sellPrice: 60,
-            equipText: 'You feel ethereal...'
+            equipText: 'You feel ethereal... Max HP +20!'
         },
 
         'mega_armor': {
             name: 'Mega Armor',
             type: 'armor',
-            description: 'Armor forged from Mega Core energy. Ultimate defense.',
+            description: 'Armor forged from Mega Core energy. +50 HP',
             defense: 10,
+            hpBonus: 50,
             price: 500,
             sellPrice: 250,
-            equipText: 'ULTIMATE POWER!'
+            equipText: 'ULTIMATE POWER! Max HP +50!'
         },
 
         // More weapons
@@ -361,6 +369,47 @@ const Items = {
             price: 600,
             sellPrice: 300,
             equipText: 'UNLIMITED POWER!'
+        },
+
+        // Backpacks - increase inventory size
+        'small_pouch': {
+            name: 'Small Pouch',
+            type: 'backpack',
+            description: 'A small leather pouch. Holds 2 extra items.',
+            inventoryBonus: 2,
+            price: 50,
+            sellPrice: 25,
+            equipText: 'You can carry a bit more now!'
+        },
+
+        'travelers_bag': {
+            name: "Traveler's Bag",
+            type: 'backpack',
+            description: 'A sturdy bag for adventurers. Holds 4 extra items.',
+            inventoryBonus: 4,
+            price: 120,
+            sellPrice: 60,
+            equipText: 'Much more room for stuff!'
+        },
+
+        'explorers_pack': {
+            name: "Explorer's Pack",
+            type: 'backpack',
+            description: 'A large pack with many pockets. Holds 6 extra items.',
+            inventoryBonus: 6,
+            price: 250,
+            sellPrice: 125,
+            equipText: 'You feel like a true explorer!'
+        },
+
+        'dimensional_satchel': {
+            name: 'Dimensional Satchel',
+            type: 'backpack',
+            description: 'A magical bag that holds way more than it should. Holds 10 extra items.',
+            inventoryBonus: 10,
+            price: 500,
+            sellPrice: 250,
+            equipText: 'It seems bigger on the inside...'
         }
     },
 
@@ -437,6 +486,14 @@ const Items = {
     },
 
     /**
+     * Get item HP bonus (0 if no bonus)
+     */
+    getHpBonus(itemId) {
+        const item = this.get(itemId);
+        return item?.hpBonus || 0;
+    },
+
+    /**
      * Check if item is usable in battle
      */
     isUsableInBattle(itemId) {
@@ -449,7 +506,15 @@ const Items = {
      */
     isEquippable(itemId) {
         const item = this.get(itemId);
-        return item?.type === 'weapon' || item?.type === 'armor';
+        return item?.type === 'weapon' || item?.type === 'armor' || item?.type === 'backpack';
+    },
+
+    /**
+     * Get inventory bonus from backpack
+     */
+    getInventoryBonus(itemId) {
+        const item = this.get(itemId);
+        return item?.inventoryBonus || 0;
     }
 };
 

@@ -67,6 +67,9 @@ const Battle = {
      * Start battle
      */
     start(enemyId, options = {}) {
+        // Ensure stats are up to date based on equipment
+        Inventory.updateStats();
+
         // Get enemy data
         const save = Save.getCurrent();
         this.enemy = Enemies.getForRoute(enemyId, save);
@@ -82,6 +85,7 @@ const Battle = {
         // Initialize
         this.state = this.states.INTRO;
         this.stateTimer = 0;
+        this.gameOverTriggered = false;
         this.menuIndex = 0;
         this.submenuIndex = 0;
         this.showingSubmenu = false;
@@ -601,7 +605,8 @@ const Battle = {
      * Update game over state
      */
     updateGameOver(dt) {
-        if (this.stateTimer > 2) {
+        if (this.stateTimer > 2 && !this.gameOverTriggered) {
+            this.gameOverTriggered = true;
             Game.gameOver();
         }
     },
@@ -837,6 +842,34 @@ const Battle = {
     },
 
     /**
+     * Word wrap text to fit within a given width
+     */
+    wrapText(text, maxWidth, fontSize) {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        const charWidth = fontSize * 0.7; // Approximate character width
+
+        for (const word of words) {
+            const testLine = currentLine ? currentLine + ' ' + word : word;
+            const testWidth = testLine.length * charWidth;
+
+            if (testWidth > maxWidth && currentLine) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+
+        return lines;
+    },
+
+    /**
      * Render text
      */
     renderText() {
@@ -844,10 +877,20 @@ const Battle = {
 
         const textX = 40;
         const textY = 95;
-        const lines = this.displayText.split('\n');
+        const maxWidth = this.battleBox.width - 20; // Leave some padding
+        const fontSize = 8;
 
-        for (let i = 0; i < lines.length; i++) {
-            Renderer.drawText(lines[i], textX, textY + i * 14, '#fff');
+        // Split by newlines first, then wrap each line
+        const inputLines = this.displayText.split('\n');
+        const wrappedLines = [];
+
+        for (const line of inputLines) {
+            const wrapped = this.wrapText(line, maxWidth, fontSize);
+            wrappedLines.push(...wrapped);
+        }
+
+        for (let i = 0; i < wrappedLines.length; i++) {
+            Renderer.drawText(wrappedLines[i], textX, textY + i * 14, '#fff');
         }
     }
 };

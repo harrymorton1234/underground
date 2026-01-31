@@ -126,16 +126,32 @@ const Player = {
         const frameRow = directionRows[this.direction] || 0;
         const flipX = false;
 
-        Renderer.drawSprite(
-            'player',
-            screenX,
-            screenY,
-            this.frame,
-            frameRow,
-            this.spriteWidth,
-            this.spriteHeight,
-            flipX
-        );
+        // Get equipped items
+        const save = Save.getCurrent();
+        const hasWeapon = save && save.weapon;
+        const hasArmor = save && save.armor;
+
+        // If wearing armor, draw custom robed character instead of sprite
+        if (hasArmor) {
+            this.renderRobedPlayer(screenX, screenY, save.armor);
+        } else {
+            // Draw base player sprite
+            Renderer.drawSprite(
+                'player',
+                screenX,
+                screenY,
+                this.frame,
+                frameRow,
+                this.spriteWidth,
+                this.spriteHeight,
+                flipX
+            );
+        }
+
+        // Draw weapon if equipped
+        if (hasWeapon) {
+            this.renderWeapon(screenX, screenY, save.weapon);
+        }
 
         // Debug: show hitbox
         if (Game.debug) {
@@ -147,6 +163,265 @@ const Player = {
                 'rgba(255,0,0,0.5)'
             );
         }
+    },
+
+    /**
+     * Render player wearing a robe/armor
+     */
+    renderRobedPlayer(screenX, screenY, armorId) {
+        const item = Items.get(armorId);
+
+        // Get colors based on armor type
+        let robeColor = '#654';
+        let robeDark = '#432';
+        let robeLight = '#876';
+        let trimColor = '#987';
+        let skinColor = '#fdb';
+        let hairColor = '#654';
+
+        if (armorId.includes('crystal')) {
+            robeColor = '#4ad';
+            robeDark = '#28a';
+            robeLight = '#6cf';
+            trimColor = '#8ef';
+        } else if (armorId.includes('ancient')) {
+            robeColor = '#a86';
+            robeDark = '#753';
+            robeLight = '#cb8';
+            trimColor = '#dc9';
+        } else if (armorId.includes('spirit')) {
+            robeColor = '#a6d';
+            robeDark = '#749';
+            robeLight = '#c8f';
+            trimColor = '#daf';
+        } else if (armorId.includes('mega')) {
+            robeColor = '#da4';
+            robeDark = '#a72';
+            robeLight = '#fc6';
+            trimColor = '#fe8';
+        } else if (armorId.includes('torn') || armorId.includes('cloak')) {
+            robeColor = '#543';
+            robeDark = '#321';
+            robeLight = '#654';
+            trimColor = '#654';
+        } else if (armorId.includes('wooden') || armorId.includes('shield')) {
+            robeColor = '#654';
+            robeDark = '#432';
+            robeLight = '#876';
+            trimColor = '#876';
+        }
+
+        const walkOffset = this.animating ? Math.sin(this.frame * Math.PI / 2) * 1 : 0;
+        const bobOffset = this.animating ? Math.abs(Math.sin(this.frame * Math.PI / 2)) * -1 : 0;
+
+        Renderer.ctx.save();
+
+        if (this.direction === 'down') {
+            // Facing down - front view
+            // Robe body
+            Renderer.ctx.fillStyle = robeColor;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 6 + bobOffset, 8, 10);
+
+            // Robe sides (darker)
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 3, screenY + 7 + bobOffset, 2, 8);
+            Renderer.ctx.fillRect(screenX + 11, screenY + 7 + bobOffset, 2, 8);
+
+            // Robe trim/collar
+            Renderer.ctx.fillStyle = trimColor;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 6 + bobOffset, 6, 2);
+
+            // Hood/head
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 1 + bobOffset, 8, 6);
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 1 + bobOffset, 1, 5);
+            Renderer.ctx.fillRect(screenX + 11, screenY + 1 + bobOffset, 1, 5);
+
+            // Face
+            Renderer.ctx.fillStyle = skinColor;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 2 + bobOffset, 6, 4);
+
+            // Eyes
+            Renderer.ctx.fillStyle = '#000';
+            Renderer.ctx.fillRect(screenX + 6, screenY + 3 + bobOffset, 1, 2);
+            Renderer.ctx.fillRect(screenX + 9, screenY + 3 + bobOffset, 1, 2);
+
+            // Feet (walking animation)
+            Renderer.ctx.fillStyle = robeDark;
+            if (this.animating) {
+                Renderer.ctx.fillRect(screenX + 5 + walkOffset, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 9 - walkOffset, screenY + 14, 2, 2);
+            } else {
+                Renderer.ctx.fillRect(screenX + 5, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 9, screenY + 14, 2, 2);
+            }
+
+        } else if (this.direction === 'up') {
+            // Facing up - back view
+            // Robe body
+            Renderer.ctx.fillStyle = robeColor;
+            Renderer.ctx.fillRect(screenX + 3, screenY + 6 + bobOffset, 10, 10);
+
+            // Robe center fold
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 7, screenY + 6 + bobOffset, 2, 9);
+
+            // Hood
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 1 + bobOffset, 8, 6);
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 7, screenY + 1 + bobOffset, 2, 5);
+
+            // Hood shadow
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 5 + bobOffset, 6, 2);
+
+            // Feet
+            Renderer.ctx.fillStyle = robeDark;
+            if (this.animating) {
+                Renderer.ctx.fillRect(screenX + 5 + walkOffset, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 9 - walkOffset, screenY + 14, 2, 2);
+            } else {
+                Renderer.ctx.fillRect(screenX + 5, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 9, screenY + 14, 2, 2);
+            }
+
+        } else if (this.direction === 'left') {
+            // Facing left - side view
+            // Robe body
+            Renderer.ctx.fillStyle = robeColor;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 6 + bobOffset, 7, 10);
+
+            // Robe front
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 7 + bobOffset, 2, 8);
+
+            // Robe back fold
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 10, screenY + 8 + bobOffset, 2, 7);
+
+            // Hood
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 1 + bobOffset, 7, 6);
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 9, screenY + 2 + bobOffset, 2, 4);
+
+            // Face
+            Renderer.ctx.fillStyle = skinColor;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 2 + bobOffset, 4, 4);
+
+            // Eye
+            Renderer.ctx.fillStyle = '#000';
+            Renderer.ctx.fillRect(screenX + 5, screenY + 3 + bobOffset, 1, 2);
+
+            // Feet
+            Renderer.ctx.fillStyle = robeDark;
+            if (this.animating) {
+                Renderer.ctx.fillRect(screenX + 5 - walkOffset, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 8 + walkOffset, screenY + 14, 2, 2);
+            } else {
+                Renderer.ctx.fillRect(screenX + 6, screenY + 14, 3, 2);
+            }
+
+        } else if (this.direction === 'right') {
+            // Facing right - side view (mirrored)
+            // Robe body
+            Renderer.ctx.fillStyle = robeColor;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 6 + bobOffset, 7, 10);
+
+            // Robe front
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 10, screenY + 7 + bobOffset, 2, 8);
+
+            // Robe back fold
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 4, screenY + 8 + bobOffset, 2, 7);
+
+            // Hood
+            Renderer.ctx.fillStyle = robeLight;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 1 + bobOffset, 7, 6);
+            Renderer.ctx.fillStyle = robeDark;
+            Renderer.ctx.fillRect(screenX + 5, screenY + 2 + bobOffset, 2, 4);
+
+            // Face
+            Renderer.ctx.fillStyle = skinColor;
+            Renderer.ctx.fillRect(screenX + 8, screenY + 2 + bobOffset, 4, 4);
+
+            // Eye
+            Renderer.ctx.fillStyle = '#000';
+            Renderer.ctx.fillRect(screenX + 10, screenY + 3 + bobOffset, 1, 2);
+
+            // Feet
+            Renderer.ctx.fillStyle = robeDark;
+            if (this.animating) {
+                Renderer.ctx.fillRect(screenX + 6 - walkOffset, screenY + 14, 2, 2);
+                Renderer.ctx.fillRect(screenX + 9 + walkOffset, screenY + 14, 2, 2);
+            } else {
+                Renderer.ctx.fillRect(screenX + 7, screenY + 14, 3, 2);
+            }
+        }
+
+        Renderer.ctx.restore();
+    },
+
+    /**
+     * Render equipped weapon
+     */
+    renderWeapon(screenX, screenY, weaponId) {
+        const item = Items.get(weaponId);
+        if (!item) return;
+
+        // Get weapon color based on type
+        let bladeColor = '#888';
+        let handleColor = '#654';
+
+        if (weaponId.includes('crystal')) {
+            bladeColor = '#8ff';
+            handleColor = '#456';
+        } else if (weaponId.includes('ancient')) {
+            bladeColor = '#fd8';
+            handleColor = '#432';
+        } else if (weaponId.includes('spirit')) {
+            bladeColor = '#c8f';
+            handleColor = '#424';
+        } else if (weaponId.includes('mega')) {
+            bladeColor = '#ff4';
+            handleColor = '#844';
+        } else if (weaponId.includes('spider')) {
+            bladeColor = '#4a4';
+            handleColor = '#232';
+        }
+
+        // Weapon position based on direction and animation
+        const wobble = this.animating ? Math.sin(this.frame * 1.5) * 1 : 0;
+
+        const weaponPositions = {
+            'down': { x: screenX + 12, y: screenY + 6 + wobble, angle: 45 },
+            'up': { x: screenX + 2, y: screenY + 4 + wobble, angle: -135 },
+            'left': { x: screenX - 2, y: screenY + 6 + wobble, angle: -45 },
+            'right': { x: screenX + 14, y: screenY + 6 + wobble, angle: 45 }
+        };
+
+        const pos = weaponPositions[this.direction];
+
+        // Draw blade
+        Renderer.ctx.save();
+        Renderer.ctx.translate(pos.x, pos.y);
+        Renderer.ctx.rotate(pos.angle * Math.PI / 180);
+
+        // Handle
+        Renderer.ctx.fillStyle = handleColor;
+        Renderer.ctx.fillRect(-1, 0, 3, 5);
+
+        // Blade
+        Renderer.ctx.fillStyle = bladeColor;
+        Renderer.ctx.fillRect(-1, -8, 3, 9);
+
+        // Blade tip
+        Renderer.ctx.fillRect(0, -10, 1, 2);
+
+        Renderer.ctx.restore();
     },
 
     /**
