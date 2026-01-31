@@ -997,9 +997,11 @@ const Dialogues = {
                 { text: 'As a token of our gratitude...' },
                 { text: 'We present you with this house!' },
                 { text: "It is yours, for as long as you wish to stay." },
+                { text: 'Your trophies have been placed in your display case.' },
                 { text: 'Welcome home, Hero.' }
             ],
-            setFlags: { 'crowned_hero': true, 'has_house': true }
+            setFlags: { 'crowned_hero': true, 'has_house': true, 'trophy_mega_core': true, 'trophy_keepers_key': true },
+            removeItems: ['mega_core', 'keepers_key']
         },
 
         'village_save_point': {

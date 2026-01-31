@@ -1463,7 +1463,7 @@ const Overworld = {
                     // Shelves
                     Renderer.drawRect(screenX + 2, screenY + 16, interactable.width - 4, 2, '#654');
                     Renderer.drawRect(screenX + 2, screenY + 32, interactable.width - 4, 2, '#654');
-                    // Display trophies based on flags
+                    // Display trophies based on flags (items moved to case during crowning)
                     let trophyY = screenY + 6;
                     // Crown
                     if (Save.getFlag('crowned_hero')) {
@@ -1477,14 +1477,14 @@ const Overworld = {
                         Renderer.drawRect(screenX + 18, trophyY, 6, 8, `rgba(100,200,255,${crystalGlow})`);
                     }
                     trophyY = screenY + 20;
-                    // Mega Core
-                    if (Inventory.hasItem && Inventory.hasItem('mega_core')) {
+                    // Mega Core (now displayed from flag, not inventory)
+                    if (Save.getFlag('trophy_mega_core')) {
                         const coreGlow = Math.sin(performance.now() / 300) * 0.3 + 0.7;
                         Renderer.drawRect(screenX + 6, trophyY, 8, 8, `rgba(255,100,100,${coreGlow})`);
                         Renderer.drawRect(screenX + 8, trophyY + 2, 4, 4, `rgba(255,200,100,${coreGlow})`);
                     }
-                    // Keeper's Key
-                    if (Inventory.hasItem && Inventory.hasItem('keepers_key')) {
+                    // Keeper's Key (now displayed from flag, not inventory)
+                    if (Save.getFlag('trophy_keepers_key')) {
                         Renderer.drawRect(screenX + 18, trophyY + 2, 3, 6, '#fc0');
                         Renderer.drawRect(screenX + 21, trophyY + 6, 4, 2, '#fc0');
                     }

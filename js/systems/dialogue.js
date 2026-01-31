@@ -281,6 +281,13 @@ const Dialogue = {
                     }
                 }
 
+                // Remove items (for placing in trophy case, etc.)
+                if (dialogue.removeItems) {
+                    for (const itemId of dialogue.removeItems) {
+                        Inventory.removeItem(itemId);
+                    }
+                }
+
                 // Give gold
                 if (dialogue.giveGold) {
                     const save = Save.getCurrent();
