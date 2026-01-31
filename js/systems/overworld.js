@@ -1441,16 +1441,63 @@ const Overworld = {
                     Renderer.drawRect(screenX + 14, screenY + 6, 4, 4, '#555');
                     // Pot on stove
                     Renderer.drawRect(screenX + 5, screenY + 4, 6, 4, '#444');
-                    // Cabinet doors
+                    // Cabinet doors (food storage)
                     Renderer.drawRect(screenX + 4, screenY + 18, 10, 10, '#765');
                     Renderer.drawRect(screenX + 16, screenY + 18, 10, 10, '#765');
                     // Knobs
                     Renderer.drawRect(screenX + 12, screenY + 22, 2, 2, '#fc0');
                     Renderer.drawRect(screenX + 24, screenY + 22, 2, 2, '#fc0');
-                    // Food storage indicator
-                    const storedFood = Inventory.items ? Inventory.items.filter(i => Items.get(i)?.type === 'consumable').length : 0;
-                    if (storedFood > 0) {
-                        Renderer.drawRect(screenX + interactable.width - 8, screenY + 4, 6, 6, '#4a4');
+                    // Food storage indicator - show if food is stored
+                    const storedFoodCount = Save.getFlag('stored_food_count') || 0;
+                    if (storedFoodCount > 0) {
+                        Renderer.drawRect(screenX + interactable.width - 10, screenY + 4, 8, 8, '#4a4');
+                        Renderer.ctx.fillStyle = '#fff';
+                        Renderer.ctx.font = '6px monospace';
+                        Renderer.ctx.fillText(storedFoodCount.toString(), screenX + interactable.width - 8, screenY + 10);
+                    }
+                    break;
+                case 'armor_chest':
+                    // Wooden chest for armor storage
+                    // Chest body
+                    Renderer.drawRect(screenX, screenY + 6, interactable.width, interactable.height - 6, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 8, interactable.width - 4, interactable.height - 10, '#876');
+                    // Lid
+                    Renderer.drawRect(screenX, screenY, interactable.width, 8, '#765');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, 4, '#987');
+                    // Metal bands
+                    Renderer.drawRect(screenX, screenY + 4, interactable.width, 2, '#555');
+                    Renderer.drawRect(screenX, screenY + interactable.height - 4, interactable.width, 2, '#555');
+                    // Lock/clasp
+                    Renderer.drawRect(screenX + interactable.width/2 - 3, screenY + 6, 6, 6, '#fc0');
+                    // Armor indicator
+                    const storedArmorCount = Save.getFlag('stored_armor_count') || 0;
+                    if (storedArmorCount > 0) {
+                        Renderer.drawRect(screenX + 4, screenY + 12, 6, 8, '#88a');
+                        Renderer.ctx.fillStyle = '#fff';
+                        Renderer.ctx.font = '6px monospace';
+                        Renderer.ctx.fillText(storedArmorCount.toString(), screenX + interactable.width - 8, screenY + 18);
+                    }
+                    break;
+                case 'weapon_chest':
+                    // Wooden chest for weapon storage
+                    // Chest body
+                    Renderer.drawRect(screenX, screenY + 6, interactable.width, interactable.height - 6, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 8, interactable.width - 4, interactable.height - 10, '#765');
+                    // Lid
+                    Renderer.drawRect(screenX, screenY, interactable.width, 8, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, 4, '#876');
+                    // Metal bands
+                    Renderer.drawRect(screenX, screenY + 4, interactable.width, 2, '#666');
+                    Renderer.drawRect(screenX, screenY + interactable.height - 4, interactable.width, 2, '#666');
+                    // Lock/clasp
+                    Renderer.drawRect(screenX + interactable.width/2 - 3, screenY + 6, 6, 6, '#aaa');
+                    // Weapon indicator
+                    const storedWeaponCount = Save.getFlag('stored_weapon_count') || 0;
+                    if (storedWeaponCount > 0) {
+                        Renderer.drawRect(screenX + 4, screenY + 14, 2, 8, '#aaa');
+                        Renderer.ctx.fillStyle = '#fff';
+                        Renderer.ctx.font = '6px monospace';
+                        Renderer.ctx.fillText(storedWeaponCount.toString(), screenX + interactable.width - 8, screenY + 18);
                     }
                     break;
                 case 'trophy_case':

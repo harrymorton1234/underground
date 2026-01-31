@@ -288,6 +288,77 @@ const Dialogue = {
                     }
                 }
 
+                // Store items in home storage
+                if (dialogue.storeItems) {
+                    const storageType = dialogue.storeItems;
+                    const storageKey = `stored_${storageType}`;
+                    let stored = Save.getFlag(storageKey) || [];
+                    let storedCount = 0;
+
+                    // Find items to store based on type
+                    const itemsToStore = [];
+                    if (Inventory.items) {
+                        for (const itemId of [...Inventory.items]) {
+                            const item = Items.get(itemId);
+                            if (item) {
+                                let shouldStore = false;
+                                if (storageType === 'food' && item.type === 'consumable') shouldStore = true;
+                                if (storageType === 'armor' && item.type === 'armor') shouldStore = true;
+                                if (storageType === 'weapon' && item.type === 'weapon') shouldStore = true;
+                                if (shouldStore) {
+                                    itemsToStore.push(itemId);
+                                }
+                            }
+                        }
+                    }
+
+                    for (const itemId of itemsToStore) {
+                        Inventory.removeItem(itemId);
+                        stored.push(itemId);
+                        storedCount++;
+                    }
+
+                    Save.setFlag(storageKey, stored);
+                    Save.setFlag(`stored_${storageType}_count`, stored.length);
+
+                    if (storedCount > 0) {
+                        this.queuedMessage = `Stored ${storedCount} item${storedCount > 1 ? 's' : ''}.`;
+                    } else {
+                        this.queuedMessage = `No ${storageType} items to store.`;
+                    }
+                }
+
+                // Retrieve items from home storage
+                if (dialogue.retrieveItems) {
+                    const storageType = dialogue.retrieveItems;
+                    const storageKey = `stored_${storageType}`;
+                    let stored = Save.getFlag(storageKey) || [];
+                    let retrievedCount = 0;
+
+                    const itemsToRetrieve = [...stored];
+                    stored = [];
+
+                    for (const itemId of itemsToRetrieve) {
+                        if (Inventory.addItem(itemId)) {
+                            retrievedCount++;
+                        } else {
+                            // Inventory full, put back in storage
+                            stored.push(itemId);
+                        }
+                    }
+
+                    Save.setFlag(storageKey, stored);
+                    Save.setFlag(`stored_${storageType}_count`, stored.length);
+
+                    if (retrievedCount > 0) {
+                        this.queuedMessage = `Retrieved ${retrievedCount} item${retrievedCount > 1 ? 's' : ''}.`;
+                    } else if (itemsToRetrieve.length === 0) {
+                        this.queuedMessage = `Nothing stored here.`;
+                    } else {
+                        this.queuedMessage = `Inventory full!`;
+                    }
+                }
+
                 // Give gold
                 if (dialogue.giveGold) {
                     const save = Save.getCurrent();

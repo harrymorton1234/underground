@@ -1215,8 +1215,12 @@ const Rooms = {
                 { x: 20, y: 40, width: 32, height: 24, type: 'bed', dialogue: 'house_bed' },
                 // Trophy case for awards
                 { x: 20, y: 100, width: 28, height: 48, type: 'trophy_case', dialogue: 'house_trophy' },
-                // Kitchen area
+                // Kitchen area with food storage
                 { x: 180, y: 40, width: 32, height: 32, type: 'kitchen', dialogue: 'house_kitchen' },
+                // Armor chest
+                { x: 60, y: 100, width: 24, height: 20, type: 'armor_chest', dialogue: 'house_armor_chest' },
+                // Weapon chest
+                { x: 100, y: 100, width: 24, height: 20, type: 'weapon_chest', dialogue: 'house_weapon_chest' },
                 // Mirror
                 { x: 80, y: 30, width: 16, height: 24, type: 'mirror', dialogue: 'house_mirror' }
             ],

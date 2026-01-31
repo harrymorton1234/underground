@@ -1198,9 +1198,85 @@ const Dialogues = {
             speaker: null,
             lines: [
                 { text: 'Your cozy kitchen.' },
-                { text: 'The stove is warm and inviting.' },
-                { text: 'A good place to store your food supplies.' }
+                { text: 'The cabinets can store your food.' }
+            ],
+            choices: [
+                { text: 'Store Food', next: 'kitchen_store' },
+                { text: 'Take Food', next: 'kitchen_take' },
+                { text: 'Never mind', next: null }
             ]
+        },
+
+        'kitchen_store': {
+            speaker: null,
+            lines: [
+                { text: 'You store your food items in the cabinet.' }
+            ],
+            storeItems: 'food'
+        },
+
+        'kitchen_take': {
+            speaker: null,
+            lines: [
+                { text: 'You check the cabinet for food...' }
+            ],
+            retrieveItems: 'food'
+        },
+
+        'house_armor_chest': {
+            speaker: null,
+            lines: [
+                { text: 'A sturdy chest for storing armor.' }
+            ],
+            choices: [
+                { text: 'Store Armor', next: 'armor_store' },
+                { text: 'Take Armor', next: 'armor_take' },
+                { text: 'Never mind', next: null }
+            ]
+        },
+
+        'armor_store': {
+            speaker: null,
+            lines: [
+                { text: 'You store your armor in the chest.' }
+            ],
+            storeItems: 'armor'
+        },
+
+        'armor_take': {
+            speaker: null,
+            lines: [
+                { text: 'You check the chest for armor...' }
+            ],
+            retrieveItems: 'armor'
+        },
+
+        'house_weapon_chest': {
+            speaker: null,
+            lines: [
+                { text: 'A chest for storing weapons.' }
+            ],
+            choices: [
+                { text: 'Store Weapons', next: 'weapon_store' },
+                { text: 'Take Weapons', next: 'weapon_take' },
+                { text: 'Never mind', next: null }
+            ]
+        },
+
+        'weapon_store': {
+            speaker: null,
+            lines: [
+                { text: 'You store your weapons in the chest.' }
+            ],
+            storeItems: 'weapon'
+        },
+
+        'weapon_take': {
+            speaker: null,
+            lines: [
+                { text: 'You check the chest for weapons...' }
+            ],
+            retrieveItems: 'weapon'
         },
 
         'house_save': {
