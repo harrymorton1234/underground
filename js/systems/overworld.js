@@ -99,10 +99,8 @@ const Overworld = {
             Save.recordSecret(room.secretId);
         }
 
-        // Change music if specified
-        if (room.music) {
-            // Audio.playMusic(room.music);
-        }
+        // Change music based on area
+        Audio.playAreaMusic(roomId);
     },
 
     /**

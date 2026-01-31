@@ -393,6 +393,8 @@ const Game = {
                 break;
             }
         }
+        // Play title music
+        Audio.playMusic('music_title', true, 1.0);
     },
 
     updateTitle(dt) {
@@ -1113,13 +1115,15 @@ const Game = {
     // ==================== SETTINGS STATE ====================
 
     settingsSelection: 0,
-    settingsOptions: ['Sound Volume', 'Music Volume', 'Fullscreen', 'Back'],
+    settingsOptions: ['Sound Volume', 'Music Volume', 'Fullscreen', 'Help', 'Back'],
     soundVolume: 100,
     musicVolume: 100,
     menuReturnState: null,
+    showingHelp: false,
 
     initSettings() {
         this.settingsSelection = 0;
+        this.showingHelp = false;
         // If not set, default to title
         if (!this.menuReturnState) {
             this.menuReturnState = this.states.TITLE;
@@ -1127,6 +1131,15 @@ const Game = {
     },
 
     updateSettings(dt) {
+        // If showing help, just wait for any key to close
+        if (this.showingHelp) {
+            if (Input.isPressed('confirm') || Input.isPressed('cancel')) {
+                Audio.playSFX('cancel');
+                this.showingHelp = false;
+            }
+            return;
+        }
+
         // Navigation
         if (Input.isPressed('up')) {
             this.settingsSelection = Math.max(0, this.settingsSelection - 1);
@@ -1170,6 +1183,10 @@ const Game = {
                 }
                 Audio.playSFX('confirm');
             } else if (this.settingsSelection === 3) {
+                // Help
+                Audio.playSFX('confirm');
+                this.showingHelp = true;
+            } else if (this.settingsSelection === 4) {
                 // Back
                 Audio.playSFX('cancel');
                 const returnTo = this.menuReturnState || this.states.TITLE;
@@ -1191,6 +1208,12 @@ const Game = {
         Renderer.clear('#000');
 
         const centerX = Renderer.width / 2;
+
+        // Show help screen if active
+        if (this.showingHelp) {
+            this.renderHelp();
+            return;
+        }
 
         Renderer.drawText('SETTINGS', centerX, 30, '#fff', 'center', 12);
 
@@ -1228,6 +1251,46 @@ const Game = {
         }
 
         Renderer.drawText('Use LEFT/RIGHT to adjust', centerX, 200, '#555', 'center', 6);
+    },
+
+    renderHelp() {
+        const centerX = Renderer.width / 2;
+
+        Renderer.drawText('CONTROLS', centerX, 25, '#fff', 'center', 12);
+
+        // Draw a box for the controls
+        Renderer.drawBox(30, 45, 260, 160);
+
+        const controls = [
+            ['ARROW KEYS', 'Move / Navigate menus'],
+            ['Z or ENTER', 'Confirm / Interact'],
+            ['X or ESC', 'Cancel / Go back'],
+            ['C or SHIFT', 'Open menu (in game)'],
+            ['', ''],
+            ['BATTLE:', ''],
+            ['ARROW KEYS', 'Move soul to dodge'],
+            ['Z or ENTER', 'Confirm action'],
+            ['', ''],
+            ['F3', 'Toggle debug mode']
+        ];
+
+        let y = 55;
+        for (const [key, desc] of controls) {
+            if (key === '' && desc === '') {
+                y += 6;
+                continue;
+            }
+            if (desc === '') {
+                // Section header
+                Renderer.drawText(key, 45, y, '#ff0');
+            } else {
+                Renderer.drawText(key, 45, y, '#fff');
+                Renderer.drawText(desc, 150, y, '#888');
+            }
+            y += 12;
+        }
+
+        Renderer.drawText('Press Z or X to close', centerX, 215, '#555', 'center', 6);
     },
 
     renderVolumeBar(x, y, value, isSelected) {

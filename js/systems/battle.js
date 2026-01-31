@@ -102,8 +102,12 @@ const Battle = {
         // Show encounter text
         this.showText(this.enemy.encounterText);
 
-        // Play battle music
-        // Audio.playMusic('battle_theme');
+        // Play battle music (boss or normal)
+        if (this.enemy.isBoss) {
+            Audio.playMusic('music_boss', true, 0.5);
+        } else {
+            Audio.playMusic('music_battle', true, 0.5);
+        }
     },
 
     /**
@@ -260,8 +264,11 @@ const Battle = {
      * Perform attack
      */
     performAttack(accuracy) {
+        // Recalculate stats to ensure weapon bonus is applied
+        Inventory.updateStats();
+
         const save = Save.getCurrent();
-        const baseDamage = save.attack;
+        const baseDamage = save.attack || 10;
         const damage = Math.floor(baseDamage * (0.5 + accuracy * 1.5));
 
         const actualDamage = this.enemy.takeDamage(damage);
@@ -269,7 +276,7 @@ const Battle = {
         Audio.playSFX('hit');
         Renderer.shake(4, 0.2);
 
-        this.showText(`* ${actualDamage} damage!`);
+        this.showText(`* ${actualDamage} damage! (ATK: ${baseDamage})`);
     },
 
     /**
@@ -373,8 +380,10 @@ const Battle = {
                 this.setState(this.states.MENU);
             }
         } else {
+            // After using item, go back to menu (healing is free action)
             if (Input.isPressed('confirm')) {
-                this.startEnemyTurn();
+                this.displayText = '';
+                this.setState(this.states.MENU);
             }
         }
     },
@@ -661,6 +670,12 @@ const Battle = {
     end() {
         // Return to overworld
         Game.setState(Game.states.OVERWORLD);
+
+        // Restore area music
+        const save = Save.getCurrent();
+        if (save && save.roomId) {
+            Audio.playAreaMusic(save.roomId);
+        }
 
         // Call callback
         if (this.onEnd) {

@@ -291,16 +291,19 @@ const Bullets = {
             spawners: [
                 {
                     type: 'homing',
-                    delay: 0.2,
-                    interval: 0.5,
-                    bullet: { type: 'circle', speed: 55, size: 5, color: '#8ff', homing: 0.6 },
+                    delay: 0.1,
+                    interval: 0.4,
+                    bullet: { type: 'circle', speed: 80, size: 5, color: '#8ff', homing: 0.8 },
                     position: 'random_edge'
                 },
                 {
-                    type: 'single',
-                    delay: 0.3,
-                    interval: 0.6,
-                    bullet: { type: 'circle', speed: 50, size: 4, color: '#aff' },
+                    type: 'spread',
+                    delay: 0.2,
+                    interval: 0.5,
+                    count: 3,
+                    angle: 90,
+                    spread: 40,
+                    bullet: { type: 'circle', speed: 70, size: 4, color: '#aff' },
                     position: 'random_top'
                 }
             ]
@@ -310,19 +313,19 @@ const Bullets = {
             duration: 3,
             spawners: [
                 {
-                    type: 'wave_horizontal',
-                    delay: 0.1,
-                    count: 6,
-                    bullet: { type: 'circle', speed: 70, size: 6, color: '#8ff' },
-                    gapY: 140
+                    type: 'ring',
+                    delay: 0,
+                    interval: 0.6,
+                    count: 8,
+                    bullet: { type: 'circle', speed: 65, size: 5, color: '#8ff' },
+                    position: 'center'
                 },
                 {
-                    type: 'burst',
-                    delay: 1,
-                    interval: 0.8,
-                    count: 4,
-                    bullet: { type: 'circle', speed: 45, size: 5, color: '#aff' },
-                    position: 'center'
+                    type: 'aimed',
+                    delay: 0.3,
+                    interval: 0.4,
+                    bullet: { type: 'circle', speed: 75, size: 5, color: '#aff' },
+                    position: 'random_edge'
                 }
             ]
         };
@@ -378,15 +381,8 @@ const Bullets = {
             duration: 7,
             spawners: [
                 {
-                    type: 'rain',
-                    delay: 0,
-                    interval: 0.1,
-                    bullet: { type: 'circle', speed: 80, size: 4, color: '#ff8' },
-                    variance: 0.3
-                },
-                {
                     type: 'ring',
-                    delay: 3,
+                    delay: 2,
                     interval: 1,
                     count: 16,
                     bullet: { type: 'circle', speed: 50, size: 5, color: '#fa0' },
@@ -434,13 +430,6 @@ const Bullets = {
                     count: 20,
                     bullet: { type: 'circle', speed: 60, size: 4, color: '#f00' },
                     position: 'center'
-                },
-                {
-                    type: 'homing',
-                    delay: 1,
-                    interval: 1,
-                    bullet: { type: 'circle', speed: 35, size: 6, color: '#f80', homing: 0.8 },
-                    position: 'random_edge'
                 }
             ]
         };
