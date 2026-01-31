@@ -49,7 +49,7 @@ const Rooms = {
             onEnterOnce: true,
             music: null,
             encounterRate: 0.1,
-            encounterEnemies: ['dummy']
+            encounterEnemies: ['cave_spider']
         },
 
         'intro_2': {
@@ -120,7 +120,7 @@ const Rooms = {
             onEnterOnce: true,
             music: 'descent_theme',
             encounterRate: 0.15,
-            encounterEnemies: ['dummy', 'cave_spider']
+            encounterEnemies: ['cave_spider']
         },
 
         'descent_2': {
@@ -251,7 +251,7 @@ const Rooms = {
                 1111111111111111111111111
             `,
             transitions: [
-                { x: 8, y: 112, width: 8, height: 16, to: 'descent_3', playerX: 288, playerY: 24 },
+                { x: 16, y: 112, width: 16, height: 16, to: 'descent_3', playerX: 270, playerY: 32 },
                 { x: 368, y: 112, width: 16, height: 16, to: 'caverns_shop', playerX: 32, playerY: 120 },
                 { x: 168, y: 208, width: 16, height: 8, to: 'caverns_2', playerX: 160, playerY: 32 },
                 { x: 256, y: 0, width: 16, height: 8, to: 'caverns_treasure', playerX: 120, playerY: 160, requiresItem: 'crystal_key', lockedDialogue: 'locked_door_key' }
@@ -636,7 +636,7 @@ const Rooms = {
                 { x: 160, y: 0, width: 16, height: 16, to: 'swamp_1', playerX: 184, playerY: 260 },
                 { x: 16, y: 208, width: 16, height: 16, to: 'swamp_keeper', playerX: 260, playerY: 120 },
                 { x: 176, y: 208, width: 16, height: 16, to: 'keeper_shrine', playerX: 120, playerY: 48 },
-                { x: 368, y: 208, width: 16, height: 16, to: 'mega_chamber', playerX: 240, playerY: 48, requiresItem: 'keeper_key', lockedDialogue: 'locked_door_keeper' }
+                { x: 368, y: 208, width: 16, height: 16, to: 'mega_chamber', playerX: 200, playerY: 48, requiresItem: 'keeper_key', lockedDialogue: 'locked_door_keeper' }
             ],
             encounterRate: 0.15,
             encounterEnemies: ['ancient_spirit', 'swamp_creature']
@@ -814,7 +814,7 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 232, y: 0, width: 16, height: 8, to: 'hall_final', playerX: 200, playerY: 280 },
+                { x: 208, y: 0, width: 16, height: 16, to: 'swamp_4', playerX: 352, playerY: 190 },
                 { x: 224, y: 296, width: 16, height: 8, to: 'next_level', playerX: 160, playerY: 32, requiresItem: 'mega_core', lockedDialogue: 'locked_door_core' }
             ],
             savePoints: [

@@ -454,11 +454,11 @@ const Overworld = {
      * Trigger random encounter
      */
     triggerEncounter() {
-        let enemies = this.currentRoom.encounterEnemies;
+        const enemies = this.currentRoom.encounterEnemies;
 
-        // Default to dummy if no enemies defined (for testing)
+        // No encounter if no enemies defined
         if (!enemies || enemies.length === 0) {
-            enemies = ['dummy'];
+            return;
         }
 
         const enemyId = Utils.randomChoice(enemies);

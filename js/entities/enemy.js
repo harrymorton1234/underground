@@ -16,6 +16,7 @@ class Enemy {
         // Flags
         this.isBoss = data.isBoss || false;
         this.isFinalBoss = data.isFinalBoss || false;
+        this.isMegaBoss = data.isMegaBoss || false;
 
         // Text
         this.flavorText = data.flavorText;

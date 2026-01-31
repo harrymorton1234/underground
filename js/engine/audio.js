@@ -402,100 +402,845 @@ const Audio = {
         });
 
         // Caverns - mysterious crystal sounds
-        this.musicCache['music_caverns'] = this.generateMelody({
-            tempo: 70,
-            duration: 20,
-            notes: [196, 233, 261, 293, 261, 233, 196, 174],
-            waveform: 'triangle',
-            volume: 0.2,
-            reverb: true,
-            arpeggio: true
-        });
+        // Caverns - Crystal bells and chimes
+        this.musicCache['music_caverns'] = this.generateCavernsMusic();
 
         // Descent - eerie, unsettling with multiple layers
         this.musicCache['music_descent'] = this.generateEerieMusic();
 
-        // Ancient Halls - mysterious, echo-y
-        this.musicCache['music_ancient'] = this.generateMelody({
-            tempo: 60,
-            duration: 20,
-            notes: [220, 196, 174, 164, 174, 196, 220, 246],
-            waveform: 'sine',
-            volume: 0.2,
-            reverb: true,
-            pad: true
-        });
+        // Ancient Halls - Organ and choir
+        this.musicCache['music_ancient'] = this.generateAncientMusic();
 
-        // Swamp - murky, slow, bubbling
-        this.musicCache['music_swamp'] = this.generateMelody({
-            tempo: 55,
-            duration: 22,
-            notes: [130, 146, 130, 116, 130, 146, 164, 146],
-            waveform: 'triangle',
-            volume: 0.18,
-            reverb: true,
-            bubbles: true
-        });
+        // Swamp - Tribal drums and deep bass
+        this.musicCache['music_swamp'] = this.generateSwampMusic();
 
-        // Core - intense, mechanical
-        this.musicCache['music_core'] = this.generateMelody({
-            tempo: 100,
-            duration: 16,
-            notes: [174, 196, 220, 261, 220, 196, 174, 164],
-            waveform: 'square',
-            volume: 0.18,
-            pulse: true
-        });
+        // Core - Electronic synth
+        this.musicCache['music_core'] = this.generateCoreMusic();
 
-        // Shop - upbeat, cheerful
-        this.musicCache['music_shop'] = this.generateMelody({
-            tempo: 120,
-            duration: 12,
-            notes: [329, 392, 440, 392, 329, 392, 523, 440],
-            waveform: 'square',
-            volume: 0.2,
-            bounce: true
-        });
+        // Shop - Cheerful piano
+        this.musicCache['music_shop'] = this.generateShopMusic();
 
-        // Battle - intense, driving
-        this.musicCache['music_battle'] = this.generateMelody({
-            tempo: 140,
-            duration: 8,
-            notes: [196, 220, 261, 293, 261, 220, 196, 174],
-            waveform: 'sawtooth',
-            volume: 0.22,
-            intense: true
-        });
+        // Battle - Aggressive drums and strings
+        this.musicCache['music_battle'] = this.generateBattleMusic();
 
-        // Boss battle - epic, dramatic
-        this.musicCache['music_boss'] = this.generateMelody({
-            tempo: 130,
-            duration: 12,
-            notes: [146, 174, 196, 220, 261, 220, 196, 146],
-            waveform: 'sawtooth',
-            volume: 0.25,
-            intense: true,
-            bass: true
-        });
+        // Boss battle - tense and intense
+        this.musicCache['music_boss'] = this.generateBossMusic();
 
-        // Title screen - sharp and dramatic
-        this.musicCache['music_title'] = this.generateMelody({
-            tempo: 75,
-            duration: 32,
-            notes: [196, 220, 261, 293, 261, 220, 196, 174, 196, 233, 293, 349, 293, 233, 196, 174],
-            waveform: 'square',
-            volume: 0.22,
-            reverb: true,
-            dramatic: true
-        });
+        // Mega boss - Techno like Pigstep
+        this.musicCache['music_mega'] = this.generateMegaBossMusic();
+
+        // Title screen - Orchestral
+        this.musicCache['music_title'] = this.generateTitleMusic();
     },
 
     /**
-     * Generate eerie music with multiple layers
+     * Generate crystal caverns music - bells and chimes
+     */
+    generateCavernsMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 20;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        // Crystal bell melody
+        const bellNotes = [523, 659, 784, 659, 523, 587, 698, 587, 523, 784, 880, 784, 659, 523, 587, 523];
+        const bellInterval = 1.2;
+
+        for (let n = 0; n < Math.floor(duration / bellInterval); n++) {
+            const freq = bellNotes[n % bellNotes.length];
+            const startSample = Math.floor(n * bellInterval * sampleRate);
+
+            for (let i = 0; i < sampleRate * 1.5 && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Bell harmonics
+                let bell = Math.sin(2 * Math.PI * freq * t) * 0.2;
+                bell += Math.sin(2 * Math.PI * freq * 2.0 * t) * 0.1;
+                bell += Math.sin(2 * Math.PI * freq * 3.0 * t) * 0.05;
+                bell += Math.sin(2 * Math.PI * freq * 4.2 * t) * 0.03;
+
+                const env = Math.exp(-t * 2);
+                const pan = Math.sin(n * 0.7) * 0.4;
+
+                leftData[startSample + i] += bell * env * (0.5 - pan);
+                rightData[startSample + i] += bell * env * (0.5 + pan);
+            }
+        }
+
+        // Shimmering background pad
+        for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            const shimmer = Math.sin(2 * Math.PI * 262 * t) * 0.05;
+            const shimmer2 = Math.sin(2 * Math.PI * 330 * t) * 0.04;
+            const shimmer3 = Math.sin(2 * Math.PI * 392 * t) * 0.03;
+            const mod = (Math.sin(t * 0.5) + 1) * 0.5;
+
+            leftData[i] += (shimmer + shimmer2 + shimmer3) * mod;
+            rightData[i] += (shimmer + shimmer2 + shimmer3) * mod;
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate ancient halls music - organ and choir
+     */
+    generateAncientMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 24;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        // Organ chords
+        const chords = [
+            [130, 164, 196],
+            [146, 174, 220],
+            [164, 196, 246],
+            [130, 164, 196]
+        ];
+
+        for (let c = 0; c < 4; c++) {
+            const chord = chords[c];
+            const startSample = Math.floor(c * 6 * sampleRate);
+
+            for (let i = 0; i < 6 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                let organ = 0;
+
+                for (const freq of chord) {
+                    // Organ drawbars simulation
+                    organ += Math.sin(2 * Math.PI * freq * t) * 0.1;
+                    organ += Math.sin(2 * Math.PI * freq * 2 * t) * 0.08;
+                    organ += Math.sin(2 * Math.PI * freq * 3 * t) * 0.06;
+                    organ += Math.sin(2 * Math.PI * freq * 4 * t) * 0.04;
+                }
+
+                let env = 1;
+                if (t < 0.5) env = t / 0.5;
+                if (t > 5.5) env = (6 - t) / 0.5;
+
+                leftData[startSample + i] += organ * env * 0.4;
+                rightData[startSample + i] += organ * env * 0.4;
+            }
+        }
+
+        // Choir-like pad (vowel sounds)
+        for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            const choirFreq = 220 + Math.sin(t * 0.1) * 20;
+            let choir = Math.sin(2 * Math.PI * choirFreq * t) * 0.06;
+            choir += Math.sin(2 * Math.PI * choirFreq * 2 * t) * 0.03;
+            const vibrato = Math.sin(t * 5) * 0.02;
+            choir *= (1 + vibrato);
+
+            leftData[i] += choir;
+            rightData[i] += choir;
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate swamp music - eerie but slightly upbeat
+     */
+    generateSwampMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 20;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 95; // Slightly upbeat tempo
+        const beatDur = 60 / tempo;
+
+        // Steady driving beat - sense of progress
+        for (let beat = 0; beat < Math.floor(duration / beatDur); beat++) {
+            const startSample = Math.floor(beat * beatDur * sampleRate);
+
+            // Kick on 1 and 3
+            if (beat % 4 === 0 || beat % 4 === 2) {
+                for (let i = 0; i < 0.1 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const kick = Math.sin(2 * Math.PI * 55 * Math.exp(-t * 20) * t) * 0.25;
+                    leftData[startSample + i] += kick * Math.exp(-t * 12);
+                    rightData[startSample + i] += kick * Math.exp(-t * 12);
+                }
+            }
+
+            // Offbeat hi-hat for groove
+            if (beat % 2 === 1) {
+                for (let i = 0; i < 0.03 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const hat = (Math.random() * 2 - 1) * 0.06;
+                    leftData[startSample + i] += hat * Math.exp(-t * 40);
+                    rightData[startSample + i] += hat * Math.exp(-t * 40);
+                }
+            }
+        }
+
+        // Eerie minor key melody with hopeful undertones
+        const melody = [196, 220, 233, 262, 247, 220, 196, 175, 196, 233, 262, 294, 262, 233, 220, 196];
+        const noteInterval = beatDur;
+
+        for (let n = 0; n < Math.floor(duration / noteInterval); n++) {
+            const freq = melody[n % melody.length];
+            const startSample = Math.floor(n * noteInterval * sampleRate);
+
+            for (let i = 0; i < noteInterval * 0.8 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Slightly detuned for eerie feel
+                let note = Math.sin(2 * Math.PI * freq * t) * 0.1;
+                note += Math.sin(2 * Math.PI * freq * 1.005 * t) * 0.05;
+                note += Math.sin(2 * Math.PI * freq * 2 * t) * 0.03;
+
+                let env = 1;
+                if (t < 0.02) env = t / 0.02;
+                env *= Math.exp(-t * 4);
+
+                const pan = Math.sin(n * 0.4) * 0.2;
+                leftData[startSample + i] += note * env * (0.5 - pan);
+                rightData[startSample + i] += note * env * (0.5 + pan);
+            }
+        }
+
+        // Mysterious low pad
+        for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            const pad = Math.sin(2 * Math.PI * 65 * t) * 0.06;
+            const pad2 = Math.sin(2 * Math.PI * 98 * t) * 0.04;
+            const mod = 0.7 + Math.sin(t * 0.3) * 0.3;
+
+            leftData[i] += (pad + pad2) * mod;
+            rightData[i] += (pad + pad2) * mod;
+        }
+
+        // Occasional eerie whistle/wind
+        for (let w = 0; w < 6; w++) {
+            const startTime = w * 3 + 1;
+            const startSample = Math.floor(startTime * sampleRate);
+
+            for (let i = 0; i < 1.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const whistleFreq = 600 + Math.sin(t * 3) * 100;
+                const whistle = Math.sin(2 * Math.PI * whistleFreq * t) * 0.03;
+                const env = Math.sin(Math.PI * t / 1.5);
+
+                leftData[startSample + i] += whistle * env * (0.3 + Math.sin(t) * 0.2);
+                rightData[startSample + i] += whistle * env * (0.3 - Math.sin(t) * 0.2);
+            }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate core music - electronic synth
+     */
+    generateCoreMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 16;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 128;
+        const beatDur = 60 / tempo;
+
+        // Four on the floor kick
+        for (let beat = 0; beat < Math.floor(duration / beatDur); beat++) {
+            const startSample = Math.floor(beat * beatDur * sampleRate);
+            for (let i = 0; i < 0.1 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const kick = Math.sin(2 * Math.PI * 60 * Math.exp(-t * 20) * t) * 0.3;
+                leftData[startSample + i] += kick * Math.exp(-t * 15);
+                rightData[startSample + i] += kick * Math.exp(-t * 15);
+            }
+        }
+
+        // Synth arpeggio
+        const arpNotes = [220, 277, 330, 440, 330, 277, 220, 165];
+        const arpInterval = beatDur / 2;
+
+        for (let n = 0; n < Math.floor(duration / arpInterval); n++) {
+            const freq = arpNotes[n % arpNotes.length];
+            const startSample = Math.floor(n * arpInterval * sampleRate);
+
+            for (let i = 0; i < arpInterval * 0.8 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Saw wave synth
+                let saw = ((t * freq % 1) * 2 - 1) * 0.12;
+                // Filter sweep
+                const filterMod = 0.5 + Math.sin(n * 0.3) * 0.3;
+                saw *= filterMod;
+
+                const env = Math.exp(-t * 6);
+                const pan = (n % 2 === 0) ? -0.3 : 0.3;
+
+                leftData[startSample + i] += saw * env * (0.5 - pan);
+                rightData[startSample + i] += saw * env * (0.5 + pan);
+            }
+        }
+
+        // Sub bass
+        for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            const sub = Math.sin(2 * Math.PI * 55 * t) * 0.1;
+            leftData[i] += sub;
+            rightData[i] += sub;
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate shop music - cheerful piano
+     */
+    generateShopMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 16;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 120;
+        const beatDur = 60 / tempo;
+
+        // Piano melody
+        const melody = [392, 440, 494, 523, 494, 440, 392, 330, 349, 392, 440, 392, 349, 330, 294, 330];
+
+        for (let n = 0; n < melody.length * 2; n++) {
+            const freq = melody[n % melody.length];
+            const startSample = Math.floor(n * beatDur * sampleRate);
+
+            for (let i = 0; i < beatDur * 1.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Piano-like tone (sine with harmonics and quick decay)
+                let piano = Math.sin(2 * Math.PI * freq * t) * 0.2;
+                piano += Math.sin(2 * Math.PI * freq * 2 * t) * 0.08;
+                piano += Math.sin(2 * Math.PI * freq * 3 * t) * 0.04;
+                piano += Math.sin(2 * Math.PI * freq * 4 * t) * 0.02;
+
+                const env = Math.exp(-t * 3);
+                leftData[startSample + i] += piano * env;
+                rightData[startSample + i] += piano * env;
+            }
+        }
+
+        // Bass notes
+        const bassNotes = [196, 220, 247, 262, 247, 220, 196, 165];
+        for (let n = 0; n < Math.floor(duration / (beatDur * 2)); n++) {
+            const freq = bassNotes[n % bassNotes.length];
+            const startSample = Math.floor(n * beatDur * 2 * sampleRate);
+
+            for (let i = 0; i < beatDur * 1.8 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const bass = Math.sin(2 * Math.PI * freq * t) * 0.12;
+                const env = Math.exp(-t * 2);
+                leftData[startSample + i] += bass * env;
+                rightData[startSample + i] += bass * env;
+            }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate battle music - aggressive drums and strings
+     */
+    generateBattleMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 12;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 160;
+        const beatDur = 60 / tempo;
+
+        // Fast aggressive drums
+        for (let beat = 0; beat < Math.floor(duration / beatDur); beat++) {
+            const startSample = Math.floor(beat * beatDur * sampleRate);
+
+            // Kick on 1 and 3
+            if (beat % 4 === 0 || beat % 4 === 2) {
+                for (let i = 0; i < 0.08 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const kick = Math.sin(2 * Math.PI * 80 * Math.exp(-t * 25) * t) * 0.35;
+                    leftData[startSample + i] += kick * Math.exp(-t * 12);
+                    rightData[startSample + i] += kick * Math.exp(-t * 12);
+                }
+            }
+
+            // Snare on 2 and 4
+            if (beat % 4 === 1 || beat % 4 === 3) {
+                for (let i = 0; i < 0.1 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const snare = (Math.random() * 2 - 1) * 0.2 + Math.sin(2 * Math.PI * 200 * t) * 0.1;
+                    leftData[startSample + i] += snare * Math.exp(-t * 15);
+                    rightData[startSample + i] += snare * Math.exp(-t * 15);
+                }
+            }
+
+            // Hi-hat
+            for (let i = 0; i < 0.03 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const hat = (Math.random() * 2 - 1) * 0.08;
+                leftData[startSample + i] += hat * Math.exp(-t * 50);
+                rightData[startSample + i] += hat * Math.exp(-t * 50);
+            }
+        }
+
+        // Aggressive string stabs
+        const stringNotes = [220, 196, 185, 174, 196, 220, 247, 220];
+        for (let n = 0; n < Math.floor(duration / (beatDur * 2)); n++) {
+            const freq = stringNotes[n % stringNotes.length];
+            const startSample = Math.floor(n * beatDur * 2 * sampleRate);
+
+            for (let i = 0; i < beatDur * 1.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Saw strings
+                let strings = ((t * freq % 1) * 2 - 1) * 0.12;
+                strings += ((t * freq * 1.5 % 1) * 2 - 1) * 0.08;
+                strings += ((t * freq * 2 % 1) * 2 - 1) * 0.05;
+
+                let env = Math.exp(-t * 4);
+                if (t < 0.02) env *= t / 0.02;
+
+                leftData[startSample + i] += strings * env;
+                rightData[startSample + i] += strings * env;
+            }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate Mega Boss music - Techno like Pigstep
+     */
+    generateMegaBossMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 20;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 125; // Pigstep-like tempo
+        const beatDur = 60 / tempo;
+
+        // Heavy kick with sidechain feel
+        for (let beat = 0; beat < Math.floor(duration / beatDur); beat++) {
+            const startSample = Math.floor(beat * beatDur * sampleRate);
+
+            for (let i = 0; i < 0.15 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const kickFreq = 55 + 100 * Math.exp(-t * 40);
+                const kick = Math.sin(2 * Math.PI * kickFreq * t) * 0.45;
+                const env = Math.exp(-t * 10);
+
+                leftData[startSample + i] += kick * env;
+                rightData[startSample + i] += kick * env;
+            }
+        }
+
+        // Snappy snare on 2 and 4
+        for (let beat = 0; beat < Math.floor(duration / beatDur); beat++) {
+            if (beat % 4 !== 2) continue;
+            const startSample = Math.floor(beat * beatDur * sampleRate);
+
+            for (let i = 0; i < 0.12 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const snare = (Math.random() * 2 - 1) * 0.25;
+                const tone = Math.sin(2 * Math.PI * 180 * t) * 0.15;
+                leftData[startSample + i] += (snare + tone) * Math.exp(-t * 18);
+                rightData[startSample + i] += (snare + tone) * Math.exp(-t * 18);
+            }
+        }
+
+        // Syncopated hi-hats
+        const hatPattern = [1, 0, 1, 1, 0, 1, 1, 0];
+        for (let beat = 0; beat < Math.floor(duration / (beatDur / 2)); beat++) {
+            if (hatPattern[beat % hatPattern.length] === 0) continue;
+            const startSample = Math.floor(beat * (beatDur / 2) * sampleRate);
+
+            for (let i = 0; i < 0.04 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const hat = (Math.random() * 2 - 1) * 0.12;
+                leftData[startSample + i] += hat * Math.exp(-t * 60);
+                rightData[startSample + i] += hat * Math.exp(-t * 60);
+            }
+        }
+
+        // Growling bass synth (like Pigstep)
+        const bassPattern = [55, 0, 55, 62, 0, 55, 0, 49, 55, 0, 62, 55, 0, 49, 0, 55];
+        for (let n = 0; n < Math.floor(duration / (beatDur / 2)); n++) {
+            const freq = bassPattern[n % bassPattern.length];
+            if (freq === 0) continue;
+
+            const startSample = Math.floor(n * (beatDur / 2) * sampleRate);
+            const noteLen = Math.floor((beatDur / 2) * 0.9 * sampleRate);
+
+            for (let i = 0; i < noteLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Distorted growling bass
+                let bass = Math.sin(2 * Math.PI * freq * t);
+                bass += Math.sin(2 * Math.PI * freq * 2 * t) * 0.5;
+                bass = Math.tanh(bass * 3) * 0.2; // Heavy distortion
+
+                let env = 1;
+                if (t < 0.01) env = t / 0.01;
+                if (t > (beatDur / 2) * 0.7) env = ((beatDur / 2) * 0.9 - t) / ((beatDur / 2) * 0.2);
+
+                leftData[startSample + i] += bass * env;
+                rightData[startSample + i] += bass * env;
+            }
+        }
+
+        // Catchy synth melody
+        const melody = [440, 0, 523, 440, 0, 392, 440, 0, 523, 587, 523, 440, 0, 392, 349, 392];
+        for (let n = 0; n < Math.floor(duration / (beatDur / 2)); n++) {
+            const freq = melody[n % melody.length];
+            if (freq === 0) continue;
+
+            const startSample = Math.floor(n * (beatDur / 2) * sampleRate);
+            const noteLen = Math.floor((beatDur / 2) * 0.85 * sampleRate);
+
+            for (let i = 0; i < noteLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Square lead with portamento feel
+                let lead = (Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1) * 0.1;
+                lead += (Math.sin(2 * Math.PI * freq * 2 * t) > 0 ? 1 : -1) * 0.05;
+
+                let env = 1;
+                if (t < 0.01) env = t / 0.01;
+                env *= Math.exp(-t * 3);
+
+                const pan = Math.sin(n * 0.5) * 0.3;
+                leftData[startSample + i] += lead * env * (0.5 - pan);
+                rightData[startSample + i] += lead * env * (0.5 + pan);
+            }
+        }
+
+        // Rising FX sweeps
+        for (let sweep = 0; sweep < 5; sweep++) {
+            const startSample = Math.floor(sweep * 4 * sampleRate);
+            for (let i = 0; i < 3.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const progress = t / 3.5;
+                const sweepFreq = 100 + progress * progress * 2000;
+                const sweepSound = Math.sin(2 * Math.PI * sweepFreq * t) * 0.04 * progress;
+
+                leftData[startSample + i] += sweepSound;
+                rightData[startSample + i] += sweepSound;
+            }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate title music - Orchestral
+     */
+    generateTitleMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 24;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        // Epic string section
+        const chordProg = [
+            [196, 247, 294],
+            [220, 277, 330],
+            [185, 233, 277],
+            [196, 247, 294]
+        ];
+
+        for (let c = 0; c < chordProg.length; c++) {
+            const chord = chordProg[c];
+            const startSample = Math.floor(c * 6 * sampleRate);
+
+            for (let i = 0; i < 6 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                let strings = 0;
+
+                for (const freq of chord) {
+                    // Layered saw waves for strings
+                    strings += ((t * freq % 1) * 2 - 1) * 0.08;
+                    strings += ((t * freq * 1.002 % 1) * 2 - 1) * 0.06;
+                    strings += ((t * freq * 0.998 % 1) * 2 - 1) * 0.06;
+                }
+
+                // Vibrato
+                strings *= 1 + Math.sin(t * 5) * 0.02;
+
+                let env = 1;
+                if (t < 1) env = t;
+                if (t > 5) env = 6 - t;
+
+                leftData[startSample + i] += strings * env * 0.5;
+                rightData[startSample + i] += strings * env * 0.5;
+            }
+        }
+
+        // Timpani hits
+        const timpaniBeats = [0, 6, 12, 18];
+        for (const beat of timpaniBeats) {
+            const startSample = Math.floor(beat * sampleRate);
+            for (let i = 0; i < 1.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const timpani = Math.sin(2 * Math.PI * 65 * t) * 0.25;
+                const env = Math.exp(-t * 3);
+
+                leftData[startSample + i] += timpani * env;
+                rightData[startSample + i] += timpani * env;
+            }
+        }
+
+        // French horn melody
+        const hornMelody = [294, 330, 392, 440, 392, 330, 294, 247];
+        for (let n = 0; n < hornMelody.length; n++) {
+            const freq = hornMelody[n];
+            const startSample = Math.floor((n * 3 + 1.5) * sampleRate);
+
+            for (let i = 0; i < 2.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Warm horn sound
+                let horn = Math.sin(2 * Math.PI * freq * t) * 0.12;
+                horn += Math.sin(2 * Math.PI * freq * 2 * t) * 0.06;
+                horn += Math.sin(2 * Math.PI * freq * 3 * t) * 0.03;
+                horn *= 1 + Math.sin(t * 4) * 0.03; // Vibrato
+
+                let env = 1;
+                if (t < 0.1) env = t / 0.1;
+                if (t > 2) env = (2.5 - t) / 0.5;
+
+                leftData[startSample + i] += horn * env;
+                rightData[startSample + i] += horn * env;
+            }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Helper to normalize audio buffer
+     */
+    normalizeBuffer(leftData, rightData, length) {
+        let maxVal = 0;
+        for (let i = 0; i < length; i++) {
+            maxVal = Math.max(maxVal, Math.abs(leftData[i]), Math.abs(rightData[i]));
+        }
+        if (maxVal > 0.8) {
+            const scale = 0.8 / maxVal;
+            for (let i = 0; i < length; i++) {
+                leftData[i] *= scale;
+                rightData[i] *= scale;
+            }
+        }
+    },
+
+    /**
+     * Generate tense boss battle music
+     */
+    generateBossMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 16;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        // Initialize
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 150;
+        const beatDuration = 60 / tempo;
+
+        // Layer 1: Driving bass drum on every beat
+        for (let beat = 0; beat < Math.floor(duration / beatDuration); beat++) {
+            const startSample = Math.floor(beat * beatDuration * sampleRate);
+            const kickLen = Math.floor(0.1 * sampleRate);
+
+            for (let i = 0; i < kickLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Pitch dropping kick drum
+                const kickFreq = 150 * Math.exp(-t * 30);
+                const kick = Math.sin(2 * Math.PI * kickFreq * t) * 0.4;
+                const env = Math.exp(-t * 15);
+
+                leftData[startSample + i] += kick * env;
+                rightData[startSample + i] += kick * env;
+            }
+        }
+
+        // Layer 2: Aggressive bass line
+        const bassNotes = [55, 55, 65, 55, 73, 55, 65, 49];
+        const bassNoteDur = beatDuration * 2;
+
+        for (let n = 0; n < Math.floor(duration / bassNoteDur); n++) {
+            const freq = bassNotes[n % bassNotes.length];
+            const startSample = Math.floor(n * bassNoteDur * sampleRate);
+            const noteLen = Math.floor(bassNoteDur * 0.9 * sampleRate);
+
+            for (let i = 0; i < noteLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Distorted bass
+                let bass = Math.sin(2 * Math.PI * freq * t);
+                bass = Math.tanh(bass * 2) * 0.2; // Soft clip for grit
+
+                let env = 1;
+                if (t < 0.02) env = t / 0.02;
+                if (t > bassNoteDur * 0.9 - 0.1) env = (bassNoteDur * 0.9 - t) / 0.1;
+                env = Math.max(0, env);
+
+                leftData[startSample + i] += bass * env;
+                rightData[startSample + i] += bass * env;
+            }
+        }
+
+        // Layer 3: Tense staccato strings/synth
+        const melodyNotes = [220, 207, 196, 185, 196, 207, 220, 261, 247, 220, 196, 185, 174, 185, 196, 220];
+        const notePerBeat = beatDuration * 0.5;
+
+        for (let n = 0; n < Math.floor(duration / notePerBeat); n++) {
+            const freq = melodyNotes[n % melodyNotes.length];
+            const startSample = Math.floor(n * notePerBeat * sampleRate);
+            const noteLen = Math.floor(notePerBeat * 0.7 * sampleRate);
+
+            for (let i = 0; i < noteLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Sharp sawtooth
+                let saw = ((t * freq % 1) * 2 - 1) * 0.15;
+                saw += ((t * freq * 1.002 % 1) * 2 - 1) * 0.1; // Slight detune
+
+                // Quick attack and decay
+                let env = 1;
+                if (t < 0.01) env = t / 0.01;
+                env *= Math.exp(-t * 8);
+
+                const pan = Math.sin(n * 0.5) * 0.3;
+                leftData[startSample + i] += saw * env * (0.5 - pan);
+                rightData[startSample + i] += saw * env * (0.5 + pan);
+            }
+        }
+
+        // Layer 4: Rising tension sweeps
+        for (let sweep = 0; sweep < 4; sweep++) {
+            const startTime = sweep * 4;
+            const startSample = Math.floor(startTime * sampleRate);
+            const sweepLen = Math.floor(3.5 * sampleRate);
+
+            for (let i = 0; i < sweepLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const progress = t / 3.5;
+                // Rising frequency
+                const sweepFreq = 200 + progress * 600;
+                const sweepSound = Math.sin(2 * Math.PI * sweepFreq * t) * 0.08;
+                const env = progress * 0.8; // Gets louder
+
+                leftData[startSample + i] += sweepSound * env;
+                rightData[startSample + i] += sweepSound * env;
+            }
+        }
+
+        // Layer 5: Cymbal/hi-hat on off-beats
+        for (let beat = 0; beat < Math.floor(duration / beatDuration); beat++) {
+            const startSample = Math.floor((beat + 0.5) * beatDuration * sampleRate);
+            const hatLen = Math.floor(0.05 * sampleRate);
+
+            for (let i = 0; i < hatLen && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Noise-based hi-hat
+                const hat = (Math.random() * 2 - 1) * 0.15;
+                const env = Math.exp(-t * 40);
+
+                leftData[startSample + i] += hat * env;
+                rightData[startSample + i] += hat * env;
+            }
+        }
+
+        // Normalize
+        let maxVal = 0;
+        for (let i = 0; i < length; i++) {
+            maxVal = Math.max(maxVal, Math.abs(leftData[i]), Math.abs(rightData[i]));
+        }
+        if (maxVal > 0.85) {
+            const scale = 0.85 / maxVal;
+            for (let i = 0; i < length; i++) {
+                leftData[i] *= scale;
+                rightData[i] *= scale;
+            }
+        }
+
+        return buffer;
+    },
+
+    /**
+     * Generate eerie music - dark ambient style
      */
     generateEerieMusic() {
         const sampleRate = this.context.sampleRate;
-        const duration = 30;
+        const duration = 24;
         const length = duration * sampleRate;
         const buffer = this.context.createBuffer(2, length, sampleRate);
         const leftData = buffer.getChannelData(0);
@@ -507,87 +1252,75 @@ const Audio = {
             rightData[i] = 0;
         }
 
-        // Layer 1: Deep drone bass
-        const droneFreq = 55; // Low A
-        for (let i = 0; i < length; i++) {
-            const t = i / sampleRate;
-            const wobble = Math.sin(t * 0.3) * 0.2 + 1;
-            const drone = Math.sin(2 * Math.PI * droneFreq * wobble * t) * 0.12;
-            const drone2 = Math.sin(2 * Math.PI * droneFreq * 1.5 * t) * 0.06;
-            leftData[i] += drone + drone2;
-            rightData[i] += drone + drone2;
-        }
+        // Dark pad - slow moving chords
+        const chordNotes = [
+            [82, 110, 146],   // Dark minor
+            [77, 103, 138],   // Lower
+            [73, 98, 130],    // Even lower
+            [82, 103, 146]    // Back up, dissonant
+        ];
+        const chordDuration = 6;
 
-        // Layer 2: Creepy high-pitched whispers/wind
-        for (let i = 0; i < length; i++) {
-            const t = i / sampleRate;
-            const windFreq = 800 + Math.sin(t * 0.5) * 200;
-            const wind = Math.sin(2 * Math.PI * windFreq * t) * 0.02;
-            const windEnv = (Math.sin(t * 0.7) + 1) * 0.5;
-            // Pan left and right
-            leftData[i] += wind * windEnv * (0.5 + Math.sin(t * 0.2) * 0.5);
-            rightData[i] += wind * windEnv * (0.5 - Math.sin(t * 0.2) * 0.5);
-        }
+        for (let c = 0; c < 4; c++) {
+            const chord = chordNotes[c];
+            const startSample = Math.floor(c * chordDuration * sampleRate);
 
-        // Layer 3: Dissonant melody notes (sparse, unsettling)
-        const eerieNotes = [130, 138, 146, 155, 138, 123, 130, 116];
-        const noteDuration = 2.5;
-        for (let n = 0; n < Math.floor(duration / noteDuration); n++) {
-            const noteFreq = eerieNotes[n % eerieNotes.length];
-            const startSample = Math.floor(n * noteDuration * sampleRate);
-            const noteLen = Math.floor(noteDuration * 0.9 * sampleRate);
-
-            for (let i = 0; i < noteLen && (startSample + i) < length; i++) {
+            for (let i = 0; i < chordDuration * sampleRate && (startSample + i) < length; i++) {
                 const t = i / sampleRate;
-                // Detuned notes for creepy effect
-                let sample = Math.sin(2 * Math.PI * noteFreq * t) * 0.08;
-                sample += Math.sin(2 * Math.PI * noteFreq * 1.01 * t) * 0.06; // Slightly detuned
-                sample += Math.sin(2 * Math.PI * noteFreq * 0.99 * t) * 0.06; // Slightly detuned other way
+                let sample = 0;
 
-                // Slow attack, long release
+                // Each note in chord
+                for (const freq of chord) {
+                    // Soft sine with slight vibrato
+                    const vibrato = 1 + Math.sin(t * 3) * 0.008;
+                    sample += Math.sin(2 * Math.PI * freq * vibrato * t) * 0.1;
+                }
+
+                // Slow fade in/out
                 let env = 1;
-                if (t < 0.3) env = t / 0.3;
-                if (t > noteDuration * 0.9 - 0.5) env = (noteDuration * 0.9 - t) / 0.5;
-                env = Math.max(0, env);
+                if (t < 1.5) env = t / 1.5;
+                if (t > chordDuration - 1.5) env = (chordDuration - t) / 1.5;
+                env = Math.max(0, Math.min(1, env));
 
                 const idx = startSample + i;
-                leftData[idx] += sample * env;
-                rightData[idx] += sample * env;
+                leftData[idx] += sample * env * 0.5;
+                rightData[idx] += sample * env * 0.5;
             }
         }
 
-        // Layer 4: Random creepy sounds (occasional)
-        for (let i = 0; i < 8; i++) {
-            const startTime = Math.random() * (duration - 2);
-            const startSample = Math.floor(startTime * sampleRate);
-            const creepLen = Math.floor(1.5 * sampleRate);
-            const creepFreq = 200 + Math.random() * 300;
+        // Sparse high notes - like distant bells
+        const bellTimes = [2, 7, 11, 16, 21];
+        const bellNotes = [523, 466, 392, 349, 523];
 
-            for (let j = 0; j < creepLen && (startSample + j) < length; j++) {
-                const t = j / sampleRate;
-                const creep = Math.sin(2 * Math.PI * creepFreq * (1 + t * 0.5) * t) * 0.04;
-                const env = Math.sin(Math.PI * t / 1.5);
-                const pan = Math.random() - 0.5;
+        for (let b = 0; b < bellTimes.length; b++) {
+            const startSample = Math.floor(bellTimes[b] * sampleRate);
+            const bellDuration = 3;
+            const freq = bellNotes[b];
 
-                leftData[startSample + j] += creep * env * (0.5 - pan);
-                rightData[startSample + j] += creep * env * (0.5 + pan);
-            }
-        }
-
-        // Layer 5: Heartbeat-like pulse (very subtle)
-        const beatInterval = 1.2;
-        for (let beat = 0; beat < Math.floor(duration / beatInterval); beat++) {
-            const startSample = Math.floor(beat * beatInterval * sampleRate);
-            const pulseLen = Math.floor(0.15 * sampleRate);
-
-            for (let i = 0; i < pulseLen && (startSample + i) < length; i++) {
+            for (let i = 0; i < bellDuration * sampleRate && (startSample + i) < length; i++) {
                 const t = i / sampleRate;
-                const pulse = Math.sin(2 * Math.PI * 40 * t) * 0.1;
-                const env = Math.exp(-t * 20);
+                // Bell-like tone
+                let bell = Math.sin(2 * Math.PI * freq * t) * 0.15;
+                bell += Math.sin(2 * Math.PI * freq * 2 * t) * 0.05;
+                bell += Math.sin(2 * Math.PI * freq * 3 * t) * 0.02;
 
-                leftData[startSample + i] += pulse * env;
-                rightData[startSample + i] += pulse * env;
+                // Quick attack, long decay
+                const env = Math.exp(-t * 1.2);
+
+                const idx = startSample + i;
+                // Slight stereo spread
+                leftData[idx] += bell * env * (0.6 + Math.sin(t) * 0.2);
+                rightData[idx] += bell * env * (0.6 - Math.sin(t) * 0.2);
             }
+        }
+
+        // Subtle low rumble
+        for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            const rumble = Math.sin(2 * Math.PI * 35 * t) * 0.06;
+            const rumbleEnv = 0.5 + Math.sin(t * 0.2) * 0.3;
+            leftData[i] += rumble * rumbleEnv;
+            rightData[i] += rumble * rumbleEnv;
         }
 
         // Normalize
@@ -595,8 +1328,8 @@ const Audio = {
         for (let i = 0; i < length; i++) {
             maxVal = Math.max(maxVal, Math.abs(leftData[i]), Math.abs(rightData[i]));
         }
-        if (maxVal > 0.8) {
-            const scale = 0.8 / maxVal;
+        if (maxVal > 0.7) {
+            const scale = 0.7 / maxVal;
             for (let i = 0; i < length; i++) {
                 leftData[i] *= scale;
                 rightData[i] *= scale;
@@ -772,7 +1505,10 @@ const Audio = {
         if (roomId.startsWith('swamp')) {
             return 'music_swamp';
         }
-        if (roomId.startsWith('core') || roomId.startsWith('final')) {
+        if (roomId.startsWith('core') || roomId.startsWith('final') || roomId.startsWith('hall')) {
+            return 'music_core';
+        }
+        if (roomId.startsWith('mega')) {
             return 'music_core';
         }
 

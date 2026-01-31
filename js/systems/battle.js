@@ -102,8 +102,10 @@ const Battle = {
         // Show encounter text
         this.showText(this.enemy.encounterText);
 
-        // Play battle music (boss or normal)
-        if (this.enemy.isBoss) {
+        // Play battle music (mega boss, boss, or normal)
+        if (this.enemy.isMegaBoss) {
+            Audio.playMusic('music_mega', true, 0.5);
+        } else if (this.enemy.isBoss) {
             Audio.playMusic('music_boss', true, 0.5);
         } else {
             Audio.playMusic('music_battle', true, 0.5);
