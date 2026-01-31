@@ -658,6 +658,14 @@ const Dialogues = {
             ]
         },
 
+        'house_not_yours': {
+            speaker: null,
+            lines: [
+                { text: "This is someone's home." },
+                { text: "You can't just walk in." }
+            ]
+        },
+
         'locked_door_keeper': {
             speaker: null,
             lines: [
@@ -991,8 +999,7 @@ const Dialogues = {
                 { text: "It is yours, for as long as you wish to stay." },
                 { text: 'Welcome home, Hero.' }
             ],
-            setFlags: { 'crowned_hero': true },
-            giveItem: 'house_key'
+            setFlags: { 'crowned_hero': true, 'has_house': true }
         },
 
         'village_save_point': {

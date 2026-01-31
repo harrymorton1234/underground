@@ -170,6 +170,11 @@ const Player = {
             this.renderWeapon(screenX, screenY, save.weapon);
         }
 
+        // Draw crown if crowned hero
+        if (Save.getFlag('crowned_hero')) {
+            this.renderCrown(screenX, screenY);
+        }
+
         // Debug: show hitbox
         if (Game.debug) {
             Renderer.drawRect(
@@ -180,6 +185,22 @@ const Player = {
                 'rgba(255,0,0,0.5)'
             );
         }
+    },
+
+    /**
+     * Render hero crown
+     */
+    renderCrown(screenX, screenY) {
+        // Golden crown base
+        Renderer.drawRect(screenX + 2, screenY - 2, 12, 4, '#fc0');
+        // Crown points
+        Renderer.drawRect(screenX + 3, screenY - 5, 2, 3, '#fc0');
+        Renderer.drawRect(screenX + 7, screenY - 6, 2, 4, '#fc0');
+        Renderer.drawRect(screenX + 11, screenY - 5, 2, 3, '#fc0');
+        // Jewels
+        Renderer.drawRect(screenX + 4, screenY - 4, 1, 1, '#f44');
+        Renderer.drawRect(screenX + 8, screenY - 5, 1, 1, '#4af');
+        Renderer.drawRect(screenX + 11, screenY - 4, 1, 1, '#f44');
     },
 
     /**

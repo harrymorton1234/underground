@@ -1016,7 +1016,7 @@ const Rooms = {
                 // Left doors - Butcher (row 3), Blacksmith (row 7), House (row 20)
                 { x: 0, y: 48, width: 8, height: 16, to: 'village_butcher', playerX: 200, playerY: 100 },
                 { x: 0, y: 112, width: 8, height: 16, to: 'village_blacksmith', playerX: 200, playerY: 100 },
-                { x: 0, y: 320, width: 8, height: 16, to: 'village_house', playerX: 120, playerY: 32, requiresItem: 'house_key', lockedDialogue: 'locked_door_key' },
+                { x: 0, y: 320, width: 8, height: 16, to: 'village_house', playerX: 120, playerY: 32, requiresFlag: 'has_house', lockedDialogue: 'house_not_yours' },
                 // Right doors - Magic shop (row 7)
                 { x: 152, y: 112, width: 8, height: 16, to: 'village_magic', playerX: 32, playerY: 100 }
             ],
