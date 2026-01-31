@@ -4,6 +4,7 @@
 const Game = {
     // Game states
     states: {
+        SPLASH: 'splash',
         LOADING: 'loading',
         TITLE: 'title',
         NAME_ENTRY: 'name_entry',
@@ -58,12 +59,8 @@ const Game = {
         Audio.init();
         Save.init();
 
-        // Start loading
-        this.setState(this.states.LOADING);
-        await this.load();
-
-        // Go to title screen
-        this.setState(this.states.TITLE);
+        // Start with splash screen (requires user interaction for audio)
+        this.setState(this.states.SPLASH);
 
         // Start game loop
         this.running = true;
@@ -143,6 +140,9 @@ const Game = {
 
         // Update current state
         switch (this.currentState) {
+            case this.states.SPLASH:
+                this.updateSplash(dt);
+                break;
             case this.states.LOADING:
                 this.updateLoading(dt);
                 break;
@@ -204,6 +204,9 @@ const Game = {
         Renderer.beginFrame();
 
         switch (this.currentState) {
+            case this.states.SPLASH:
+                this.renderSplash();
+                break;
             case this.states.LOADING:
                 this.renderLoading();
                 break;
@@ -353,6 +356,56 @@ const Game = {
                 this.transitionCallback();
                 this.transitionCallback = null;
             }
+        }
+    },
+
+    // ==================== SPLASH STATE ====================
+
+    splashClicked: false,
+    splashPulse: 0,
+
+    updateSplash(dt) {
+        this.splashPulse += dt * 2;
+
+        // Wait for click/key to start audio initialization
+        if (!this.splashClicked) {
+            if (Input.isPressed('confirm') || Input.keys['Enter'] || Input.keys[' '] || Input.mouseClicked) {
+                this.splashClicked = true;
+                // Start async audio initialization
+                Audio.initializeAsync().then(() => {
+                    // Audio ready, go to title
+                    this.setState(this.states.TITLE);
+                });
+            }
+        }
+    },
+
+    renderSplash() {
+        const centerX = Renderer.width / 2;
+        const centerY = Renderer.height / 2;
+
+        // Title
+        Renderer.drawText('UNDERGROUND', centerX, centerY - 40, '#fff', 'center', 16);
+
+        if (!this.splashClicked) {
+            // Pulsing "Click or Press Z to Start" text
+            const alpha = 0.5 + Math.sin(this.splashPulse) * 0.5;
+            const gray = Math.floor(150 + alpha * 105);
+            Renderer.drawText('Click or Press Z', centerX, centerY + 20, `rgb(${gray},${gray},${gray})`, 'center', 8);
+        } else {
+            // Show loading progress
+            const progress = Audio.getInitProgress();
+            Renderer.drawText('Loading...', centerX, centerY + 10, '#888', 'center', 8);
+
+            // Progress bar
+            const barWidth = 120;
+            const barHeight = 8;
+            const barX = centerX - barWidth / 2;
+            const barY = centerY + 30;
+
+            Renderer.drawRect(barX, barY, barWidth, barHeight, '#333');
+            Renderer.drawRect(barX, barY, barWidth * (progress / 100), barHeight, '#fff');
+            Renderer.drawText(`${progress}%`, centerX, barY + 15, '#666', 'center', 6);
         }
     },
 

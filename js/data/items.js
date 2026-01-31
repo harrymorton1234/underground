@@ -412,6 +412,215 @@ const Items = {
             equipText: 'It seems bigger on the inside...'
         },
 
+        // ==================== VILLAGE ITEMS ====================
+
+        // Butcher Shop - Food items
+        'raw_steak': {
+            name: 'Raw Steak',
+            type: 'consumable',
+            description: 'Fresh cut of meat. Heals 25 HP.',
+            healAmount: 25,
+            price: 40,
+            sellPrice: 20,
+            battleText: '* You ate the Raw Steak.\n* Very filling!'
+        },
+
+        'cooked_roast': {
+            name: 'Cooked Roast',
+            type: 'consumable',
+            description: 'A perfectly cooked roast. Heals 50 HP.',
+            healAmount: 50,
+            price: 80,
+            sellPrice: 40,
+            battleText: '* You ate the Cooked Roast.\n* Delicious!'
+        },
+
+        'meat_pie': {
+            name: 'Meat Pie',
+            type: 'consumable',
+            description: 'A hearty meat pie. Heals 35 HP.',
+            healAmount: 35,
+            price: 55,
+            sellPrice: 27,
+            battleText: '* You ate the Meat Pie.\n* Savory and warm!'
+        },
+
+        'smoked_sausage': {
+            name: 'Smoked Sausage',
+            type: 'consumable',
+            description: 'Hickory smoked sausage. Heals 20 HP.',
+            healAmount: 20,
+            price: 30,
+            sellPrice: 15,
+            battleText: '* You ate the Smoked Sausage.\n* Smoky goodness!'
+        },
+
+        'legendary_feast': {
+            name: 'Legendary Feast',
+            type: 'consumable',
+            description: 'A feast fit for a hero. Heals 100 HP.',
+            healAmount: 100,
+            price: 200,
+            sellPrice: 100,
+            battleText: '* You consumed the Legendary Feast.\n* You feel like royalty!'
+        },
+
+        // Blacksmith Shop - Weapons
+        'iron_sword': {
+            name: 'Iron Sword',
+            type: 'weapon',
+            description: 'A sturdy iron sword.',
+            attack: 10,
+            price: 150,
+            sellPrice: 75,
+            equipText: 'Solid and reliable!'
+        },
+
+        'steel_blade': {
+            name: 'Steel Blade',
+            type: 'weapon',
+            description: 'A finely crafted steel blade.',
+            attack: 14,
+            price: 250,
+            sellPrice: 125,
+            equipText: 'Sharp and deadly!'
+        },
+
+        'hero_sword': {
+            name: "Hero's Sword",
+            type: 'weapon',
+            description: 'A legendary blade for a true hero.',
+            attack: 20,
+            price: 500,
+            sellPrice: 250,
+            equipText: '* You feel like a true hero!'
+        },
+
+        'dragonslayer': {
+            name: 'Dragonslayer',
+            type: 'weapon',
+            description: 'A massive blade said to slay dragons.',
+            attack: 25,
+            price: 800,
+            sellPrice: 400,
+            equipText: '* The weight of destiny fills your hands!'
+        },
+
+        // Blacksmith - Armor
+        'iron_armor': {
+            name: 'Iron Armor',
+            type: 'armor',
+            description: 'Sturdy iron protection. +25 HP',
+            defense: 8,
+            hpBonus: 25,
+            price: 180,
+            sellPrice: 90,
+            equipText: 'Heavy but protective! Max HP +25!'
+        },
+
+        'steel_plate': {
+            name: 'Steel Plate',
+            type: 'armor',
+            description: 'Full steel plate armor. +40 HP',
+            defense: 12,
+            hpBonus: 40,
+            price: 350,
+            sellPrice: 175,
+            equipText: 'Like a walking fortress! Max HP +40!'
+        },
+
+        'hero_armor': {
+            name: "Hero's Armor",
+            type: 'armor',
+            description: 'Legendary armor for a true hero. +60 HP',
+            defense: 15,
+            hpBonus: 60,
+            price: 600,
+            sellPrice: 300,
+            equipText: '* Legendary protection! Max HP +60!'
+        },
+
+        // Magic Shop - Enchanted items
+        'mana_potion': {
+            name: 'Mana Potion',
+            type: 'consumable',
+            description: 'A glowing blue potion. Heals 40 HP.',
+            healAmount: 40,
+            price: 60,
+            sellPrice: 30,
+            battleText: '* You drank the Mana Potion.\n* Magic flows through you!'
+        },
+
+        'elixir': {
+            name: 'Elixir',
+            type: 'consumable',
+            description: 'A rare elixir. Heals 75 HP.',
+            healAmount: 75,
+            price: 150,
+            sellPrice: 75,
+            battleText: '* You drank the Elixir.\n* Pure healing energy!'
+        },
+
+        'phoenix_tear': {
+            name: 'Phoenix Tear',
+            type: 'consumable',
+            description: 'A tear from a phoenix. Fully restores HP.',
+            healAmount: 999,
+            price: 500,
+            sellPrice: 250,
+            battleText: '* You used the Phoenix Tear.\n* You are fully restored!'
+        },
+
+        'enchanted_staff': {
+            name: 'Enchanted Staff',
+            type: 'weapon',
+            description: 'A staff crackling with magic.',
+            attack: 12,
+            price: 200,
+            sellPrice: 100,
+            equipText: 'Magic surges through you!'
+        },
+
+        'arcane_wand': {
+            name: 'Arcane Wand',
+            type: 'weapon',
+            description: 'A wand of pure arcane energy.',
+            attack: 18,
+            price: 400,
+            sellPrice: 200,
+            equipText: 'Reality bends to your will!'
+        },
+
+        'mage_robe': {
+            name: 'Mage Robe',
+            type: 'armor',
+            description: 'Enchanted robes of protection. +35 HP',
+            defense: 7,
+            hpBonus: 35,
+            price: 250,
+            sellPrice: 125,
+            equipText: 'Magic shields you! Max HP +35!'
+        },
+
+        'archmage_vestments': {
+            name: 'Archmage Vestments',
+            type: 'armor',
+            description: 'Vestments of a legendary mage. +55 HP',
+            defense: 11,
+            hpBonus: 55,
+            price: 500,
+            sellPrice: 250,
+            equipText: 'Supreme magical protection! Max HP +55!'
+        },
+
+        // Hero's house key
+        'house_key': {
+            name: "Hero's House Key",
+            type: 'key',
+            description: 'The key to your new home in the village.',
+            price: 0
+        },
+
         // Moderator items (debug/testing)
         'mod_sword': {
             name: 'Moderator Blade',

@@ -43,6 +43,9 @@ class NPC {
         this.frameDelay = 0.3;
         this.animating = config.animating || false;
 
+        // Custom appearance for themed NPCs
+        this.appearance = config.appearance || null;
+
         // State
         this.active = true;
         this.visible = true;
@@ -90,25 +93,30 @@ class NPC {
         const screenX = Math.floor(this.x - cameraX);
         const screenY = Math.floor(this.y - cameraY);
 
-        // Direction to frame row
-        const directionRows = {
-            'down': 0,
-            'left': 1,
-            'up': 2,
-            'right': 3
-        };
+        // If custom appearance, draw themed NPC
+        if (this.appearance) {
+            this.renderCustomAppearance(screenX, screenY);
+        } else {
+            // Direction to frame row
+            const directionRows = {
+                'down': 0,
+                'left': 1,
+                'up': 2,
+                'right': 3
+            };
 
-        const frameRow = directionRows[this.direction] || 0;
+            const frameRow = directionRows[this.direction] || 0;
 
-        Renderer.drawSprite(
-            this.sprite,
-            screenX,
-            screenY,
-            this.frame,
-            frameRow,
-            this.width,
-            this.height
-        );
+            Renderer.drawSprite(
+                this.sprite,
+                screenX,
+                screenY,
+                this.frame,
+                frameRow,
+                this.width,
+                this.height
+            );
+        }
 
         // Debug: show interaction radius
         if (Game.debug) {
@@ -118,6 +126,89 @@ class NPC {
                 this.interactionRadius,
                 'rgba(0,255,0,0.3)'
             );
+        }
+    }
+
+    /**
+     * Render custom themed appearance
+     */
+    renderCustomAppearance(screenX, screenY) {
+        const app = this.appearance;
+        const time = Date.now() / 1000;
+
+        // Body/torso
+        Renderer.drawRect(screenX + 4, screenY + 6, 8, 8, app.bodyColor || '#666');
+
+        // Head
+        Renderer.drawRect(screenX + 3, screenY, 10, 7, app.skinColor || '#fa6');
+
+        // Hair
+        if (app.hairColor) {
+            Renderer.drawRect(screenX + 3, screenY, 10, 3, app.hairColor);
+        }
+
+        // Eyes
+        Renderer.drawRect(screenX + 4, screenY + 3, 2, 2, '#222');
+        Renderer.drawRect(screenX + 9, screenY + 3, 2, 2, '#222');
+
+        // Legs
+        Renderer.drawRect(screenX + 4, screenY + 14, 3, 4, app.legColor || '#444');
+        Renderer.drawRect(screenX + 9, screenY + 14, 3, 4, app.legColor || '#444');
+
+        // Custom details based on type
+        if (app.type === 'butcher') {
+            // White apron
+            Renderer.drawRect(screenX + 4, screenY + 8, 8, 6, '#eee');
+            // Blood stains
+            Renderer.drawRect(screenX + 5, screenY + 9, 2, 2, '#a33');
+            Renderer.drawRect(screenX + 9, screenY + 11, 2, 1, '#a33');
+        } else if (app.type === 'blacksmith') {
+            // Leather apron
+            Renderer.drawRect(screenX + 4, screenY + 8, 8, 6, '#654');
+            // Hammer in hand
+            Renderer.drawRect(screenX + 13, screenY + 8, 3, 6, '#876');
+            Renderer.drawRect(screenX + 12, screenY + 6, 5, 3, '#888');
+        } else if (app.type === 'mage') {
+            // Wizard hat
+            Renderer.ctx.fillStyle = app.bodyColor || '#63c';
+            Renderer.ctx.beginPath();
+            Renderer.ctx.moveTo(screenX + 8, screenY - 6);
+            Renderer.ctx.lineTo(screenX + 14, screenY + 2);
+            Renderer.ctx.lineTo(screenX + 2, screenY + 2);
+            Renderer.ctx.closePath();
+            Renderer.ctx.fill();
+            // Star on hat
+            const starGlow = Math.sin(time * 3) * 0.3 + 0.7;
+            Renderer.drawRect(screenX + 7, screenY - 3, 2, 2, `rgba(255,255,100,${starGlow})`);
+            // Robe flows down
+            Renderer.drawRect(screenX + 3, screenY + 14, 10, 4, app.bodyColor || '#63c');
+        } else if (app.type === 'elder') {
+            // Long beard
+            Renderer.drawRect(screenX + 5, screenY + 5, 6, 5, '#ccc');
+            // Crown/fancy hat
+            Renderer.drawRect(screenX + 3, screenY - 2, 10, 3, '#fc0');
+            Renderer.drawRect(screenX + 5, screenY - 4, 2, 2, '#fc0');
+            Renderer.drawRect(screenX + 9, screenY - 4, 2, 2, '#fc0');
+            // Robe
+            Renderer.drawRect(screenX + 3, screenY + 14, 10, 4, app.bodyColor || '#a48');
+        } else if (app.type === 'villager') {
+            // Simple tunic detail
+            Renderer.drawRect(screenX + 6, screenY + 7, 4, 1, app.accentColor || '#543');
+        } else if (app.type === 'child') {
+            // Smaller proportions already, just add a cute detail
+            Renderer.drawRect(screenX + 6, screenY + 2, 3, 2, '#faa'); // rosy cheeks
+        } else if (app.type === 'mysterious') {
+            // Hooded cloak figure
+            const time = Date.now() / 1000;
+            // Hooded cloak covers everything
+            Renderer.drawRect(screenX + 2, screenY - 2, 12, 4, app.bodyColor || '#446');
+            Renderer.drawRect(screenX + 1, screenY + 2, 14, 16, app.bodyColor || '#446');
+            // Hood shadow
+            Renderer.drawRect(screenX + 4, screenY + 1, 8, 4, '#223');
+            // Glowing eyes in hood
+            const eyeGlow = Math.sin(time * 2) * 0.3 + 0.7;
+            Renderer.drawRect(screenX + 5, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
+            Renderer.drawRect(screenX + 9, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
         }
     }
 

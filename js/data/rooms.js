@@ -815,7 +815,7 @@ const Rooms = {
             ],
             transitions: [
                 { x: 208, y: 0, width: 16, height: 16, to: 'swamp_4', playerX: 352, playerY: 190 },
-                { x: 224, y: 296, width: 16, height: 8, to: 'next_level', playerX: 160, playerY: 32, requiresItem: 'mega_core', lockedDialogue: 'locked_door_core' }
+                { x: 224, y: 296, width: 16, height: 8, to: 'next_level', playerX: 72, playerY: 32, requiresItem: 'mega_core', lockedDialogue: 'locked_door_core' }
             ],
             savePoints: [
                 { x: 224, y: 240, dialogue: 'mega_save_point' }
@@ -825,45 +825,401 @@ const Rooms = {
         },
 
         'next_level': {
-            name: 'Beyond...',
+            name: 'Small Chamber',
             area: 'next',
-            width: 20,
-            height: 15,
-            playerStart: { x: 160, y: 32 },
+            width: 10,
+            height: 8,
+            playerStart: { x: 80, y: 32 },
             tileData: `
-                11111111131111111111
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000020000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                10000000000000000001
-                11111111111111111111
+                1111311111
+                1000000001
+                1000000001
+                1000000001
+                1000000001
+                1000000001
+                1000030001
+                1111111111
             `,
             npcs: [
                 {
-                    id: 'congratulations',
+                    id: 'mysterious_guide',
                     sprite: 'npc',
-                    x: 160,
-                    y: 160,
-                    dialogue: 'next_level_intro'
+                    x: 80,
+                    y: 64,
+                    dialogue: 'village_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'guide_follow',
+                    appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' },
+                    requiresFlag: '!village_intro_seen'
+                }
+            ],
+            decorations: [
+                { type: 'lantern', x: 32, y: 40 },
+                { type: 'lantern', x: 128, y: 40 }
+            ],
+            transitions: [
+                { x: 64, y: 0, width: 16, height: 8, to: 'mega_chamber', playerX: 200, playerY: 280 },
+                { x: 64, y: 96, width: 16, height: 16, to: 'village_staircase', playerX: 48, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: null
+        },
+
+        // ==================== HAVEN VILLAGE ====================
+        'village_staircase': {
+            name: 'Dark Passage',
+            area: 'village',
+            width: 6,
+            height: 25,
+            playerStart: { x: 48, y: 32 },
+            tileData: `
+                113111
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100001
+                100031
+                111111
+            `,
+            npcs: [],
+            decorations: [
+                // Just a few dim lanterns - keep it mysterious
+                { type: 'lantern', x: 16, y: 80 },
+                { type: 'lantern', x: 64, y: 180 },
+                { type: 'lantern', x: 16, y: 280 }
+            ],
+            transitions: [
+                { x: 32, y: 0, width: 16, height: 8, to: 'next_level', playerX: 80, playerY: 80 },
+                { x: 48, y: 384, width: 16, height: 16, to: 'village_square', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: null
+        },
+
+        'village_square': {
+            name: 'Haven Market Street',
+            area: 'village',
+            width: 10,
+            height: 28,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                1111311111
+                1000000001
+                1000000001
+                3000000003
+                1000000001
+                1000000001
+                1000000001
+                3000000003
+                1000000001
+                1000000001
+                1000000001
+                1000000001
+                1000020001
+                1000000001
+                1000000001
+                1000000001
+                3000000003
+                1000000001
+                1000000001
+                1000000001
+                3000000003
+                1000000001
+                1000000001
+                1000000001
+                1000000001
+                1000000001
+                1000030001
+                1111111111
+            `,
+            decorations: [
+                // Signs along the path showing shop/house names with themed colors and icons
+                { type: 'sign', x: 18, y: 36, text: 'Butcher', color: '#a66', borderColor: '#744', icon: 'meat' },
+                { type: 'sign', x: 18, y: 100, text: 'Blacksmith', color: '#777', borderColor: '#555', icon: 'sword' },
+                { type: 'sign', x: 18, y: 308, text: 'Your Home', color: '#a86', borderColor: '#754', icon: 'home' },
+                { type: 'sign', x: 98, y: 100, text: 'Magic Shop', color: '#86a', borderColor: '#547', textColor: '#edf', icon: 'star' },
+
+                // Lanterns on walls - alternating sides for cozy lighting
+                { type: 'lantern', x: 16, y: 8 },
+                { type: 'lantern', x: 128, y: 8 },
+                { type: 'lantern', x: 16, y: 72 },
+                { type: 'lantern', x: 128, y: 72 },
+                { type: 'lantern', x: 16, y: 152 },
+                { type: 'lantern', x: 128, y: 152 },
+                { type: 'lantern', x: 16, y: 232 },
+                { type: 'lantern', x: 128, y: 232 },
+                { type: 'lantern', x: 16, y: 312 },
+                { type: 'lantern', x: 128, y: 312 },
+                { type: 'lantern', x: 16, y: 392 },
+                { type: 'lantern', x: 128, y: 392 },
+
+                // Entrance archway
+                { type: 'cave_entrance', x: 56, y: -24 }
+            ],
+            npcs: [
+                {
+                    id: 'village_elder',
+                    sprite: 'npc',
+                    x: 80,
+                    y: 180,
+                    dialogue: 'village_crowning',
+                    dialogueOnce: true,
+                    afterDialogue: 'village_elder_talk',
+                    appearance: { type: 'elder', skinColor: '#e9c', bodyColor: '#a48', hairColor: '#ccc' }
+                },
+                {
+                    id: 'villager_1',
+                    sprite: 'npc',
+                    x: 48,
+                    y: 260,
+                    dialogue: 'village_citizen_1',
+                    appearance: { type: 'villager', skinColor: '#fa8', bodyColor: '#5a5', hairColor: '#532', accentColor: '#484' }
+                },
+                {
+                    id: 'villager_2',
+                    sprite: 'npc',
+                    x: 112,
+                    y: 340,
+                    dialogue: 'village_citizen_2',
+                    appearance: { type: 'villager', skinColor: '#ec9', bodyColor: '#68a', hairColor: '#421', accentColor: '#457' }
+                },
+                {
+                    id: 'village_child',
+                    sprite: 'npc',
+                    x: 80,
+                    y: 400,
+                    dialogue: 'village_child',
+                    appearance: { type: 'child', skinColor: '#fb9', bodyColor: '#e94', hairColor: '#741' }
                 }
             ],
             transitions: [
-                { x: 136, y: 0, width: 16, height: 8, to: 'mega_chamber', playerX: 200, playerY: 280 }
+                // Top - back to staircase
+                { x: 64, y: 0, width: 16, height: 8, to: 'village_staircase', playerX: 48, playerY: 368 },
+                // Left doors - Butcher (row 3), Blacksmith (row 7), House (row 20)
+                { x: 0, y: 48, width: 8, height: 16, to: 'village_butcher', playerX: 200, playerY: 100 },
+                { x: 0, y: 112, width: 8, height: 16, to: 'village_blacksmith', playerX: 200, playerY: 100 },
+                { x: 0, y: 320, width: 8, height: 16, to: 'village_house', playerX: 120, playerY: 32, requiresItem: 'house_key', lockedDialogue: 'locked_door_key' },
+                // Right doors - Magic shop (row 7)
+                { x: 152, y: 112, width: 8, height: 16, to: 'village_magic', playerX: 32, playerY: 100 }
             ],
+            interactables: [],
             savePoints: [
-                { x: 136, y: 104, dialogue: 'descent_save_point' }
+                { x: 64, y: 196, dialogue: 'village_save_point' }
             ],
             encounterRate: 0,
-            music: 'victory_theme'
+            music: 'music_village'
+        },
+
+        'village_butcher': {
+            name: 'Gristles Meats',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 200, y: 120 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000031
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            decorations: [
+                // Counter
+                { type: 'lore', x: 40, y: 60 },
+                // Hanging meats
+                { type: 'lantern', x: 60, y: 20 },
+                { type: 'lantern', x: 140, y: 20 },
+                // Warm interior lighting
+                { type: 'lantern', x: 180, y: 80 }
+            ],
+            npcs: [
+                {
+                    id: 'butcher',
+                    sprite: 'npc',
+                    x: 60,
+                    y: 80,
+                    dialogue: 'butcher_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'butcher_talk',
+                    isShop: true,
+                    shopItems: ['smoked_sausage', 'raw_steak', 'meat_pie', 'cooked_roast', 'legendary_feast'],
+                    appearance: { type: 'butcher', skinColor: '#fa8', bodyColor: '#833', hairColor: '#421' }
+                }
+            ],
+            transitions: [
+                { x: 224, y: 104, width: 16, height: 16, to: 'village_square', playerX: 24, playerY: 56 }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        'village_blacksmith': {
+            name: 'Hammerstones Forge',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 32, y: 120 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                130000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            decorations: [
+                // Forge glow effect (reusing lantern for warm light)
+                { type: 'lantern', x: 40, y: 40 },
+                { type: 'lantern', x: 180, y: 40 },
+                // Weapon displays on walls
+                { type: 'lantern', x: 100, y: 30 }
+            ],
+            npcs: [
+                {
+                    id: 'blacksmith',
+                    sprite: 'npc',
+                    x: 180,
+                    y: 80,
+                    dialogue: 'blacksmith_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'blacksmith_talk',
+                    isShop: true,
+                    shopItems: ['iron_sword', 'steel_blade', 'hero_sword', 'dragonslayer', 'iron_armor', 'steel_plate', 'hero_armor'],
+                    appearance: { type: 'blacksmith', skinColor: '#c96', bodyColor: '#555', hairColor: '#222' }
+                }
+            ],
+            transitions: [
+                { x: 16, y: 104, width: 16, height: 16, to: 'village_square', playerX: 24, playerY: 120 }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        'village_magic': {
+            name: 'Mystaras Arcana',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 120, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            decorations: [
+                // Glowing crystals everywhere for mystical feel
+                { type: 'crystal_cluster', x: 30, y: 30 },
+                { type: 'crystal_cluster', x: 190, y: 30 },
+                { type: 'crystal_cluster', x: 30, y: 100 },
+                { type: 'crystal_cluster', x: 190, y: 100 },
+                { type: 'crystal_pillar', x: 60, y: 50 },
+                { type: 'crystal_pillar', x: 160, y: 50 },
+                // Mystical floating lights
+                { type: 'lantern', x: 100, y: 40 }
+            ],
+            npcs: [
+                {
+                    id: 'mage',
+                    sprite: 'npc',
+                    x: 120,
+                    y: 100,
+                    dialogue: 'magic_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'magic_talk',
+                    isShop: true,
+                    shopItems: ['mana_potion', 'elixir', 'phoenix_tear', 'enchanted_staff', 'arcane_wand', 'mage_robe', 'archmage_vestments'],
+                    appearance: { type: 'mage', skinColor: '#e9d', bodyColor: '#63c', hairColor: '#a7f' }
+                }
+            ],
+            transitions: [
+                { x: 112, y: 0, width: 16, height: 8, to: 'village_square', playerX: 136, playerY: 120 }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        'village_house': {
+            name: 'Your Home',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 120, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            onEnter: 'house_enter',
+            onEnterOnce: true,
+            decorations: [
+                // Cozy lantern lighting
+                { type: 'lantern', x: 60, y: 30 },
+                { type: 'lantern', x: 160, y: 30 },
+                // Small crystal for underground charm
+                { type: 'crystal_cluster', x: 140, y: 100 }
+            ],
+            interactables: [
+                { x: 30, y: 50, width: 32, height: 24, type: 'bed', dialogue: 'house_bed' },
+                { x: 180, y: 40, width: 24, height: 48, type: 'bookshelf', dialogue: 'house_bookshelf' },
+                { x: 110, y: 40, width: 16, height: 24, type: 'mirror', dialogue: 'house_mirror' }
+            ],
+            transitions: [
+                { x: 112, y: 0, width: 16, height: 8, to: 'village_square', playerX: 24, playerY: 328 }
+            ],
+            savePoints: [
+                { x: 120, y: 130, dialogue: 'village_save_point' }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
         },
 
         // ==================== SHOP ROOMS ====================

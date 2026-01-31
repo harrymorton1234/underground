@@ -25,6 +25,10 @@ const Overworld = {
     // Room-entered dialogues
     enteredDialogues: {},
 
+    // Companion/follower system
+    companion: null,
+    companionHistory: [], // Position history for smooth following
+
     /**
      * Load a room
      */
@@ -66,6 +70,43 @@ const Overworld = {
             Player.init(playerX, playerY);
         } else if (room.playerStart) {
             Player.init(room.playerStart.x, room.playerStart.y);
+        }
+
+        // Handle companion for village journey
+        if (roomId === 'next_level' && Save.getFlag('village_intro_seen')) {
+            // Start companion after dialogue has been seen
+            this.setCompanion({
+                x: Player.x,
+                y: Player.y + 24,
+                appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' }
+            });
+        } else if (roomId === 'village_staircase') {
+            // Always have companion in staircase leading the way
+            if (!this.companion && Save.getFlag('village_intro_seen')) {
+                this.setCompanion({
+                    x: Player.x,
+                    y: Player.y - 20,
+                    appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' },
+                    leading: true,
+                    targetX: 48,
+                    targetY: 370
+                });
+            } else if (this.companion) {
+                // Reposition companion ahead of player when entering staircase
+                this.companion.x = Player.x;
+                this.companion.y = Player.y - 20;
+                this.companion.leading = true;
+                this.companion.targetX = 48;
+                this.companion.targetY = 370;
+                this.companion.waiting = false;
+                this.companionHistory = [];
+                for (let i = 0; i < 20; i++) {
+                    this.companionHistory.push({ x: this.companion.x, y: this.companion.y });
+                }
+            }
+        } else if (roomId === 'village_square') {
+            // Remove companion when arriving at village (they become the elder NPC)
+            this.removeCompanion();
         }
 
         // Update save data
@@ -160,6 +201,31 @@ const Overworld = {
         // Update NPCs
         NPCManager.update(dt);
 
+        // Update companion
+        this.updateCompanion(dt);
+
+        // Spawn companion after dialogue in next_level room
+        if (this.roomId === 'next_level' && Save.getFlag('village_intro_seen')) {
+            // Always remove the NPC version of ??? once flag is set
+            const guideNpc = NPCManager.get('mysterious_guide');
+            if (guideNpc) {
+                guideNpc.visible = false;
+                guideNpc.active = false;
+            }
+
+            // Create companion that leads the way - start near the exit
+            if (!this.companion) {
+                this.setCompanion({
+                    x: 72,
+                    y: 70,
+                    appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' },
+                    leading: true,
+                    targetX: 72,
+                    targetY: 90
+                });
+            }
+        }
+
         // Check for transitions
         this.checkTransitions();
 
@@ -209,6 +275,162 @@ const Overworld = {
         // Smooth follow
         this.camera.x = Utils.lerp(this.camera.x, targetX, 0.1);
         this.camera.y = Utils.lerp(this.camera.y, targetY, 0.1);
+    },
+
+    /**
+     * Set up a companion to follow the player
+     */
+    setCompanion(config) {
+        this.companion = {
+            x: config.x || Player.x,
+            y: config.y || Player.y + 24,
+            appearance: config.appearance || null,
+            direction: 'down',
+            active: true,
+            leading: config.leading || false,
+            targetX: config.targetX || null,
+            targetY: config.targetY || null,
+            waiting: false
+        };
+        this.companionHistory = [];
+        // Fill history with current position
+        for (let i = 0; i < 20; i++) {
+            this.companionHistory.push({ x: this.companion.x, y: this.companion.y });
+        }
+    },
+
+    /**
+     * Remove the companion
+     */
+    removeCompanion() {
+        this.companion = null;
+        this.companionHistory = [];
+    },
+
+    /**
+     * Update companion position to follow player
+     */
+    updateCompanion(dt) {
+        if (!this.companion || !this.companion.active) return;
+
+        // Calculate distance to player
+        const distToPlayer = Math.sqrt(
+            Math.pow(Player.x - this.companion.x, 2) +
+            Math.pow(Player.y - this.companion.y, 2)
+        );
+
+        if (this.companion.leading && this.companion.targetX !== null) {
+            // Leading mode - move toward target, but wait if player is too far
+            if (distToPlayer > 60) {
+                // Player is too far behind, wait for them
+                this.companion.waiting = true;
+            } else if (distToPlayer < 40) {
+                this.companion.waiting = false;
+            }
+
+            if (!this.companion.waiting) {
+                const dx = this.companion.targetX - this.companion.x;
+                const dy = this.companion.targetY - this.companion.y;
+                const distToTarget = Math.sqrt(dx * dx + dy * dy);
+
+                if (distToTarget > 4) {
+                    const speed = 1.2;
+                    this.companion.x += (dx / distToTarget) * speed;
+                    this.companion.y += (dy / distToTarget) * speed;
+
+                    // Update direction
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        this.companion.direction = dx > 0 ? 'right' : 'left';
+                    } else {
+                        this.companion.direction = dy > 0 ? 'down' : 'up';
+                    }
+                }
+            } else {
+                // Face the player while waiting
+                const dx = Player.x - this.companion.x;
+                const dy = Player.y - this.companion.y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    this.companion.direction = dx > 0 ? 'right' : 'left';
+                } else {
+                    this.companion.direction = dy > 0 ? 'down' : 'up';
+                }
+            }
+        } else {
+            // Following mode - stay behind player
+            this.companionHistory.push({ x: Player.x, y: Player.y });
+
+            if (this.companionHistory.length > 20) {
+                this.companionHistory.shift();
+            }
+
+            const followIndex = Math.max(0, this.companionHistory.length - 15);
+            const targetPos = this.companionHistory[followIndex];
+
+            const dx = targetPos.x - this.companion.x;
+            const dy = targetPos.y - this.companion.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > 4) {
+                const speed = 2;
+                this.companion.x += (dx / dist) * speed;
+                this.companion.y += (dy / dist) * speed;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    this.companion.direction = dx > 0 ? 'right' : 'left';
+                } else {
+                    this.companion.direction = dy > 0 ? 'down' : 'up';
+                }
+            }
+        }
+    },
+
+    /**
+     * Render companion
+     */
+    renderCompanion() {
+        if (!this.companion || !this.companion.active) return;
+
+        const screenX = Math.floor(this.companion.x - this.camera.x);
+        const screenY = Math.floor(this.companion.y - this.camera.y);
+        const app = this.companion.appearance;
+        const time = Date.now() / 1000;
+
+        if (app) {
+            // Body/torso
+            Renderer.drawRect(screenX + 4, screenY + 6, 8, 8, app.bodyColor || '#666');
+
+            // Head
+            Renderer.drawRect(screenX + 3, screenY, 10, 7, app.skinColor || '#fa6');
+
+            // Hair
+            if (app.hairColor) {
+                Renderer.drawRect(screenX + 3, screenY, 10, 3, app.hairColor);
+            }
+
+            // Eyes
+            Renderer.drawRect(screenX + 4, screenY + 3, 2, 2, '#222');
+            Renderer.drawRect(screenX + 9, screenY + 3, 2, 2, '#222');
+
+            // Legs
+            Renderer.drawRect(screenX + 4, screenY + 14, 3, 4, app.legColor || '#444');
+            Renderer.drawRect(screenX + 9, screenY + 14, 3, 4, app.legColor || '#444');
+
+            // Cloak/robe for mysterious figure
+            if (app.type === 'mysterious') {
+                // Hooded cloak
+                Renderer.drawRect(screenX + 2, screenY - 2, 12, 4, app.bodyColor || '#446');
+                Renderer.drawRect(screenX + 1, screenY + 2, 14, 16, app.bodyColor || '#446');
+                // Hood shadow
+                Renderer.drawRect(screenX + 4, screenY + 1, 8, 4, '#223');
+                // Glowing eyes in hood
+                const eyeGlow = Math.sin(time * 2) * 0.3 + 0.7;
+                Renderer.drawRect(screenX + 5, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
+                Renderer.drawRect(screenX + 9, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
+            }
+        } else {
+            // Default appearance
+            Renderer.drawRect(screenX + 4, screenY, 8, 16, '#888');
+        }
     },
 
     // Track which locked doors we've shown dialogue for this session
@@ -433,10 +655,41 @@ const Overworld = {
     },
 
     /**
+     * Check if player is near any door/transition
+     * @param {number} safeRadius - Distance from door center to consider "safe"
+     */
+    isNearDoor(safeRadius = 32) {
+        if (!this.currentRoom || !this.currentRoom.transitions) return false;
+
+        const playerCenter = Player.getCenter();
+
+        for (const transition of this.currentRoom.transitions) {
+            // Get center of the transition zone
+            const doorCenterX = transition.x + transition.width / 2;
+            const doorCenterY = transition.y + transition.height / 2;
+
+            // Check distance from player to door
+            const dist = Utils.distance(playerCenter.x, playerCenter.y, doorCenterX, doorCenterY);
+
+            // Also consider the size of the door itself
+            const doorRadius = Math.max(transition.width, transition.height) / 2;
+
+            if (dist < safeRadius + doorRadius) {
+                return true;
+            }
+        }
+
+        return false;
+    },
+
+    /**
      * Check for random encounter
      */
     checkEncounter(dt) {
         if (!this.currentRoom.encounterRate || this.currentRoom.encounterRate === 0) return;
+
+        // Don't spawn encounters near doors
+        if (this.isNearDoor(32)) return;
 
         // Increment steps
         this.encounterSteps++;
@@ -494,6 +747,9 @@ const Overworld = {
 
         // Render NPCs
         NPCManager.render(this.camera.x, this.camera.y);
+
+        // Render companion (before player so player appears in front)
+        this.renderCompanion();
 
         // Render player
         Player.render(this.camera.x, this.camera.y);
@@ -713,6 +969,283 @@ const Overworld = {
                     Renderer.ctx.ellipse(screenX + 11, screenY + 10, 4, 3, 0, Math.PI, 0);
                     Renderer.ctx.fill();
                     break;
+
+                // ==================== VILLAGE DECORATIONS ====================
+                case 'butcher_shop':
+                    // Butcher shop front with hanging meat and sign
+                    // Building
+                    Renderer.drawRect(screenX, screenY, 48, 48, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 44, 44, '#654');
+                    // Roof
+                    Renderer.drawRect(screenX - 4, screenY - 8, 56, 12, '#432');
+                    // Sign
+                    Renderer.drawRect(screenX + 8, screenY - 4, 32, 10, '#765');
+                    Renderer.drawText ? null : 0; // Text handled elsewhere
+                    // Door
+                    Renderer.drawRect(screenX + 16, screenY + 24, 16, 24, '#321');
+                    Renderer.drawRect(screenX + 28, screenY + 34, 3, 3, '#ff0'); // Handle
+                    // Hanging meat hooks
+                    for (let i = 0; i < 3; i++) {
+                        const hookX = screenX + 6 + i * 14;
+                        const swing = Math.sin(time * 2 + i) * 2;
+                        // Hook
+                        Renderer.drawRect(hookX + 2, screenY + 8, 2, 6, '#888');
+                        // Meat (swinging)
+                        Renderer.drawRect(hookX + swing, screenY + 14, 8, 12, '#a55');
+                        Renderer.drawRect(hookX + 2 + swing, screenY + 16, 4, 8, '#833');
+                    }
+                    // Window with warm light
+                    const butcherLight = Math.sin(time * 0.5) * 0.1 + 0.8;
+                    Renderer.drawRect(screenX + 6, screenY + 10, 8, 8, `rgba(255,200,100,${butcherLight})`);
+                    Renderer.drawRect(screenX + 34, screenY + 10, 8, 8, `rgba(255,200,100,${butcherLight})`);
+                    break;
+
+                case 'blacksmith_shop':
+                    // Blacksmith with forge glow and anvil
+                    // Building
+                    Renderer.drawRect(screenX, screenY, 48, 48, '#444');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 44, 44, '#555');
+                    // Roof
+                    Renderer.drawRect(screenX - 4, screenY - 8, 56, 12, '#333');
+                    // Chimney with smoke
+                    Renderer.drawRect(screenX + 36, screenY - 20, 8, 16, '#444');
+                    // Smoke particles
+                    for (let i = 0; i < 3; i++) {
+                        const smokeY = screenY - 24 - i * 8 - (time * 20 % 24);
+                        const smokeAlpha = 0.3 - i * 0.1;
+                        if (smokeAlpha > 0) {
+                            Renderer.ctx.fillStyle = `rgba(150,150,150,${smokeAlpha})`;
+                            Renderer.ctx.beginPath();
+                            Renderer.ctx.arc(screenX + 40 + Math.sin(time + i) * 3, smokeY, 4 + i, 0, Math.PI * 2);
+                            Renderer.ctx.fill();
+                        }
+                    }
+                    // Forge glow
+                    const forgeGlow = Math.sin(time * 8) * 0.2 + 0.8;
+                    Renderer.drawRect(screenX + 4, screenY + 20, 16, 16, '#222');
+                    Renderer.drawRect(screenX + 6, screenY + 22, 12, 12, `rgba(255,100,0,${forgeGlow})`);
+                    Renderer.drawRect(screenX + 8, screenY + 24, 8, 8, `rgba(255,200,0,${forgeGlow})`);
+                    // Anvil
+                    Renderer.drawRect(screenX + 24, screenY + 32, 12, 8, '#333');
+                    Renderer.drawRect(screenX + 22, screenY + 28, 16, 6, '#444');
+                    // Hanging tools
+                    Renderer.drawRect(screenX + 6, screenY + 6, 2, 10, '#666'); // Hammer
+                    Renderer.drawRect(screenX + 4, screenY + 4, 6, 4, '#888');
+                    Renderer.drawRect(screenX + 14, screenY + 6, 1, 12, '#666'); // Tongs
+                    // Door
+                    Renderer.drawRect(screenX + 28, screenY + 24, 14, 24, '#432');
+                    Renderer.drawRect(screenX + 38, screenY + 34, 3, 3, '#ff0');
+                    break;
+
+                case 'magic_shop':
+                    // Magic shop with glowing crystals and mystical atmosphere
+                    // Building
+                    Renderer.drawRect(screenX, screenY, 48, 48, '#324');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 44, 44, '#435');
+                    // Pointed roof
+                    Renderer.ctx.fillStyle = '#213';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 24, screenY - 20);
+                    Renderer.ctx.lineTo(screenX + 52, screenY - 4);
+                    Renderer.ctx.lineTo(screenX - 4, screenY - 4);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Crystal ball in window
+                    const crystalPulse = Math.sin(time * 3) * 0.3 + 0.7;
+                    Renderer.drawRect(screenX + 6, screenY + 8, 14, 14, '#213');
+                    Renderer.ctx.fillStyle = `rgba(150,100,255,${crystalPulse})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 13, screenY + 15, 5, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Mystical symbols
+                    const symbolGlow = Math.sin(time * 2 + 1) * 0.3 + 0.5;
+                    Renderer.drawRect(screenX + 34, screenY + 10, 8, 8, `rgba(100,200,255,${symbolGlow})`);
+                    // Floating particles
+                    for (let i = 0; i < 4; i++) {
+                        const px = screenX + 10 + Math.sin(time * 2 + i * 1.5) * 15 + i * 8;
+                        const py = screenY + 20 + Math.cos(time * 1.5 + i) * 8;
+                        const pAlpha = Math.sin(time * 3 + i) * 0.3 + 0.4;
+                        Renderer.drawRect(px, py, 2, 2, `rgba(200,150,255,${pAlpha})`);
+                    }
+                    // Door
+                    Renderer.drawRect(screenX + 16, screenY + 24, 16, 24, '#213');
+                    Renderer.drawRect(screenX + 28, screenY + 34, 3, 3, '#a8f');
+                    // Stars on door
+                    Renderer.drawRect(screenX + 22, screenY + 28, 2, 2, '#ff0');
+                    Renderer.drawRect(screenX + 20, screenY + 36, 2, 2, '#ff0');
+                    break;
+
+                case 'village_house':
+                    // Cozy village house
+                    // Building
+                    Renderer.drawRect(screenX, screenY, 40, 40, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 36, 36, '#765');
+                    // Roof
+                    Renderer.ctx.fillStyle = '#543';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 20, screenY - 12);
+                    Renderer.ctx.lineTo(screenX + 44, screenY);
+                    Renderer.ctx.lineTo(screenX - 4, screenY);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Chimney
+                    Renderer.drawRect(screenX + 28, screenY - 16, 8, 10, '#543');
+                    // Window with warm light
+                    const houseLight = Math.sin(time * 0.3) * 0.1 + 0.7;
+                    Renderer.drawRect(screenX + 6, screenY + 10, 10, 10, `rgba(255,220,150,${houseLight})`);
+                    Renderer.drawRect(screenX + 10, screenY + 10, 2, 10, '#543'); // Window frame
+                    Renderer.drawRect(screenX + 6, screenY + 14, 10, 2, '#543');
+                    // Door
+                    Renderer.drawRect(screenX + 22, screenY + 18, 12, 22, '#432');
+                    Renderer.drawRect(screenX + 30, screenY + 28, 3, 3, '#ff0');
+                    break;
+
+                case 'fountain':
+                    // Village fountain
+                    // Base
+                    Renderer.drawRect(screenX, screenY + 24, 48, 16, '#556');
+                    Renderer.drawRect(screenX + 4, screenY + 20, 40, 8, '#667');
+                    // Water basin
+                    Renderer.ctx.fillStyle = '#48a';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 24, screenY + 28, 20, 8, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Center pillar
+                    Renderer.drawRect(screenX + 20, screenY + 4, 8, 24, '#778');
+                    // Water spout
+                    Renderer.drawRect(screenX + 22, screenY, 4, 8, '#889');
+                    // Water streams
+                    const waterPhase = time * 4;
+                    for (let i = 0; i < 4; i++) {
+                        const angle = (i / 4) * Math.PI * 2 + waterPhase * 0.1;
+                        const wx = screenX + 24 + Math.cos(angle) * 8;
+                        const wy = screenY + 8 + Math.sin(waterPhase + i) * 2;
+                        const wAlpha = 0.5 + Math.sin(waterPhase + i * 2) * 0.2;
+                        Renderer.ctx.fillStyle = `rgba(100,180,255,${wAlpha})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.moveTo(screenX + 24, screenY + 6);
+                        Renderer.ctx.quadraticCurveTo(wx, wy + 8, wx + (Math.cos(angle) * 4), screenY + 24);
+                        Renderer.ctx.stroke();
+                    }
+                    // Sparkles
+                    if (Math.sin(time * 5) > 0.7) {
+                        Renderer.drawRect(screenX + 12 + Math.random() * 24, screenY + 24 + Math.random() * 8, 2, 2, '#fff');
+                    }
+                    break;
+
+                case 'lantern':
+                    // Hanging lantern (warm underground lighting)
+                    const lanternGlow = Math.sin(time * 4) * 0.15 + 0.85;
+                    // Chain
+                    Renderer.drawRect(screenX + 6, screenY, 2, 8, '#666');
+                    // Lantern body
+                    Renderer.drawRect(screenX + 2, screenY + 8, 12, 16, '#654');
+                    Renderer.drawRect(screenX + 4, screenY + 10, 8, 12, `rgba(255,200,100,${lanternGlow})`);
+                    // Glow effect
+                    Renderer.ctx.fillStyle = `rgba(255,180,80,${lanternGlow * 0.3})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 8, screenY + 16, 16, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'banner':
+                    // Decorative banner
+                    const bannerWave = Math.sin(time * 2 + deco.x * 0.1) * 2;
+                    // Pole
+                    Renderer.drawRect(screenX + 6, screenY, 2, 32, '#654');
+                    // Banner fabric
+                    Renderer.ctx.fillStyle = deco.color || '#a44';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 8, screenY + 4);
+                    Renderer.ctx.lineTo(screenX + 24 + bannerWave, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 20 + bannerWave, screenY + 20);
+                    Renderer.ctx.lineTo(screenX + 8, screenY + 16);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Trim
+                    Renderer.ctx.strokeStyle = '#ff0';
+                    Renderer.ctx.lineWidth = 1;
+                    Renderer.ctx.stroke();
+                    break;
+
+                case 'cave_entrance':
+                    // Decorated cave entrance/archway
+                    // Stone arch
+                    Renderer.drawRect(screenX, screenY, 12, 48, '#445');
+                    Renderer.drawRect(screenX + 36, screenY, 12, 48, '#445');
+                    Renderer.drawRect(screenX, screenY, 48, 12, '#556');
+                    // Crystals on arch
+                    const archGlow = Math.sin(time * 2) * 0.2 + 0.6;
+                    Renderer.drawRect(screenX + 4, screenY + 2, 4, 8, `rgba(100,200,255,${archGlow})`);
+                    Renderer.drawRect(screenX + 40, screenY + 2, 4, 8, `rgba(100,200,255,${archGlow})`);
+                    Renderer.drawRect(screenX + 20, screenY + 2, 8, 6, `rgba(150,220,255,${archGlow})`);
+                    // Darkness inside
+                    Renderer.drawRect(screenX + 12, screenY + 12, 24, 36, '#111');
+                    break;
+
+                case 'sign':
+                    // Themed wooden sign post with text and icon
+                    const signColor = deco.color || '#876';
+                    const signBorder = deco.borderColor || '#654';
+                    const signWidth = 44;
+                    const signHeight = 20;
+
+                    // Post
+                    Renderer.drawRect(screenX + signWidth/2 - 2, screenY + signHeight, 4, 16, '#543');
+
+                    // Sign board with theme color
+                    Renderer.drawRect(screenX, screenY, signWidth, signHeight, signBorder);
+                    Renderer.drawRect(screenX + 2, screenY + 2, signWidth - 4, signHeight - 4, signColor);
+
+                    // Icon based on theme
+                    if (deco.icon === 'meat') {
+                        // Meat/drumstick on top
+                        Renderer.drawRect(screenX + signWidth/2 - 6, screenY - 10, 12, 8, '#c66');
+                        Renderer.drawRect(screenX + signWidth/2 - 4, screenY - 12, 8, 4, '#a44');
+                        Renderer.drawRect(screenX + signWidth/2 + 4, screenY - 8, 6, 3, '#ddd'); // bone
+                    } else if (deco.icon === 'sword') {
+                        // Sword on top
+                        Renderer.drawRect(screenX + signWidth/2 - 1, screenY - 14, 2, 12, '#aaa');
+                        Renderer.drawRect(screenX + signWidth/2 - 4, screenY - 4, 8, 2, '#888');
+                        Renderer.drawRect(screenX + signWidth/2 - 1, screenY - 2, 2, 3, '#654');
+                    } else if (deco.icon === 'star') {
+                        // Magic star on top
+                        const starGlow = Math.sin(time * 3) * 0.3 + 0.7;
+                        Renderer.ctx.fillStyle = `rgba(200,150,255,${starGlow})`;
+                        Renderer.ctx.beginPath();
+                        const cx = screenX + signWidth/2;
+                        const cy = screenY - 8;
+                        for (let i = 0; i < 5; i++) {
+                            const angle = (i * 4 * Math.PI / 5) - Math.PI/2;
+                            const r = i === 0 ? 0 : 6;
+                            const method = i === 0 ? 'moveTo' : 'lineTo';
+                            Renderer.ctx[method](cx + Math.cos(angle) * 6, cy + Math.sin(angle) * 6);
+                            const innerAngle = angle + Math.PI/5;
+                            Renderer.ctx.lineTo(cx + Math.cos(innerAngle) * 3, cy + Math.sin(innerAngle) * 3);
+                        }
+                        Renderer.ctx.closePath();
+                        Renderer.ctx.fill();
+                    } else if (deco.icon === 'home') {
+                        // Little house/roof on top
+                        Renderer.ctx.fillStyle = '#a65';
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.moveTo(screenX + signWidth/2, screenY - 12);
+                        Renderer.ctx.lineTo(screenX + signWidth/2 + 8, screenY - 2);
+                        Renderer.ctx.lineTo(screenX + signWidth/2 - 8, screenY - 2);
+                        Renderer.ctx.closePath();
+                        Renderer.ctx.fill();
+                        Renderer.drawRect(screenX + signWidth/2 - 1, screenY - 6, 2, 4, '#654');
+                    }
+
+                    // Text
+                    if (deco.text) {
+                        Renderer.ctx.fillStyle = deco.textColor || '#321';
+                        Renderer.ctx.font = '7px monospace';
+                        Renderer.ctx.textAlign = 'center';
+                        Renderer.ctx.fillText(deco.text, screenX + signWidth/2, screenY + 14);
+                        Renderer.ctx.textAlign = 'left';
+                    }
+                    break;
             }
         }
     },
@@ -856,6 +1389,45 @@ const Overworld = {
                         const sparkY = screenY + 8 + Math.random() * 8;
                         Renderer.drawRect(sparkX, sparkY, 2, 2, '#aef');
                     }
+                    break;
+                case 'bed':
+                    // Cozy bed
+                    // Bed frame
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#543');
+                    // Mattress
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 6, '#668');
+                    // Pillow
+                    Renderer.drawRect(screenX + 4, screenY + 4, 10, 6, '#fff');
+                    // Blanket
+                    Renderer.drawRect(screenX + 4, screenY + 12, interactable.width - 8, interactable.height - 16, '#448');
+                    break;
+                case 'bookshelf':
+                    // Bookshelf with books
+                    // Frame
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#432');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#321');
+                    // Shelves
+                    for (let i = 0; i < 3; i++) {
+                        const shelfY = screenY + 8 + i * 14;
+                        Renderer.drawRect(screenX + 2, shelfY, interactable.width - 4, 2, '#543');
+                        // Books on shelf
+                        const bookColors = ['#a44', '#44a', '#4a4', '#aa4', '#a4a'];
+                        for (let b = 0; b < 4; b++) {
+                            const bookX = screenX + 4 + b * 5;
+                            const bookH = 8 + Math.sin(b * 2 + i) * 2;
+                            Renderer.drawRect(bookX, shelfY - bookH, 4, bookH, bookColors[(b + i) % bookColors.length]);
+                        }
+                    }
+                    break;
+                case 'mirror':
+                    // Wall mirror
+                    // Frame
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#654');
+                    // Mirror surface
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#aac');
+                    // Shine effect
+                    const mirrorShine = Math.sin(performance.now() / 1000) * 0.2 + 0.6;
+                    Renderer.drawRect(screenX + 4, screenY + 4, 3, interactable.height - 8, `rgba(255,255,255,${mirrorShine})`);
                     break;
                 default:
                     // Generic interactable

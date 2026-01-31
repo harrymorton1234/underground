@@ -91,6 +91,7 @@ const Battle = {
         this.showingSubmenu = false;
         this.textQueue = [];
         this.onEnd = options.onEnd || null;
+        this.lastRemovedItems = [];
 
         // Initialize soul
         Soul.init();
@@ -574,7 +575,13 @@ const Battle = {
                 dropText = '\n* You found: ' + drops.map(d => Items.get(d)?.name || d).join(', ');
             }
 
-            this.showText(`* You earned ${this.enemy.exp} EXP and ${this.enemy.gold} gold.${dropText}`);
+            // Show what was discarded to make room
+            let discardText = '';
+            if (this.lastRemovedItems && this.lastRemovedItems.length > 0) {
+                discardText = '\n* Discarded: ' + this.lastRemovedItems.map(d => Items.get(d)?.name || d).join(', ');
+            }
+
+            this.showText(`* You earned ${this.enemy.exp} EXP and ${this.enemy.gold} gold.${dropText}${discardText}`);
 
             // Check level up
             this.checkLevelUp();
@@ -588,18 +595,34 @@ const Battle = {
      */
     processDrops() {
         const drops = [];
+        const removedItems = [];
         const enemyData = Enemies.get(this.enemy.id);
+        const isBoss = this.enemy.isBoss || this.enemy.isMegaBoss;
 
         if (enemyData && enemyData.drops) {
-            for (const drop of enemyData.drops) {
+            // Sort drops by priority (key items and high-value items first)
+            const sortedDrops = [...enemyData.drops].sort((a, b) => {
+                const priorityA = Inventory.getItemPriority(a.item);
+                const priorityB = Inventory.getItemPriority(b.item);
+                return priorityB - priorityA; // Higher priority first
+            });
+
+            for (const drop of sortedDrops) {
                 if (Math.random() < drop.chance) {
-                    if (Inventory.addItem(drop.item)) {
+                    // Use priority-based adding for boss drops
+                    const result = Inventory.addItemWithPriority(drop.item, isBoss);
+                    if (result.success) {
                         drops.push(drop.item);
+                        if (result.removedItem) {
+                            removedItems.push(result.removedItem);
+                        }
                     }
                 }
             }
         }
 
+        // Store removed items for display
+        this.lastRemovedItems = removedItems;
         return drops;
     },
 

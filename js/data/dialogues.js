@@ -941,6 +941,235 @@ const Dialogues = {
                 { text: 'P-please... leave me alone.' },
                 { text: "I don't want any trouble." }
             ]
+        },
+
+        // ==================== VILLAGE (PART 2) ====================
+        'village_intro': {
+            speaker: '???',
+            portrait: 'mysterious_happy',
+            lines: [
+                { text: 'You did it.' },
+                { text: 'The MEGA DESTROYER has been vanquished.' },
+                { text: 'Come with me.' },
+                { text: 'There is something I want to show you.' }
+            ],
+            setFlags: { 'village_intro_seen': true }
+        },
+
+        'guide_follow': {
+            speaker: '???',
+            portrait: 'mysterious',
+            lines: [
+                { text: 'Follow me.' }
+            ]
+        },
+
+        'guide_walking': {
+            speaker: '???',
+            portrait: 'mysterious',
+            lines: [
+                { text: '...' },
+                { text: 'We are almost there.' },
+                { text: 'Just a little further.' }
+            ]
+        },
+
+        'village_crowning': {
+            speaker: 'Village Elder',
+            portrait: 'elder',
+            lines: [
+                { text: 'Citizens of Haven Village!' },
+                { text: 'Today we gather to honor a true hero!' },
+                { text: 'This brave soul has defeated the MEGA DESTROYER!' },
+                { text: 'The terror that plagued our lands is no more!' },
+                { text: '*The crowd cheers*' },
+                { text: 'By the power vested in me as Village Elder...' },
+                { text: 'I hereby crown you... HERO OF THE UNDERGROUND!' },
+                { text: '*A crown is placed on your head*' },
+                { text: 'As a token of our gratitude...' },
+                { text: 'We present you with this house!' },
+                { text: "It is yours, for as long as you wish to stay." },
+                { text: 'Welcome home, Hero.' }
+            ],
+            setFlags: { 'crowned_hero': true },
+            giveItem: 'house_key'
+        },
+
+        'village_save_point': {
+            speaker: null,
+            lines: [
+                { text: 'The warmth of the village surrounds you.' },
+                { text: 'You are filled with peace and determination.' },
+                { text: '(HP fully restored.)' }
+            ]
+        },
+
+        // Village NPCs
+        'village_elder_talk': {
+            speaker: 'Village Elder',
+            portrait: 'elder',
+            lines: [
+                { text: 'Ah, Hero! How are you finding your new home?' },
+                { text: 'Feel free to explore the village.' },
+                { text: 'We have a butcher, blacksmith, and magic shop.' },
+                { text: 'Make yourself at home!' }
+            ]
+        },
+
+        'village_citizen_1': {
+            speaker: 'Villager',
+            portrait: 'npc_happy',
+            lines: [
+                { text: "Oh my! It's the Hero!" },
+                { text: 'Thank you for saving us!' },
+                { text: "We've lived in fear of the Destroyer for so long..." },
+                { text: 'Now we can finally live in peace!' }
+            ]
+        },
+
+        'village_citizen_2': {
+            speaker: 'Villager',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: 'This village has been hidden for centuries.' },
+                { text: 'We fled underground to escape danger above.' },
+                { text: 'But then the Destroyer appeared...' },
+                { text: 'You gave us hope again.' }
+            ]
+        },
+
+        'village_child': {
+            speaker: 'Child',
+            portrait: 'npc_happy',
+            lines: [
+                { text: "Wow! You're the Hero!" },
+                { text: 'Can you teach me how to fight?!' },
+                { text: '...Mom says no. But still! So cool!' }
+            ]
+        },
+
+        // Butcher Shop
+        'butcher_intro': {
+            speaker: 'Gristle',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: "Welcome to Gristle's Meats!" },
+                { text: "Ah! You're the Hero everyone's talking about!" },
+                { text: 'For you, only the finest cuts!' },
+                { text: "Have a look at what I've got." }
+            ],
+            setFlags: { 'met_butcher': true }
+        },
+
+        'butcher_talk': {
+            speaker: 'Gristle',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: "Welcome back, Hero!" },
+                { text: 'Need some supplies for your next adventure?' },
+                { text: "I've got the best meat in the underground!" }
+            ]
+        },
+
+        // Blacksmith
+        'blacksmith_intro': {
+            speaker: 'Hammerstone',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*CLANG CLANG*' },
+                { text: 'Oh! A customer!' },
+                { text: "Wait... you're THE Hero?!" },
+                { text: "I've forged weapons my whole life..." },
+                { text: 'It would be an honor to arm you!' },
+                { text: 'Take a look at my finest work!' }
+            ],
+            setFlags: { 'met_blacksmith': true }
+        },
+
+        'blacksmith_talk': {
+            speaker: 'Hammerstone',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*CLANG CLANG*' },
+                { text: 'Ah, Hero! Back for more gear?' },
+                { text: "I've got weapons and armor fit for legends!" }
+            ]
+        },
+
+        // Magic Shop
+        'magic_intro': {
+            speaker: 'Mystara',
+            portrait: 'npc_mysterious',
+            lines: [
+                { text: '...I sensed your arrival.' },
+                { text: 'The Hero who defeated the Destroyer.' },
+                { text: 'Your soul shines brightly.' },
+                { text: 'I deal in magical artifacts and potions.' },
+                { text: 'Perhaps something here will aid your journey.' }
+            ],
+            setFlags: { 'met_mage': true }
+        },
+
+        'magic_talk': {
+            speaker: 'Mystara',
+            portrait: 'npc_mysterious',
+            lines: [
+                { text: 'The stars have guided you back.' },
+                { text: 'Seek what you need among my wares.' }
+            ]
+        },
+
+        // Hero's House
+        'house_enter': {
+            speaker: null,
+            lines: [
+                { text: 'Your new home.' },
+                { text: "It's cozy and warm." },
+                { text: 'A perfect place to rest between adventures.' }
+            ]
+        },
+
+        'house_bed': {
+            speaker: null,
+            lines: [
+                { text: 'Your bed looks comfortable.' },
+                { text: 'Do you want to rest?' }
+            ],
+            choices: [
+                { text: 'Rest', next: 'house_rest' },
+                { text: 'Not now', next: null }
+            ]
+        },
+
+        'house_rest': {
+            speaker: null,
+            lines: [
+                { text: 'You lay down and close your eyes...' },
+                { text: '...' },
+                { text: '*You feel completely refreshed!*' },
+                { text: '(HP fully restored.)' }
+            ],
+            healPlayer: true
+        },
+
+        'house_bookshelf': {
+            speaker: null,
+            lines: [
+                { text: 'A bookshelf filled with adventure stories.' },
+                { text: '"The Hero of Legend"...' },
+                { text: '"Tales from the Underground"...' },
+                { text: '"How to Cook with Crystal Shards"...' },
+                { text: 'Quite the collection!' }
+            ]
+        },
+
+        'house_mirror': {
+            speaker: null,
+            lines: [
+                { text: 'You look at yourself in the mirror.' },
+                { text: "Despite everything, it's still you." },
+                { text: '...But now with a crown!' }
+            ]
         }
     },
 

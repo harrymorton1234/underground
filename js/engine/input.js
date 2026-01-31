@@ -8,6 +8,9 @@ const Input = {
     keysJustPressed: {},
     keysJustReleased: {},
 
+    // Mouse state
+    mouseClicked: false,
+
     // Gamepad state
     gamepad: null,
     gamepadButtons: {},
@@ -56,6 +59,14 @@ const Input = {
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'].includes(e.key)) {
                 e.preventDefault();
             }
+        });
+
+        // Mouse/touch click for splash screen
+        window.addEventListener('click', () => {
+            this.mouseClicked = true;
+        });
+        window.addEventListener('touchstart', () => {
+            this.mouseClicked = true;
         });
     },
 
@@ -276,6 +287,7 @@ const Input = {
         this.keysJustPressed = {};
         this.keysJustReleased = {};
         this.gamepadButtonsJustPressed = {};
+        this.mouseClicked = false;
     },
 
     /**

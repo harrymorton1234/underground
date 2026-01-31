@@ -46,6 +46,96 @@ const Inventory = {
     },
 
     /**
+     * Get the priority value of an item (higher = more important, harder to discard)
+     * Key items: 10000+
+     * Boss drops (equipment from bosses): 5000+
+     * Weapons/Armor: 1000 + price
+     * Consumables/Materials: price
+     */
+    getItemPriority(itemId) {
+        const item = Items.get(itemId);
+        if (!item) return 0;
+
+        // Key items are never discarded
+        if (item.type === 'key') {
+            return 10000;
+        }
+
+        // Equipment has higher base priority
+        if (item.type === 'weapon' || item.type === 'armor' || item.type === 'backpack') {
+            return 1000 + (item.price || 0);
+        }
+
+        // Consumables and materials by price
+        return item.price || item.sellPrice || 1;
+    },
+
+    /**
+     * Add item with priority - will remove lowest value item if needed for important drops
+     * @param {string} itemId - The item to add
+     * @param {boolean} isBossDrop - If true, this is a boss drop and should always be added
+     * @returns {object} { success: boolean, removedItem: string|null }
+     */
+    addItemWithPriority(itemId, isBossDrop = false) {
+        const save = Save.getCurrent();
+        if (!save) return { success: false, removedItem: null };
+
+        if (!Items.exists(itemId)) {
+            console.warn(`Item not found: ${itemId}`);
+            return { success: false, removedItem: null };
+        }
+
+        const maxItems = this.getMaxItems();
+
+        // If there's room, just add it
+        if (save.items.length < maxItems) {
+            save.items.push(itemId);
+            return { success: true, removedItem: null };
+        }
+
+        // Inventory is full - check if we should make room
+        const newItemPriority = this.getItemPriority(itemId);
+        const newItem = Items.get(itemId);
+
+        // For boss drops or key items, always try to make room
+        const shouldForceAdd = isBossDrop || newItem.type === 'key';
+
+        if (!shouldForceAdd) {
+            // Regular item, don't replace anything
+            return { success: false, removedItem: null };
+        }
+
+        // Find the lowest priority item that can be removed (not key items)
+        let lowestPriorityIndex = -1;
+        let lowestPriority = Infinity;
+
+        for (let i = 0; i < save.items.length; i++) {
+            const existingItem = Items.get(save.items[i]);
+            // Never remove key items
+            if (existingItem && existingItem.type === 'key') {
+                continue;
+            }
+
+            const priority = this.getItemPriority(save.items[i]);
+            if (priority < lowestPriority) {
+                lowestPriority = priority;
+                lowestPriorityIndex = i;
+            }
+        }
+
+        // If we found an item to remove (and it has lower priority than our new item)
+        if (lowestPriorityIndex >= 0 && (shouldForceAdd || lowestPriority < newItemPriority)) {
+            const removedItemId = save.items[lowestPriorityIndex];
+            save.items.splice(lowestPriorityIndex, 1);
+            save.items.push(itemId);
+            return { success: true, removedItem: removedItemId };
+        }
+
+        // Couldn't make room (all items are key items or higher priority)
+        return { success: false, removedItem: null };
+    },
+
+    /**
      * Remove item from inventory
      */
     removeItem(index) {

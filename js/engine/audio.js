@@ -28,37 +28,84 @@ const Audio = {
     musicMuted: false,
     sfxMuted: false,
 
+    // Track initialization state
+    initialized: false,
+    initializing: false,
+    initProgress: 0,
+    initTotal: 0,
+
     /**
-     * Initialize audio system
+     * Initialize audio system (called on user interaction)
      */
     init() {
-        // Create audio context on user interaction
-        const initContext = () => {
-            if (!this.context) {
-                this.context = new (window.AudioContext || window.webkitAudioContext)();
-                this.masterGain = this.context.createGain();
-                this.masterGain.connect(this.context.destination);
-                this.updateVolume();
+        // Old event-based init removed - now called directly from splash screen
+    },
 
-                // Generate sounds and music now that context exists
-                this.generateBasicSounds();
-                this.generateAreaMusic();
+    /**
+     * Initialize audio context and generate all sounds/music asynchronously
+     * Returns a promise that resolves when ready
+     */
+    async initializeAsync() {
+        if (this.initialized || this.initializing) return;
+        this.initializing = true;
+        this.initProgress = 0;
 
-                // Try to play title music if on title screen
-                if (Game.currentState === Game.states.TITLE) {
-                    this.playMusic('music_title', true, 1.0);
-                }
-            }
-            // Resume context if suspended
-            if (this.context.state === 'suspended') {
-                this.context.resume();
-            }
-        };
+        // Create audio context
+        this.context = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.context.createGain();
+        this.masterGain.connect(this.context.destination);
+        this.updateVolume();
 
-        // Initialize on first user interaction
-        ['click', 'keydown', 'touchstart'].forEach(event => {
-            document.addEventListener(event, initContext, { once: true });
-        });
+        // Resume if suspended
+        if (this.context.state === 'suspended') {
+            await this.context.resume();
+        }
+
+        // Generate basic sounds first (fast)
+        this.generateBasicSounds();
+        this.initProgress = 5;
+
+        // Generate music tracks asynchronously with progress updates
+        const musicGenerators = [
+            { name: 'music_intro', fn: () => this.generateMelody({ tempo: 80, duration: 16, notes: [261, 293, 329, 293, 261, 246, 261, 293], waveform: 'sine', volume: 0.25, reverb: true }) },
+            { name: 'music_caverns', fn: () => this.generateCavernsMusic() },
+            { name: 'music_descent', fn: () => this.generateEerieMusic() },
+            { name: 'music_ancient', fn: () => this.generateAncientMusic() },
+            { name: 'music_swamp', fn: () => this.generateSwampMusic() },
+            { name: 'music_core', fn: () => this.generateCoreMusic() },
+            { name: 'music_shop', fn: () => this.generateShopMusic() },
+            { name: 'music_village', fn: () => this.generateVillageMusic() },
+            { name: 'music_battle', fn: () => this.generateBattleMusic() },
+            { name: 'music_boss', fn: () => this.generateBossMusic() },
+            { name: 'music_mega', fn: () => this.generateMegaBossMusic() },
+            { name: 'music_title', fn: () => this.generateTitleMusic() }
+        ];
+
+        this.initTotal = musicGenerators.length;
+
+        // Generate each track with a small delay to prevent blocking
+        for (let i = 0; i < musicGenerators.length; i++) {
+            const gen = musicGenerators[i];
+            // Use setTimeout to yield to browser between tracks
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    this.musicCache[gen.name] = gen.fn();
+                    this.initProgress = 5 + ((i + 1) / musicGenerators.length) * 95;
+                    resolve();
+                }, 0);
+            });
+        }
+
+        this.initialized = true;
+        this.initializing = false;
+        this.initProgress = 100;
+    },
+
+    /**
+     * Get initialization progress (0-100)
+     */
+    getInitProgress() {
+        return Math.floor(this.initProgress);
     },
 
     /**
@@ -291,14 +338,11 @@ const Audio = {
     },
 
     /**
-     * Preload common sounds
+     * Preload common sounds (legacy - now handled by initializeAsync)
      */
     async preloadCommon() {
-        // These will be actual files later
-        // For now, we'll generate simple sounds programmatically
-        await this.generateBasicSounds();
-        // Generate area music
-        this.generateAreaMusic();
+        // Audio is now initialized asynchronously via initializeAsync()
+        // This function is kept for compatibility
     },
 
     /**
@@ -386,51 +430,12 @@ const Audio = {
     },
 
     /**
-     * Generate all area music tracks
+     * Generate all area music tracks (legacy - now handled by initializeAsync)
      */
     generateAreaMusic() {
-        if (!this.context) return;
-
-        // Intro/Tutorial - calm, simple melody
-        this.musicCache['music_intro'] = this.generateMelody({
-            tempo: 80,
-            duration: 16,
-            notes: [261, 293, 329, 293, 261, 246, 261, 293],
-            waveform: 'sine',
-            volume: 0.25,
-            reverb: true
-        });
-
-        // Caverns - mysterious crystal sounds
-        // Caverns - Crystal bells and chimes
-        this.musicCache['music_caverns'] = this.generateCavernsMusic();
-
-        // Descent - eerie, unsettling with multiple layers
-        this.musicCache['music_descent'] = this.generateEerieMusic();
-
-        // Ancient Halls - Organ and choir
-        this.musicCache['music_ancient'] = this.generateAncientMusic();
-
-        // Swamp - Tribal drums and deep bass
-        this.musicCache['music_swamp'] = this.generateSwampMusic();
-
-        // Core - Electronic synth
-        this.musicCache['music_core'] = this.generateCoreMusic();
-
-        // Shop - Cheerful piano
-        this.musicCache['music_shop'] = this.generateShopMusic();
-
-        // Battle - Aggressive drums and strings
-        this.musicCache['music_battle'] = this.generateBattleMusic();
-
-        // Boss battle - tense and intense
-        this.musicCache['music_boss'] = this.generateBossMusic();
-
-        // Mega boss - Techno like Pigstep
-        this.musicCache['music_mega'] = this.generateMegaBossMusic();
-
-        // Title screen - Orchestral
-        this.musicCache['music_title'] = this.generateTitleMusic();
+        // Music is now generated asynchronously in initializeAsync()
+        // This function is kept for compatibility but does nothing
+        if (!this.context || this.initialized) return;
     },
 
     /**
@@ -774,6 +779,121 @@ const Audio = {
                 leftData[startSample + i] += bass * env;
                 rightData[startSample + i] += bass * env;
             }
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Generate village music - upbeat, cheerful but underground
+     */
+    generateVillageMusic() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 16;
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        const tempo = 140; // Upbeat tempo
+        const beatDur = 60 / tempo;
+
+        // Cheerful bouncy melody (major key, happy intervals)
+        const melody = [
+            523, 587, 659, 698, 784, 698, 659, 587, // C5 D5 E5 F5 G5 F5 E5 D5
+            523, 494, 523, 587, 659, 784, 880, 784, // C5 B4 C5 D5 E5 G5 A5 G5
+            659, 698, 784, 880, 784, 698, 659, 587, // E5 F5 G5 A5 G5 F5 E5 D5
+            523, 587, 659, 523, 494, 440, 494, 523  // C5 D5 E5 C5 B4 A4 B4 C5
+        ];
+
+        // Main melody with bright bell-like tone
+        for (let n = 0; n < melody.length; n++) {
+            const freq = melody[n];
+            const startSample = Math.floor(n * beatDur * 0.5 * sampleRate);
+
+            for (let i = 0; i < beatDur * 0.8 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Bright bell/chime sound (lots of harmonics)
+                let bell = Math.sin(2 * Math.PI * freq * t) * 0.15;
+                bell += Math.sin(2 * Math.PI * freq * 2 * t) * 0.1;
+                bell += Math.sin(2 * Math.PI * freq * 3 * t) * 0.06;
+                bell += Math.sin(2 * Math.PI * freq * 5 * t) * 0.03;
+
+                const env = Math.exp(-t * 4);
+                const pan = Math.sin(n * 0.5) * 0.3; // Slight stereo movement
+                leftData[startSample + i] += bell * env * (1 - pan);
+                rightData[startSample + i] += bell * env * (1 + pan);
+            }
+        }
+
+        // Bouncy bass line
+        const bassNotes = [262, 294, 330, 349, 392, 349, 330, 294]; // C4 D4 E4 F4 G4...
+        for (let n = 0; n < Math.floor(duration / beatDur); n++) {
+            const freq = bassNotes[n % bassNotes.length];
+            const startSample = Math.floor(n * beatDur * sampleRate);
+
+            for (let i = 0; i < beatDur * 0.4 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Plucky bass
+                const bass = Math.sin(2 * Math.PI * freq * 0.5 * t) * 0.18;
+                const env = Math.exp(-t * 8);
+                leftData[startSample + i] += bass * env;
+                rightData[startSample + i] += bass * env;
+            }
+        }
+
+        // Light percussion (shakers and soft kicks)
+        for (let beat = 0; beat < Math.floor(duration / (beatDur * 0.5)); beat++) {
+            const startSample = Math.floor(beat * beatDur * 0.5 * sampleRate);
+
+            // Soft kick on main beats
+            if (beat % 4 === 0) {
+                for (let i = 0; i < 0.05 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const kick = Math.sin(2 * Math.PI * 60 * Math.exp(-t * 20) * t) * 0.15;
+                    leftData[startSample + i] += kick * Math.exp(-t * 15);
+                    rightData[startSample + i] += kick * Math.exp(-t * 15);
+                }
+            }
+
+            // Shaker/tambourine on off-beats
+            if (beat % 2 === 1) {
+                for (let i = 0; i < 0.02 * sampleRate && (startSample + i) < length; i++) {
+                    const t = i / sampleRate;
+                    const shaker = (Math.random() * 2 - 1) * 0.05;
+                    leftData[startSample + i] += shaker * Math.exp(-t * 40);
+                    rightData[startSample + i] += shaker * Math.exp(-t * 40);
+                }
+            }
+        }
+
+        // Crystal shimmer layer (underground feel)
+        for (let n = 0; n < 8; n++) {
+            const freq = 1200 + n * 200 + Math.random() * 100;
+            const startSample = Math.floor(n * 2 * sampleRate);
+
+            for (let i = 0; i < 1.5 * sampleRate && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                const shimmer = Math.sin(2 * Math.PI * freq * t) * 0.02;
+                const env = Math.sin(t * Math.PI / 1.5) * Math.exp(-t * 0.5);
+                const pan = Math.sin(n * 1.2) * 0.5;
+                leftData[startSample + i] += shimmer * env * (1 - pan);
+                rightData[startSample + i] += shimmer * env * (1 + pan);
+            }
+        }
+
+        // Add subtle reverb-like echo (cave ambiance)
+        const echoDelay = Math.floor(0.15 * sampleRate);
+        const echoDecay = 0.25;
+        for (let i = echoDelay; i < length; i++) {
+            leftData[i] += leftData[i - echoDelay] * echoDecay;
+            rightData[i] += rightData[i - echoDelay] * echoDecay;
         }
 
         this.normalizeBuffer(leftData, rightData, length);
@@ -1483,6 +1603,11 @@ const Audio = {
      */
     getMusicForRoom(roomId) {
         if (!roomId) return null;
+
+        // Village area (upbeat)
+        if (roomId.startsWith('village') || roomId.startsWith('next')) {
+            return 'music_village';
+        }
 
         // Shop rooms
         if (roomId.includes('shop')) {
