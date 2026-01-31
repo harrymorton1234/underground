@@ -623,6 +623,16 @@ const Game = {
         saveData.name = name;
         Save.setCurrent(saveData);
 
+        // Check for moderator name
+        if (upperName === 'HARRYM') {
+            // Give moderator items
+            saveData.weapon = 'mod_sword';
+            saveData.armor = 'mod_cloak';
+            Inventory.addItem('mod_sword');
+            Inventory.addItem('mod_cloak');
+            saveData.gold = 99999;
+        }
+
         // Initialize stats based on equipment
         Inventory.updateStats();
         Inventory.updateMaxItems();

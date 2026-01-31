@@ -466,18 +466,24 @@ const Bullets = {
             duration: 6,
             spawners: [
                 {
-                    type: 'homing',
+                    type: 'spread',
                     delay: 0,
-                    interval: 0.5,
-                    bullet: { type: 'diamond', speed: 60, size: 8, color: '#f80', homing: 1.0 },
-                    position: 'random_edge'
+                    interval: 0.4,
+                    count: 5,
+                    angle: 90,
+                    spread: 60,
+                    bullet: { type: 'diamond', speed: 120, size: 6, color: '#f80' },
+                    position: 'top_center'
                 },
                 {
-                    type: 'homing',
-                    delay: 0.25,
-                    interval: 0.5,
-                    bullet: { type: 'diamond', speed: 60, size: 8, color: '#08f', homing: 1.0 },
-                    position: 'random_edge'
+                    type: 'spread',
+                    delay: 0.2,
+                    interval: 0.4,
+                    count: 5,
+                    angle: 90,
+                    spread: 60,
+                    bullet: { type: 'diamond', speed: 120, size: 6, color: '#08f' },
+                    position: 'top_center'
                 }
             ]
         };

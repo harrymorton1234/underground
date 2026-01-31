@@ -582,7 +582,7 @@ const Audio = {
             if (beat % 4 === 0 || beat % 4 === 2) {
                 for (let i = 0; i < 0.1 * sampleRate && (startSample + i) < length; i++) {
                     const t = i / sampleRate;
-                    const kick = Math.sin(2 * Math.PI * 55 * Math.exp(-t * 20) * t) * 0.25;
+                    const kick = Math.sin(2 * Math.PI * 55 * Math.exp(-t * 20) * t) * 0.4;
                     leftData[startSample + i] += kick * Math.exp(-t * 12);
                     rightData[startSample + i] += kick * Math.exp(-t * 12);
                 }
@@ -592,7 +592,7 @@ const Audio = {
             if (beat % 2 === 1) {
                 for (let i = 0; i < 0.03 * sampleRate && (startSample + i) < length; i++) {
                     const t = i / sampleRate;
-                    const hat = (Math.random() * 2 - 1) * 0.06;
+                    const hat = (Math.random() * 2 - 1) * 0.12;
                     leftData[startSample + i] += hat * Math.exp(-t * 40);
                     rightData[startSample + i] += hat * Math.exp(-t * 40);
                 }
@@ -610,9 +610,9 @@ const Audio = {
             for (let i = 0; i < noteInterval * 0.8 * sampleRate && (startSample + i) < length; i++) {
                 const t = i / sampleRate;
                 // Slightly detuned for eerie feel
-                let note = Math.sin(2 * Math.PI * freq * t) * 0.1;
-                note += Math.sin(2 * Math.PI * freq * 1.005 * t) * 0.05;
-                note += Math.sin(2 * Math.PI * freq * 2 * t) * 0.03;
+                let note = Math.sin(2 * Math.PI * freq * t) * 0.18;
+                note += Math.sin(2 * Math.PI * freq * 1.005 * t) * 0.1;
+                note += Math.sin(2 * Math.PI * freq * 2 * t) * 0.06;
 
                 let env = 1;
                 if (t < 0.02) env = t / 0.02;
@@ -627,8 +627,8 @@ const Audio = {
         // Mysterious low pad
         for (let i = 0; i < length; i++) {
             const t = i / sampleRate;
-            const pad = Math.sin(2 * Math.PI * 65 * t) * 0.06;
-            const pad2 = Math.sin(2 * Math.PI * 98 * t) * 0.04;
+            const pad = Math.sin(2 * Math.PI * 65 * t) * 0.1;
+            const pad2 = Math.sin(2 * Math.PI * 98 * t) * 0.07;
             const mod = 0.7 + Math.sin(t * 0.3) * 0.3;
 
             leftData[i] += (pad + pad2) * mod;
@@ -643,7 +643,7 @@ const Audio = {
             for (let i = 0; i < 1.5 * sampleRate && (startSample + i) < length; i++) {
                 const t = i / sampleRate;
                 const whistleFreq = 600 + Math.sin(t * 3) * 100;
-                const whistle = Math.sin(2 * Math.PI * whistleFreq * t) * 0.03;
+                const whistle = Math.sin(2 * Math.PI * whistleFreq * t) * 0.05;
                 const env = Math.sin(Math.PI * t / 1.5);
 
                 leftData[startSample + i] += whistle * env * (0.3 + Math.sin(t) * 0.2);

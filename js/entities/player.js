@@ -133,6 +133,23 @@ const Player = {
 
         // If wearing armor, draw custom robed character instead of sprite
         if (hasArmor) {
+            // Draw glow effect for mod cloak
+            if (save.armor === 'mod_cloak') {
+                const time = performance.now() / 300;
+                const glowSize = 20 + Math.sin(time) * 5;
+                const r = Math.floor(Math.sin(time) * 127 + 128);
+                const g = Math.floor(Math.sin(time + 2) * 127 + 128);
+                const b = Math.floor(Math.sin(time + 4) * 127 + 128);
+
+                Renderer.ctx.save();
+                Renderer.ctx.globalAlpha = 0.3;
+                Renderer.ctx.fillStyle = `rgb(${r},${g},${b})`;
+                Renderer.ctx.beginPath();
+                Renderer.ctx.arc(screenX + 8, screenY + 8, glowSize, 0, Math.PI * 2);
+                Renderer.ctx.fill();
+                Renderer.ctx.globalAlpha = 1;
+                Renderer.ctx.restore();
+            }
             this.renderRobedPlayer(screenX, screenY, save.armor);
         } else {
             // Draw base player sprite
@@ -179,7 +196,19 @@ const Player = {
         let skinColor = '#fdb';
         let hairColor = '#654';
 
-        if (armorId.includes('crystal')) {
+        if (armorId === 'mod_cloak') {
+            // Moderator cloak - shifting rainbow colors
+            const time = performance.now() / 500;
+            const r = Math.floor(Math.sin(time) * 127 + 128);
+            const g = Math.floor(Math.sin(time + 2) * 127 + 128);
+            const b = Math.floor(Math.sin(time + 4) * 127 + 128);
+            robeColor = `rgb(${r},${g},${b})`;
+            robeDark = `rgb(${Math.floor(r*0.6)},${Math.floor(g*0.6)},${Math.floor(b*0.6)})`;
+            robeLight = `rgb(${Math.min(255,r+50)},${Math.min(255,g+50)},${Math.min(255,b+50)})`;
+            trimColor = '#fff';
+            skinColor = '#ffd';
+            hairColor = '#ff0';
+        } else if (armorId.includes('crystal')) {
             robeColor = '#4ad';
             robeDark = '#28a';
             robeLight = '#6cf';

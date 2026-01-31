@@ -410,6 +410,29 @@ const Items = {
             price: 500,
             sellPrice: 250,
             equipText: 'It seems bigger on the inside...'
+        },
+
+        // Moderator items (debug/testing)
+        'mod_sword': {
+            name: 'Moderator Blade',
+            type: 'weapon',
+            description: 'A blade that exists outside the rules. Infinite damage.',
+            attack: 9999,
+            price: 0,
+            sellPrice: 0,
+            equipText: '* You feel the power of a god.'
+        },
+
+        'mod_cloak': {
+            name: 'Moderator Cloak',
+            type: 'armor',
+            description: 'A shimmering cloak of pure authority. Infinite HP.',
+            defense: 9999,
+            hpBonus: 99999,
+            price: 0,
+            sellPrice: 0,
+            equipText: '* Reality bends around you.',
+            isMod: true
         }
     },
 

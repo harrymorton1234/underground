@@ -242,68 +242,83 @@ const Dialogue = {
      * End dialogue
      */
     end() {
-        // Set flags from dialogue
-        if (this.currentDialogue && this.currentDialogue.setFlags) {
-            for (const [flag, value] of Object.entries(this.currentDialogue.setFlags)) {
-                Save.setFlag(flag, value);
-            }
-        }
-
-        // Give items
-        if (this.currentDialogue && this.currentDialogue.giveItem) {
-            Inventory.addItem(this.currentDialogue.giveItem);
-        }
-
-        // Give multiple items
-        if (this.currentDialogue && this.currentDialogue.giveItems) {
-            for (const itemId of this.currentDialogue.giveItems) {
-                Inventory.addItem(itemId);
-            }
-        }
-
-        // Give gold
-        if (this.currentDialogue && this.currentDialogue.giveGold) {
-            const save = Save.getCurrent();
-            if (save) {
-                save.gold += this.currentDialogue.giveGold;
-            }
-        }
-
-        // Heal player if specified
-        if (this.currentDialogue && this.currentDialogue.healPlayer) {
-            const save = Save.getCurrent();
-            if (save) {
-                save.hp = save.maxHp;
-                Save.save(save.slot);
-                Audio.playSFX('heal');
-            }
-        }
-
-        // Discover secrets for special dialogues
-        if (this.currentDialogue && this.currentDialogue.setFlags) {
-            if (this.currentDialogue.setFlags['fairy_ring_blessed']) {
-                Secrets.discover('fairy_ring_blessed');
-            }
-            if (this.currentDialogue.setFlags['mystic_pool_vision_seen']) {
-                Secrets.discover('mystic_pool_vision_seen');
-            }
-        }
-
-        // Store callback and previous state before clearing
+        // Store references before clearing
+        const dialogue = this.currentDialogue;
         const callback = this.callback;
         const previousState = Game.previousState;
-        this.callback = null;
 
+        // Clear state FIRST to prevent any re-entry issues
         this.active = false;
+        this.callback = null;
         this.currentDialogue = null;
         this.choices = null;
+        this.displayedText = '';
+        this.fullText = '';
 
-        // Unfreeze player ALWAYS
+        // Unfreeze player IMMEDIATELY
         Player.unfreeze();
+        Player.canMove = true;
 
-        // Return to previous state FIRST
-        if (previousState) {
+        // Process dialogue effects (with error handling)
+        try {
+            if (dialogue) {
+                // Set flags from dialogue
+                if (dialogue.setFlags) {
+                    for (const [flag, value] of Object.entries(dialogue.setFlags)) {
+                        Save.setFlag(flag, value);
+                    }
+                }
+
+                // Give items
+                if (dialogue.giveItem) {
+                    Inventory.addItem(dialogue.giveItem);
+                }
+
+                // Give multiple items
+                if (dialogue.giveItems) {
+                    for (const itemId of dialogue.giveItems) {
+                        Inventory.addItem(itemId);
+                    }
+                }
+
+                // Give gold
+                if (dialogue.giveGold) {
+                    const save = Save.getCurrent();
+                    if (save) {
+                        save.gold += dialogue.giveGold;
+                    }
+                }
+
+                // Heal player if specified
+                if (dialogue.healPlayer) {
+                    const save = Save.getCurrent();
+                    if (save) {
+                        save.hp = save.maxHp;
+                        Save.save(save.slot);
+                        Audio.playSFX('heal');
+                    }
+                }
+
+                // Discover secrets for special dialogues
+                if (dialogue.setFlags) {
+                    if (dialogue.setFlags['fairy_ring_blessed']) {
+                        Secrets.discover('fairy_ring_blessed');
+                    }
+                    if (dialogue.setFlags['mystic_pool_vision_seen']) {
+                        Secrets.discover('mystic_pool_vision_seen');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Dialogue end effects error:', e);
+        }
+
+        // Return to previous state
+        if (previousState && previousState !== Game.states.DIALOGUE) {
             Game.setState(previousState);
+        } else {
+            // Fallback to overworld if no valid previous state
+            Game.setState(Game.states.OVERWORLD);
         }
 
         // Then call callback (it may change state again, like opening shop)
