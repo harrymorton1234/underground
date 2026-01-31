@@ -1177,6 +1177,36 @@ const Dialogues = {
                 { text: "Despite everything, it's still you." },
                 { text: '...But now with a crown!' }
             ]
+        },
+
+        'house_trophy': {
+            speaker: null,
+            lines: [
+                { text: 'Your trophy case.' },
+                { text: 'Memories of your adventures...' },
+                { text: 'The crown from Haven Village.' },
+                { text: 'A crystal shard from the Guardian.' },
+                { text: 'The Mega Core... still pulsing with energy.' },
+                { text: "The Keeper's Key that unlocked so many secrets." },
+                { text: 'You came a long way.' }
+            ]
+        },
+
+        'house_kitchen': {
+            speaker: null,
+            lines: [
+                { text: 'Your cozy kitchen.' },
+                { text: 'The stove is warm and inviting.' },
+                { text: 'A good place to store your food supplies.' }
+            ]
+        },
+
+        'house_save': {
+            speaker: null,
+            lines: [
+                { text: 'Home sweet home.' },
+                { text: 'You feel safe here.' }
+            ]
         }
     },
 

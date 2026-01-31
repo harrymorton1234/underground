@@ -1429,6 +1429,66 @@ const Overworld = {
                     const mirrorShine = Math.sin(performance.now() / 1000) * 0.2 + 0.6;
                     Renderer.drawRect(screenX + 4, screenY + 4, 3, interactable.height - 8, `rgba(255,255,255,${mirrorShine})`);
                     break;
+                case 'kitchen':
+                    // Cozy kitchen counter with stove
+                    // Counter base
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#876');
+                    // Stove top
+                    Renderer.drawRect(screenX + 4, screenY + 4, 16, 12, '#333');
+                    // Burners
+                    Renderer.drawRect(screenX + 6, screenY + 6, 4, 4, '#555');
+                    Renderer.drawRect(screenX + 14, screenY + 6, 4, 4, '#555');
+                    // Pot on stove
+                    Renderer.drawRect(screenX + 5, screenY + 4, 6, 4, '#444');
+                    // Cabinet doors
+                    Renderer.drawRect(screenX + 4, screenY + 18, 10, 10, '#765');
+                    Renderer.drawRect(screenX + 16, screenY + 18, 10, 10, '#765');
+                    // Knobs
+                    Renderer.drawRect(screenX + 12, screenY + 22, 2, 2, '#fc0');
+                    Renderer.drawRect(screenX + 24, screenY + 22, 2, 2, '#fc0');
+                    // Food storage indicator
+                    const storedFood = Inventory.items ? Inventory.items.filter(i => Items.get(i)?.type === 'consumable').length : 0;
+                    if (storedFood > 0) {
+                        Renderer.drawRect(screenX + interactable.width - 8, screenY + 4, 6, 6, '#4a4');
+                    }
+                    break;
+                case 'trophy_case':
+                    // Trophy display case
+                    // Frame
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#432');
+                    // Glass front
+                    Renderer.drawRect(screenX + 3, screenY + 3, interactable.width - 6, interactable.height - 6, 'rgba(150,180,200,0.3)');
+                    // Shelves
+                    Renderer.drawRect(screenX + 2, screenY + 16, interactable.width - 4, 2, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 32, interactable.width - 4, 2, '#654');
+                    // Display trophies based on flags
+                    let trophyY = screenY + 6;
+                    // Crown
+                    if (Save.getFlag('crowned_hero')) {
+                        Renderer.drawRect(screenX + 6, trophyY, 8, 3, '#fc0');
+                        Renderer.drawRect(screenX + 7, trophyY - 2, 2, 2, '#fc0');
+                        Renderer.drawRect(screenX + 11, trophyY - 2, 2, 2, '#fc0');
+                    }
+                    // Crystal Guardian trophy
+                    if (Save.getFlag('crystal_guardian_killed') || Save.getFlag('crystal_guardian_spared')) {
+                        const crystalGlow = Math.sin(performance.now() / 500) * 0.3 + 0.7;
+                        Renderer.drawRect(screenX + 18, trophyY, 6, 8, `rgba(100,200,255,${crystalGlow})`);
+                    }
+                    trophyY = screenY + 20;
+                    // Mega Core
+                    if (Inventory.hasItem && Inventory.hasItem('mega_core')) {
+                        const coreGlow = Math.sin(performance.now() / 300) * 0.3 + 0.7;
+                        Renderer.drawRect(screenX + 6, trophyY, 8, 8, `rgba(255,100,100,${coreGlow})`);
+                        Renderer.drawRect(screenX + 8, trophyY + 2, 4, 4, `rgba(255,200,100,${coreGlow})`);
+                    }
+                    // Keeper's Key
+                    if (Inventory.hasItem && Inventory.hasItem('keepers_key')) {
+                        Renderer.drawRect(screenX + 18, trophyY + 2, 3, 6, '#fc0');
+                        Renderer.drawRect(screenX + 21, trophyY + 6, 4, 2, '#fc0');
+                    }
+                    break;
                 default:
                     // Generic interactable
                     Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#555');

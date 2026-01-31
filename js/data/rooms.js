@@ -1201,22 +1201,30 @@ const Rooms = {
             onEnter: 'house_enter',
             onEnterOnce: true,
             decorations: [
-                // Cozy lantern lighting
-                { type: 'lantern', x: 60, y: 30 },
-                { type: 'lantern', x: 160, y: 30 },
-                // Small crystal for underground charm
-                { type: 'crystal_cluster', x: 140, y: 100 }
+                // Warm cozy lighting
+                { type: 'lantern', x: 40, y: 20 },
+                { type: 'lantern', x: 120, y: 20 },
+                { type: 'lantern', x: 200, y: 20 },
+                // Fireplace glow (using lantern for warm light)
+                { type: 'lantern', x: 110, y: 140 },
+                // Small rug (decorative)
+                { type: 'crystal_cluster', x: 100, y: 100 }
             ],
             interactables: [
-                { x: 30, y: 50, width: 32, height: 24, type: 'bed', dialogue: 'house_bed' },
-                { x: 180, y: 40, width: 24, height: 48, type: 'bookshelf', dialogue: 'house_bookshelf' },
-                { x: 110, y: 40, width: 16, height: 24, type: 'mirror', dialogue: 'house_mirror' }
+                // Cozy bed in corner
+                { x: 20, y: 40, width: 32, height: 24, type: 'bed', dialogue: 'house_bed' },
+                // Trophy case for awards
+                { x: 20, y: 100, width: 28, height: 48, type: 'trophy_case', dialogue: 'house_trophy' },
+                // Kitchen area
+                { x: 180, y: 40, width: 32, height: 32, type: 'kitchen', dialogue: 'house_kitchen' },
+                // Mirror
+                { x: 80, y: 30, width: 16, height: 24, type: 'mirror', dialogue: 'house_mirror' }
             ],
             transitions: [
                 { x: 112, y: 0, width: 16, height: 8, to: 'village_square', playerX: 24, playerY: 328 }
             ],
             savePoints: [
-                { x: 120, y: 130, dialogue: 'village_save_point' }
+                { x: 120, y: 150, dialogue: 'house_save' }
             ],
             encounterRate: 0,
             music: 'music_village'
