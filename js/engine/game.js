@@ -625,12 +625,22 @@ const Game = {
 
         // Check for moderator name
         if (upperName === 'HARRYM') {
-            // Give moderator items
+            console.log('Moderator mode activated!');
+            // Give moderator items - set equipment directly
             saveData.weapon = 'mod_sword';
             saveData.armor = 'mod_cloak';
-            Inventory.addItem('mod_sword');
-            Inventory.addItem('mod_cloak');
             saveData.gold = 99999;
+
+            // Also add copies to inventory directly
+            if (!saveData.items) saveData.items = [];
+            saveData.items.push('mod_sword');
+            saveData.items.push('mod_cloak');
+
+            // Explicitly set the boosted stats
+            saveData.attack = 10 + 9999; // base + mod_sword attack
+            saveData.defense = 10 + 9999; // base + mod_cloak defense
+            saveData.maxHp = 20 + 99999; // base + mod_cloak HP bonus
+            saveData.hp = saveData.maxHp; // Start at full HP
         }
 
         // Initialize stats based on equipment
