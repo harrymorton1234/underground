@@ -360,8 +360,8 @@ const Rooms = {
                 10000000000000000001
                 10000000000000000001
                 10000000000000000001
-                10000000000000000001
-                10000000000000000001
+                30000000000000000001
+                30000000000000000001
                 10000000000000000001
                 10000000000000000001
                 10000000000000000001
@@ -374,12 +374,12 @@ const Rooms = {
             `,
             interactables: [
                 { x: 80, y: 160, width: 32, height: 32, type: 'piano', dialogue: 'piano_interact' },
-                { x: 0, y: 144, width: 16, height: 24, type: 'secret_door', dialogue: null, requiresFlag: 'piano_secret_complete' }
+                { x: 0, y: 144, width: 16, height: 32, type: 'secret_door', dialogue: null, requiresFlag: 'piano_secret_complete' }
             ],
             transitions: [
                 { x: 136, y: 0, width: 16, height: 8, to: 'caverns_1', playerX: 168, playerY: 192 },
                 { x: 136, y: 296, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 32 },
-                { x: 0, y: 144, width: 8, height: 24, to: 'caverns_secret', playerX: 168, playerY: 80, requiresFlag: 'piano_secret_complete' }
+                { x: 0, y: 144, width: 16, height: 32, to: 'caverns_secret', playerX: 160, playerY: 80, requiresFlag: 'piano_secret_complete' }
             ],
             encounterRate: 0.15,
             encounterEnemies: ['crystal_bat', 'mushroom_dancer']
