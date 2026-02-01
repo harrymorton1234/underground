@@ -373,14 +373,48 @@ const Rooms = {
                 11111111111111111111
             `,
             interactables: [
-                { x: 80, y: 160, width: 32, height: 32, type: 'piano', dialogue: 'piano_interact' }
+                { x: 80, y: 160, width: 32, height: 32, type: 'piano', dialogue: 'piano_interact' },
+                { x: 0, y: 144, width: 16, height: 24, type: 'secret_door', dialogue: null, requiresFlag: 'piano_secret_complete' }
             ],
             transitions: [
                 { x: 136, y: 0, width: 16, height: 8, to: 'caverns_1', playerX: 168, playerY: 192 },
-                { x: 136, y: 296, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 32 }
+                { x: 136, y: 296, width: 16, height: 8, to: 'caverns_guardian', playerX: 160, playerY: 32 },
+                { x: 0, y: 144, width: 8, height: 24, to: 'caverns_secret', playerX: 168, playerY: 80, requiresFlag: 'piano_secret_complete' }
             ],
             encounterRate: 0.15,
             encounterEnemies: ['crystal_bat', 'mushroom_dancer']
+        },
+
+        'caverns_secret': {
+            name: 'Hidden Chamber',
+            area: 'caverns',
+            width: 12,
+            height: 10,
+            playerStart: { x: 168, y: 80 },
+            tileData: `
+                111111111111
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000000031
+                100000000001
+                100000000001
+                100000000001
+                111111111111
+            `,
+            decorations: [
+                { x: 16, y: 16, type: 'crystal_formation' },
+                { x: 160, y: 16, type: 'crystal_formation' },
+                { x: 80, y: 24, type: 'ancient_plaque' }
+            ],
+            interactables: [
+                { x: 64, y: 32, width: 48, height: 32, type: 'lore_plaque', dialogue: 'secret_chamber_lore', dialogueOnce: true, afterDialogue: 'secret_chamber_lore_read' }
+            ],
+            transitions: [
+                { x: 184, y: 80, width: 8, height: 24, to: 'caverns_2', playerX: 24, playerY: 152 }
+            ],
+            encounterRate: 0
         },
 
         'caverns_guardian': {
@@ -956,6 +990,7 @@ const Rooms = {
                 { type: 'sign', x: 18, y: 100, text: 'Blacksmith', color: '#777', borderColor: '#555', icon: 'sword' },
                 { type: 'sign', x: 18, y: 308, text: 'Your Home', color: '#a86', borderColor: '#754', icon: 'home' },
                 { type: 'sign', x: 98, y: 100, text: 'Magic Shop', color: '#86a', borderColor: '#547', textColor: '#edf', icon: 'star' },
+                { type: 'sign', x: 98, y: 244, text: 'Bank', color: '#aa8', borderColor: '#886', textColor: '#432', icon: 'coin' },
 
                 // Lanterns on walls - alternating sides for cozy lighting
                 { type: 'lantern', x: 16, y: 8 },
@@ -1008,6 +1043,14 @@ const Rooms = {
                     y: 400,
                     dialogue: 'village_child',
                     appearance: { type: 'child', skinColor: '#fb9', bodyColor: '#e94', hairColor: '#741' }
+                },
+                {
+                    id: 'fred',
+                    sprite: 'npc',
+                    x: 48,
+                    y: 140,
+                    dialogue: 'fred_talk',
+                    appearance: { type: 'crazy_eye', skinColor: '#da9', bodyColor: '#486', hairColor: '#732', eyeOffset: 2 }
                 }
             ],
             transitions: [
@@ -1017,8 +1060,9 @@ const Rooms = {
                 { x: 0, y: 48, width: 8, height: 16, to: 'village_butcher', playerX: 200, playerY: 100 },
                 { x: 0, y: 112, width: 8, height: 16, to: 'village_blacksmith', playerX: 200, playerY: 100 },
                 { x: 0, y: 320, width: 8, height: 16, to: 'village_house', playerX: 120, playerY: 32, requiresFlag: 'has_house', lockedDialogue: 'house_not_yours' },
-                // Right doors - Magic shop (row 7)
-                { x: 152, y: 112, width: 8, height: 16, to: 'village_magic', playerX: 32, playerY: 100 }
+                // Right doors - Magic shop (row 7), Bank (row 16)
+                { x: 152, y: 112, width: 8, height: 16, to: 'village_magic', playerX: 32, playerY: 100 },
+                { x: 152, y: 256, width: 8, height: 16, to: 'village_bank', playerX: 32, playerY: 100 }
             ],
             interactables: [],
             savePoints: [
@@ -1049,13 +1093,35 @@ const Rooms = {
                 111111111111111
             `,
             decorations: [
-                // Counter
-                { type: 'lore', x: 40, y: 60 },
-                // Hanging meats
-                { type: 'lantern', x: 60, y: 20 },
-                { type: 'lantern', x: 140, y: 20 },
-                // Warm interior lighting
-                { type: 'lantern', x: 180, y: 80 }
+                // Hanging meats from ceiling
+                { type: 'meat_hook', x: 30, y: 16 },
+                { type: 'meat_hook', x: 70, y: 16 },
+                { type: 'ham_leg', x: 110, y: 16 },
+                { type: 'sausage_string', x: 140, y: 20 },
+
+                // Butcher counter with display
+                { type: 'meat_counter', x: 24, y: 70 },
+
+                // Cleaver rack on back wall
+                { type: 'cleaver_rack', x: 100, y: 24 },
+
+                // Chopping block
+                { type: 'chopping_block', x: 140, y: 50 },
+
+                // Barrel for salt/brine
+                { type: 'barrel', x: 180, y: 40 },
+
+                // Shelf with wrapped meats
+                { type: 'meat_shelf', x: 24, y: 110 },
+
+                // Blood stains on floor (it's a butcher shop after all)
+                { type: 'blood_stain', x: 80, y: 90 },
+                { type: 'blood_stain', x: 150, y: 70, size: 2 },
+                { type: 'blood_stain', x: 50, y: 140, size: 1 },
+
+                // Warm lantern lighting
+                { type: 'lantern', x: 16, y: 50 },
+                { type: 'lantern', x: 200, y: 80 }
             ],
             npcs: [
                 {
@@ -1083,7 +1149,83 @@ const Rooms = {
             area: 'village',
             width: 15,
             height: 12,
-            playerStart: { x: 32, y: 120 },
+            playerStart: { x: 200, y: 100 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000031
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            decorations: [
+                // Main forge with flames and chimney (left side)
+                { type: 'forge', x: 24, y: 30 },
+
+                // Bellows next to forge
+                { type: 'bellows', x: 70, y: 50 },
+
+                // Coal pile near forge
+                { type: 'coal_pile', x: 24, y: 70 },
+
+                // Anvil in center workspace
+                { type: 'anvil', x: 110, y: 70 },
+
+                // Hot metal on the anvil
+                { type: 'hot_metal', x: 114, y: 68 },
+
+                // Quench barrel near anvil
+                { type: 'quench_barrel', x: 150, y: 50 },
+
+                // Tool rack on back wall
+                { type: 'tool_rack', x: 40, y: 20 },
+
+                // Weapon display rack on back wall
+                { type: 'weapon_rack', x: 90, y: 20 },
+
+                // Armor stand on back wall (moved from corner)
+                { type: 'armor_stand', x: 145, y: 20 },
+
+                // Sword being worked on near forge
+                { type: 'sword_in_progress', x: 60, y: 100 },
+
+                // Warm lighting
+                { type: 'lantern', x: 16, y: 100 },
+                { type: 'lantern', x: 180, y: 40 }
+            ],
+            npcs: [
+                {
+                    id: 'blacksmith',
+                    sprite: 'npc',
+                    x: 80,
+                    y: 90,
+                    dialogue: 'blacksmith_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'blacksmith_talk',
+                    isShop: true,
+                    shopItems: ['iron_sword', 'steel_blade', 'hero_sword', 'dragonslayer', 'iron_armor', 'steel_plate', 'hero_armor'],
+                    appearance: { type: 'blacksmith', skinColor: '#c96', bodyColor: '#555', hairColor: '#a64' }
+                }
+            ],
+            transitions: [
+                { x: 224, y: 104, width: 16, height: 16, to: 'village_square', playerX: 24, playerY: 120 }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        'village_magic': {
+            name: 'Mystaras Arcana',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 32, y: 100 },
             tileData: `
                 111111111111111
                 100000000000001
@@ -1099,63 +1241,38 @@ const Rooms = {
                 111111111111111
             `,
             decorations: [
-                // Forge glow effect (reusing lantern for warm light)
-                { type: 'lantern', x: 40, y: 40 },
-                { type: 'lantern', x: 180, y: 40 },
-                // Weapon displays on walls
-                { type: 'lantern', x: 100, y: 30 }
-            ],
-            npcs: [
-                {
-                    id: 'blacksmith',
-                    sprite: 'npc',
-                    x: 180,
-                    y: 80,
-                    dialogue: 'blacksmith_intro',
-                    dialogueOnce: true,
-                    afterDialogue: 'blacksmith_talk',
-                    isShop: true,
-                    shopItems: ['iron_sword', 'steel_blade', 'hero_sword', 'dragonslayer', 'iron_armor', 'steel_plate', 'hero_armor'],
-                    appearance: { type: 'blacksmith', skinColor: '#c96', bodyColor: '#555', hairColor: '#222' }
-                }
-            ],
-            transitions: [
-                { x: 16, y: 104, width: 16, height: 16, to: 'village_square', playerX: 24, playerY: 120 }
-            ],
-            encounterRate: 0,
-            music: 'music_village'
-        },
+                // Crystal ball on pedestal - centerpiece
+                { type: 'crystal_ball', x: 100, y: 60 },
 
-        'village_magic': {
-            name: 'Mystaras Arcana',
-            area: 'village',
-            width: 15,
-            height: 12,
-            playerStart: { x: 120, y: 32 },
-            tileData: `
-                111111131111111
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                100000000000001
-                111111111111111
-            `,
-            decorations: [
-                // Glowing crystals everywhere for mystical feel
-                { type: 'crystal_cluster', x: 30, y: 30 },
-                { type: 'crystal_cluster', x: 190, y: 30 },
-                { type: 'crystal_cluster', x: 30, y: 100 },
-                { type: 'crystal_cluster', x: 190, y: 100 },
-                { type: 'crystal_pillar', x: 60, y: 50 },
-                { type: 'crystal_pillar', x: 160, y: 50 },
-                // Mystical floating lights
-                { type: 'lantern', x: 100, y: 40 }
+                // Potion shelf on back wall
+                { type: 'potion_shelf', x: 40, y: 20 },
+
+                // Spellbook on stand
+                { type: 'spellbook_stand', x: 150, y: 40 },
+
+                // Magic circle on floor
+                { type: 'magic_circle', x: 60, y: 100 },
+
+                // Wand display case
+                { type: 'wand_display', x: 180, y: 20 },
+
+                // Bubbling cauldron
+                { type: 'cauldron', x: 140, y: 100 },
+
+                // Floating candles
+                { type: 'floating_candles', x: 80, y: 30 },
+                { type: 'floating_candles', x: 160, y: 70 },
+
+                // Star chart on wall
+                { type: 'star_chart', x: 100, y: 20 },
+
+                // Rune stones
+                { type: 'rune_stone', x: 30, y: 70 },
+                { type: 'rune_stone', x: 200, y: 90 },
+
+                // Crystal clusters in corners
+                { type: 'crystal_cluster', x: 20, y: 140 },
+                { type: 'crystal_cluster', x: 200, y: 140 }
             ],
             npcs: [
                 {
@@ -1172,7 +1289,7 @@ const Rooms = {
                 }
             ],
             transitions: [
-                { x: 112, y: 0, width: 16, height: 8, to: 'village_square', playerX: 136, playerY: 120 }
+                { x: 16, y: 112, width: 16, height: 16, to: 'village_square', playerX: 120, playerY: 120 }
             ],
             encounterRate: 0,
             music: 'music_village'
@@ -1229,6 +1346,74 @@ const Rooms = {
             ],
             savePoints: [
                 { x: 120, y: 150, dialogue: 'house_save' }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        'village_bank': {
+            name: 'Haven Vault & Trust',
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 32, y: 100 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                130000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                111111111111111
+            `,
+            decorations: [
+                // Bank counter
+                { type: 'bank_counter', x: 80, y: 40 },
+
+                // Ornate pillars
+                { type: 'bank_pillar', x: 24, y: 30 },
+                { type: 'bank_pillar', x: 180, y: 30 },
+
+                // Vault door in back
+                { type: 'vault_door', x: 90, y: 100 },
+
+                // Gold piles and money bags
+                { type: 'gold_pile', x: 40, y: 100 },
+                { type: 'gold_pile', x: 170, y: 110 },
+                { type: 'money_bag', x: 60, y: 120 },
+                { type: 'money_bag', x: 150, y: 105 },
+
+                // Coin stacks on counter
+                { type: 'coin_stack', x: 90, y: 35 },
+                { type: 'coin_stack', x: 110, y: 35 },
+
+                // Ledger book
+                { type: 'ledger_book', x: 130, y: 38 },
+
+                // Warm lighting
+                { type: 'lantern', x: 16, y: 20 },
+                { type: 'lantern', x: 200, y: 20 }
+            ],
+            npcs: [
+                {
+                    id: 'banker',
+                    sprite: 'npc',
+                    x: 100,
+                    y: 60,
+                    dialogue: 'banker_intro',
+                    dialogueOnce: true,
+                    afterDialogue: 'banker_talk',
+                    isBank: true,
+                    appearance: { type: 'banker', skinColor: '#eca', bodyColor: '#224', hairColor: '#444' }
+                }
+            ],
+            transitions: [
+                { x: 16, y: 112, width: 16, height: 16, to: 'village_square', playerX: 120, playerY: 264 }
             ],
             encounterRate: 0,
             music: 'music_village'

@@ -72,40 +72,47 @@ const Overworld = {
             Player.init(room.playerStart.x, room.playerStart.y);
         }
 
-        // Handle companion for village journey
-        if (roomId === 'next_level' && Save.getFlag('village_intro_seen')) {
-            // Start companion after dialogue has been seen
-            this.setCompanion({
-                x: Player.x,
-                y: Player.y + 24,
-                appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' }
-            });
-        } else if (roomId === 'village_staircase') {
-            // Always have companion in staircase leading the way
-            if (!this.companion && Save.getFlag('village_intro_seen')) {
+        // Handle companion for village journey (only on first visit)
+        // Once guide_journey_complete is set, the ??? companion never appears again
+        if (!Save.getFlag('guide_journey_complete')) {
+            if (roomId === 'next_level' && Save.getFlag('village_intro_seen')) {
+                // Start companion after dialogue has been seen
                 this.setCompanion({
                     x: Player.x,
-                    y: Player.y - 20,
-                    appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' },
-                    leading: true,
-                    targetX: 48,
-                    targetY: 370
+                    y: Player.y + 24,
+                    appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' }
                 });
-            } else if (this.companion) {
-                // Reposition companion ahead of player when entering staircase
-                this.companion.x = Player.x;
-                this.companion.y = Player.y - 20;
-                this.companion.leading = true;
-                this.companion.targetX = 48;
-                this.companion.targetY = 370;
-                this.companion.waiting = false;
-                this.companionHistory = [];
-                for (let i = 0; i < 20; i++) {
-                    this.companionHistory.push({ x: this.companion.x, y: this.companion.y });
+            } else if (roomId === 'village_staircase') {
+                // Have companion in staircase leading the way
+                if (!this.companion && Save.getFlag('village_intro_seen')) {
+                    this.setCompanion({
+                        x: Player.x,
+                        y: Player.y - 20,
+                        appearance: { type: 'mysterious', skinColor: '#aac', bodyColor: '#446', hairColor: '#668' },
+                        leading: true,
+                        targetX: 48,
+                        targetY: 370
+                    });
+                } else if (this.companion) {
+                    // Reposition companion ahead of player when entering staircase
+                    this.companion.x = Player.x;
+                    this.companion.y = Player.y - 20;
+                    this.companion.leading = true;
+                    this.companion.targetX = 48;
+                    this.companion.targetY = 370;
+                    this.companion.waiting = false;
+                    this.companionHistory = [];
+                    for (let i = 0; i < 20; i++) {
+                        this.companionHistory.push({ x: this.companion.x, y: this.companion.y });
+                    }
                 }
+            } else if (roomId === 'village_square') {
+                // Remove companion when arriving at village and mark journey complete
+                this.removeCompanion();
+                Save.setFlag('guide_journey_complete', true);
             }
-        } else if (roomId === 'village_square') {
-            // Remove companion when arriving at village (they become the elder NPC)
+        } else {
+            // Journey already complete - make sure no companion lingers
             this.removeCompanion();
         }
 
@@ -204,8 +211,8 @@ const Overworld = {
         // Update companion
         this.updateCompanion(dt);
 
-        // Spawn companion after dialogue in next_level room
-        if (this.roomId === 'next_level' && Save.getFlag('village_intro_seen')) {
+        // Spawn companion after dialogue in next_level room (only if journey not complete)
+        if (this.roomId === 'next_level' && Save.getFlag('village_intro_seen') && !Save.getFlag('guide_journey_complete')) {
             // Always remove the NPC version of ??? once flag is set
             const guideNpc = NPCManager.get('mysterious_guide');
             if (guideNpc) {
@@ -563,6 +570,16 @@ const Overworld = {
                         Game.setState(Game.states.SHOP);
                     }
                 });
+            } else if (result.type === 'bank') {
+                // Open bank after dialogue
+                Game.setState(Game.states.DIALOGUE, {
+                    dialogueId: result.dialogueId,
+                    callback: () => {
+                        // Open bank menu after dialogue
+                        Inventory.openBank();
+                        Game.setState(Game.states.BANK);
+                    }
+                });
             } else {
                 // Normal dialogue
                 Game.setState(Game.states.DIALOGUE, {
@@ -593,6 +610,46 @@ const Overworld = {
                 const interactionRange = Math.max(interactable.width, interactable.height) + 20;
 
                 if (dist < interactionRange) {
+                    // Special handling for storage chests
+                    if (interactable.type === 'armor_chest' || interactable.type === 'weapon_chest') {
+                        Inventory.openStorage();
+                        Game.setState(Game.states.STORAGE);
+                        return;
+                    }
+
+                    // Special handling for trophy case
+                    if (interactable.type === 'trophy_case') {
+                        Inventory.openTrophyCase();
+                        Game.setState(Game.states.TROPHY);
+                        return;
+                    }
+
+                    // Special handling for piano after defeating mega boss
+                    if (interactable.type === 'piano') {
+                        // Check if mega boss is defeated and secret hasn't been triggered yet
+                        if (Save.getFlag('mega_boss_killed') && !Save.getFlag('piano_secret_complete')) {
+                            // Play the piano song in the background
+                            Audio.playMusicOnce('music_piano_song');
+                            // Show dialogue that reveals the secret door
+                            Game.setState(Game.states.DIALOGUE, {
+                                dialogueId: 'piano_song_complete'
+                            });
+                            return;
+                        }
+                        // If secret already complete, show reminder
+                        if (Save.getFlag('piano_secret_complete')) {
+                            Game.setState(Game.states.DIALOGUE, {
+                                dialogueId: 'piano_after_secret'
+                            });
+                            return;
+                        }
+                        // Normal piano interaction (mega boss not killed yet)
+                        Game.setState(Game.states.DIALOGUE, {
+                            dialogueId: 'piano_interact'
+                        });
+                        return;
+                    }
+
                     // Handle dialogueOnce - track which interactables have been interacted with
                     let dialogueId = interactable.dialogue;
                     if (interactable.dialogueOnce) {
@@ -1148,6 +1205,728 @@ const Overworld = {
                     Renderer.ctx.fill();
                     break;
 
+                // ==================== BUTCHER SHOP INTERIOR ====================
+                case 'meat_hook':
+                    // Hanging meat on a hook
+                    const meatSwing = Math.sin(time * 1.5 + deco.x * 0.1) * 2;
+                    // Hook and chain
+                    Renderer.drawRect(screenX + 6, screenY, 2, 10, '#666');
+                    Renderer.drawRect(screenX + 4, screenY + 8, 6, 4, '#888');
+                    // Meat slab (swinging slightly)
+                    Renderer.drawRect(screenX + 2 + meatSwing, screenY + 12, 10, 20, '#a55');
+                    Renderer.drawRect(screenX + 4 + meatSwing, screenY + 14, 6, 16, '#833');
+                    // Fat marbling
+                    Renderer.drawRect(screenX + 3 + meatSwing, screenY + 18, 2, 4, '#daa');
+                    Renderer.drawRect(screenX + 8 + meatSwing, screenY + 22, 2, 6, '#daa');
+                    // Bone showing at top
+                    Renderer.drawRect(screenX + 5 + meatSwing, screenY + 12, 4, 3, '#eee');
+                    break;
+
+                case 'sausage_string':
+                    // String of hanging sausages
+                    const sausageSwing = Math.sin(time * 2 + deco.x * 0.2) * 1.5;
+                    // String/rope
+                    Renderer.drawRect(screenX, screenY, 32, 2, '#654');
+                    // Sausages hanging down
+                    for (let i = 0; i < 4; i++) {
+                        const sx = screenX + 4 + i * 8;
+                        const sSwing = Math.sin(time * 2 + i * 0.5) * 1;
+                        Renderer.drawRect(sx + sSwing, screenY + 2, 4, 12, '#944');
+                        Renderer.drawRect(sx + 1 + sSwing, screenY + 4, 2, 8, '#722');
+                        // String tie
+                        Renderer.drawRect(sx + 1 + sSwing, screenY + 2, 2, 2, '#654');
+                    }
+                    break;
+
+                case 'meat_counter':
+                    // Butcher's display counter with meat
+                    // Counter base
+                    Renderer.drawRect(screenX, screenY, 48, 24, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 44, 20, '#654');
+                    // Glass display top
+                    Renderer.drawRect(screenX + 2, screenY, 44, 4, 'rgba(200,220,240,0.4)');
+                    // Meat on display
+                    Renderer.drawRect(screenX + 6, screenY + 6, 12, 8, '#a44'); // Steak
+                    Renderer.drawRect(screenX + 8, screenY + 8, 8, 4, '#822');
+                    Renderer.drawRect(screenX + 22, screenY + 6, 8, 10, '#955'); // Roast
+                    Renderer.drawRect(screenX + 34, screenY + 8, 10, 6, '#b66'); // Chops
+                    // Price tags
+                    Renderer.drawRect(screenX + 6, screenY + 16, 8, 4, '#ffc');
+                    Renderer.drawRect(screenX + 22, screenY + 16, 8, 4, '#ffc');
+                    break;
+
+                case 'cleaver_rack':
+                    // Rack of butcher tools on wall
+                    // Wooden rack
+                    Renderer.drawRect(screenX, screenY, 32, 6, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 4, 2, 8, '#543');
+                    Renderer.drawRect(screenX + 28, screenY + 4, 2, 8, '#543');
+                    // Cleaver
+                    Renderer.drawRect(screenX + 4, screenY + 6, 8, 2, '#888'); // Handle
+                    Renderer.drawRect(screenX + 4, screenY + 2, 6, 6, '#aaa'); // Blade
+                    // Knife
+                    Renderer.drawRect(screenX + 14, screenY + 6, 6, 2, '#654'); // Handle
+                    Renderer.drawRect(screenX + 14, screenY + 4, 8, 2, '#bbb'); // Blade
+                    // Meat tenderizer
+                    Renderer.drawRect(screenX + 24, screenY + 4, 2, 8, '#765'); // Handle
+                    Renderer.drawRect(screenX + 22, screenY + 2, 6, 4, '#999'); // Head
+                    break;
+
+                case 'blood_stain':
+                    // Decorative blood stain on floor
+                    const stainAlpha = 0.6;
+                    Renderer.ctx.fillStyle = `rgba(80,20,20,${stainAlpha})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 8, screenY + 6, 8 + (deco.size || 0), 5 + (deco.size || 0) * 0.5, 0.2, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Darker center
+                    Renderer.ctx.fillStyle = `rgba(60,10,10,${stainAlpha})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 8, screenY + 6, 4, 3, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'chopping_block':
+                    // Wooden chopping block with cleaver
+                    // Block
+                    Renderer.drawRect(screenX, screenY + 8, 24, 16, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 10, 20, 12, '#876');
+                    // Wood grain lines
+                    Renderer.drawRect(screenX + 6, screenY + 10, 1, 12, '#765');
+                    Renderer.drawRect(screenX + 12, screenY + 10, 1, 12, '#765');
+                    Renderer.drawRect(screenX + 18, screenY + 10, 1, 12, '#765');
+                    // Embedded cleaver
+                    Renderer.drawRect(screenX + 8, screenY + 4, 2, 10, '#665'); // Handle
+                    Renderer.drawRect(screenX + 6, screenY, 6, 6, '#aaa'); // Blade
+                    // Blood on block
+                    Renderer.drawRect(screenX + 14, screenY + 12, 6, 4, 'rgba(100,30,30,0.5)');
+                    break;
+
+                case 'ham_leg':
+                    // Hanging ham/leg
+                    const hamSwing = Math.sin(time * 1.2 + deco.x * 0.15) * 1.5;
+                    // Hook
+                    Renderer.drawRect(screenX + 8, screenY, 2, 6, '#888');
+                    // Ham
+                    Renderer.ctx.fillStyle = '#b66';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 9 + hamSwing, screenY + 16, 7, 12, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Darker shading
+                    Renderer.ctx.fillStyle = '#944';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 11 + hamSwing, screenY + 18, 4, 8, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Bone at top
+                    Renderer.drawRect(screenX + 7 + hamSwing, screenY + 4, 4, 4, '#eee');
+                    break;
+
+                case 'barrel':
+                    // Wooden barrel (for salt/brine)
+                    // Barrel body
+                    Renderer.ctx.fillStyle = '#654';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 10, screenY + 20, 10, 6, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    Renderer.drawRect(screenX + 2, screenY + 4, 16, 16, '#765');
+                    // Metal bands
+                    Renderer.drawRect(screenX + 2, screenY + 6, 16, 2, '#555');
+                    Renderer.drawRect(screenX + 2, screenY + 14, 16, 2, '#555');
+                    // Top
+                    Renderer.ctx.fillStyle = '#876';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 10, screenY + 4, 8, 4, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'meat_shelf':
+                    // Shelf with wrapped meats
+                    // Shelf
+                    Renderer.drawRect(screenX, screenY + 16, 40, 4, '#543');
+                    // Brackets
+                    Renderer.drawRect(screenX + 4, screenY + 16, 2, 8, '#654');
+                    Renderer.drawRect(screenX + 34, screenY + 16, 2, 8, '#654');
+                    // Wrapped meat packages
+                    Renderer.drawRect(screenX + 2, screenY + 6, 10, 10, '#ddc'); // Paper wrapped
+                    Renderer.drawRect(screenX + 4, screenY + 8, 6, 6, '#a55'); // Meat showing
+                    Renderer.drawRect(screenX + 14, screenY + 8, 12, 8, '#eed');
+                    Renderer.drawRect(screenX + 28, screenY + 4, 8, 12, '#ddc');
+                    // Strings
+                    Renderer.drawRect(screenX + 6, screenY + 10, 1, 4, '#876');
+                    Renderer.drawRect(screenX + 19, screenY + 11, 1, 3, '#876');
+                    break;
+
+                // ==================== BLACKSMITH INTERIOR ====================
+                case 'forge':
+                    // Large forge with animated flames
+                    const forgeFlicker = Math.sin(time * 10) * 0.15 + 0.85;
+                    const flameOffset = Math.sin(time * 8) * 2;
+                    // Stone forge base
+                    Renderer.drawRect(screenX, screenY + 16, 40, 24, '#444');
+                    Renderer.drawRect(screenX + 2, screenY + 18, 36, 20, '#333');
+                    // Fire pit
+                    Renderer.drawRect(screenX + 6, screenY + 20, 28, 14, '#222');
+                    // Coals
+                    Renderer.drawRect(screenX + 8, screenY + 28, 24, 6, `rgba(180,60,20,${forgeFlicker})`);
+                    Renderer.drawRect(screenX + 10, screenY + 30, 20, 4, `rgba(255,100,30,${forgeFlicker})`);
+                    // Flames
+                    Renderer.ctx.fillStyle = `rgba(255,200,50,${forgeFlicker})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 12, screenY + 28);
+                    Renderer.ctx.lineTo(screenX + 16 + flameOffset, screenY + 16);
+                    Renderer.ctx.lineTo(screenX + 20, screenY + 28);
+                    Renderer.ctx.fill();
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 20, screenY + 28);
+                    Renderer.ctx.lineTo(screenX + 24 - flameOffset, screenY + 18);
+                    Renderer.ctx.lineTo(screenX + 28, screenY + 28);
+                    Renderer.ctx.fill();
+                    // Chimney/hood
+                    Renderer.drawRect(screenX + 8, screenY, 24, 18, '#555');
+                    Renderer.drawRect(screenX + 10, screenY + 2, 20, 14, '#444');
+                    // Glow effect
+                    Renderer.ctx.fillStyle = `rgba(255,150,50,${forgeFlicker * 0.4})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 20, screenY + 26, 24, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Sparks
+                    if (Math.random() > 0.7) {
+                        for (let i = 0; i < 3; i++) {
+                            const sparkX = screenX + 14 + Math.random() * 12;
+                            const sparkY = screenY + 10 + Math.random() * 16;
+                            Renderer.drawRect(sparkX, sparkY, 2, 2, '#ff0');
+                        }
+                    }
+                    break;
+
+                case 'anvil':
+                    // Blacksmith's anvil
+                    // Base
+                    Renderer.drawRect(screenX + 4, screenY + 16, 16, 8, '#333');
+                    // Body
+                    Renderer.drawRect(screenX + 2, screenY + 8, 20, 10, '#444');
+                    // Top/face
+                    Renderer.drawRect(screenX, screenY + 4, 24, 6, '#555');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 20, 4, '#666');
+                    // Horn
+                    Renderer.ctx.fillStyle = '#555';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 24, screenY + 6);
+                    Renderer.ctx.lineTo(screenX + 32, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 24, screenY + 10);
+                    Renderer.ctx.fill();
+                    // Highlight
+                    Renderer.drawRect(screenX + 4, screenY + 3, 16, 1, '#777');
+                    break;
+
+                case 'weapon_rack':
+                    // Wall-mounted weapon display rack
+                    // Back board
+                    Renderer.drawRect(screenX, screenY, 40, 32, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 36, 28, '#654');
+                    // Sword 1
+                    Renderer.drawRect(screenX + 6, screenY + 4, 2, 20, '#888'); // Blade
+                    Renderer.drawRect(screenX + 4, screenY + 22, 6, 2, '#654'); // Guard
+                    Renderer.drawRect(screenX + 5, screenY + 24, 4, 6, '#432'); // Handle
+                    // Sword 2 (larger)
+                    Renderer.drawRect(screenX + 16, screenY + 2, 3, 24, '#999'); // Blade
+                    Renderer.drawRect(screenX + 13, screenY + 24, 9, 2, '#654'); // Guard
+                    Renderer.drawRect(screenX + 15, screenY + 26, 5, 6, '#543'); // Handle
+                    // Axe
+                    Renderer.drawRect(screenX + 30, screenY + 6, 2, 18, '#654'); // Handle
+                    Renderer.drawRect(screenX + 28, screenY + 4, 8, 8, '#777'); // Head
+                    Renderer.drawRect(screenX + 26, screenY + 6, 4, 4, '#888'); // Blade edge
+                    // Hooks
+                    Renderer.drawRect(screenX + 6, screenY + 2, 2, 2, '#888');
+                    Renderer.drawRect(screenX + 16, screenY, 3, 2, '#888');
+                    Renderer.drawRect(screenX + 30, screenY + 4, 2, 2, '#888');
+                    break;
+
+                case 'armor_stand':
+                    // Armor display stand
+                    // Stand base
+                    Renderer.drawRect(screenX + 6, screenY + 28, 12, 4, '#543');
+                    Renderer.drawRect(screenX + 10, screenY + 16, 4, 12, '#654');
+                    // Torso form
+                    Renderer.drawRect(screenX + 4, screenY + 4, 16, 14, '#765');
+                    // Armor on stand
+                    Renderer.drawRect(screenX + 4, screenY + 4, 16, 14, '#666');
+                    Renderer.drawRect(screenX + 6, screenY + 6, 12, 10, '#777');
+                    // Shoulder plates
+                    Renderer.drawRect(screenX + 2, screenY + 4, 4, 6, '#666');
+                    Renderer.drawRect(screenX + 18, screenY + 4, 4, 6, '#666');
+                    // Helmet on top
+                    Renderer.drawRect(screenX + 6, screenY - 2, 12, 8, '#666');
+                    Renderer.drawRect(screenX + 8, screenY + 2, 8, 4, '#222'); // Visor
+                    break;
+
+                case 'bellows':
+                    // Forge bellows
+                    const bellowsCompress = Math.sin(time * 3) * 3;
+                    // Handle
+                    Renderer.drawRect(screenX + 20, screenY, 4, 10, '#654');
+                    // Body
+                    Renderer.drawRect(screenX, screenY + 8, 24, 8 + bellowsCompress, '#876');
+                    Renderer.drawRect(screenX + 2, screenY + 10, 20, 4 + bellowsCompress, '#654');
+                    // Nozzle
+                    Renderer.drawRect(screenX + 22, screenY + 10, 10, 4, '#888');
+                    Renderer.drawRect(screenX + 30, screenY + 11, 4, 2, '#999');
+                    // Air puff when compressed
+                    if (bellowsCompress < -1) {
+                        Renderer.ctx.fillStyle = 'rgba(200,200,200,0.3)';
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(screenX + 38, screenY + 12, 4, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                    }
+                    break;
+
+                case 'tool_rack':
+                    // Rack of blacksmith tools
+                    // Board
+                    Renderer.drawRect(screenX, screenY, 32, 4, '#543');
+                    // Hooks
+                    for (let i = 0; i < 4; i++) {
+                        Renderer.drawRect(screenX + 4 + i * 8, screenY + 4, 2, 4, '#888');
+                    }
+                    // Hammer
+                    Renderer.drawRect(screenX + 3, screenY + 8, 4, 12, '#654');
+                    Renderer.drawRect(screenX + 1, screenY + 6, 8, 4, '#777');
+                    // Tongs
+                    Renderer.drawRect(screenX + 11, screenY + 8, 2, 14, '#666');
+                    Renderer.drawRect(screenX + 13, screenY + 8, 2, 14, '#666');
+                    Renderer.drawRect(screenX + 10, screenY + 20, 6, 2, '#666');
+                    // Chisel
+                    Renderer.drawRect(screenX + 19, screenY + 8, 2, 10, '#654');
+                    Renderer.drawRect(screenX + 18, screenY + 16, 4, 4, '#999');
+                    // File
+                    Renderer.drawRect(screenX + 27, screenY + 8, 3, 14, '#888');
+                    break;
+
+                case 'quench_barrel':
+                    // Water barrel for quenching hot metal
+                    // Barrel body
+                    Renderer.ctx.fillStyle = '#654';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 12, screenY + 28, 12, 6, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    Renderer.drawRect(screenX + 2, screenY + 8, 20, 20, '#765');
+                    // Metal bands
+                    Renderer.drawRect(screenX + 2, screenY + 10, 20, 2, '#555');
+                    Renderer.drawRect(screenX + 2, screenY + 20, 20, 2, '#555');
+                    // Water surface
+                    Renderer.ctx.fillStyle = '#468';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 12, screenY + 8, 9, 4, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Steam wisps occasionally
+                    if (Math.sin(time * 2) > 0.5) {
+                        Renderer.ctx.fillStyle = 'rgba(200,200,200,0.4)';
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(screenX + 10 + Math.sin(time * 3) * 4, screenY + 2, 3, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                    }
+                    break;
+
+                case 'hot_metal':
+                    // Glowing hot metal piece on anvil
+                    const metalGlow = Math.sin(time * 4) * 0.2 + 0.8;
+                    // Metal bar
+                    Renderer.drawRect(screenX, screenY, 16, 4, `rgba(255,150,50,${metalGlow})`);
+                    Renderer.drawRect(screenX + 2, screenY + 1, 12, 2, `rgba(255,200,100,${metalGlow})`);
+                    // Glow
+                    Renderer.ctx.fillStyle = `rgba(255,100,0,${metalGlow * 0.3})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 8, screenY + 2, 10, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'coal_pile':
+                    // Pile of coal near the forge
+                    Renderer.ctx.fillStyle = '#222';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX, screenY + 12);
+                    Renderer.ctx.lineTo(screenX + 8, screenY);
+                    Renderer.ctx.lineTo(screenX + 16, screenY + 4);
+                    Renderer.ctx.lineTo(screenX + 20, screenY + 12);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Individual coals
+                    Renderer.drawRect(screenX + 4, screenY + 8, 4, 3, '#333');
+                    Renderer.drawRect(screenX + 10, screenY + 6, 3, 4, '#2a2a2a');
+                    Renderer.drawRect(screenX + 14, screenY + 9, 4, 3, '#333');
+                    break;
+
+                case 'sword_in_progress':
+                    // Partially forged sword
+                    // Blade (rough)
+                    Renderer.drawRect(screenX + 4, screenY, 3, 18, '#777');
+                    Renderer.drawRect(screenX + 5, screenY + 2, 1, 14, '#888');
+                    // Unfinished tip
+                    Renderer.drawRect(screenX + 4, screenY, 3, 4, '#666');
+                    // Tang (handle part, no grip yet)
+                    Renderer.drawRect(screenX + 5, screenY + 18, 1, 6, '#666');
+                    break;
+
+                // ==================== MAGIC SHOP INTERIOR ====================
+                case 'crystal_ball':
+                    // Glowing crystal ball on pedestal
+                    const ballPulse = Math.sin(time * 2) * 0.3 + 0.7;
+                    const ballSwirl = time * 2;
+                    // Pedestal
+                    Renderer.drawRect(screenX + 4, screenY + 16, 16, 8, '#436');
+                    Renderer.drawRect(screenX + 6, screenY + 12, 12, 6, '#547');
+                    // Ball
+                    Renderer.ctx.fillStyle = `rgba(150,100,200,${ballPulse})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 12, screenY + 6, 8, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Inner glow
+                    Renderer.ctx.fillStyle = `rgba(200,150,255,${ballPulse})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 12, screenY + 6, 5, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Swirling mist inside
+                    Renderer.ctx.fillStyle = `rgba(255,200,255,${ballPulse * 0.5})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 12 + Math.cos(ballSwirl) * 3, screenY + 6 + Math.sin(ballSwirl) * 2, 2, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Highlight
+                    Renderer.drawRect(screenX + 8, screenY + 2, 2, 2, 'rgba(255,255,255,0.6)');
+                    break;
+
+                case 'potion_shelf':
+                    // Shelf with colorful potions
+                    // Shelf board
+                    Renderer.drawRect(screenX, screenY + 20, 48, 4, '#436');
+                    // Brackets
+                    Renderer.drawRect(screenX + 4, screenY + 20, 2, 8, '#325');
+                    Renderer.drawRect(screenX + 42, screenY + 20, 2, 8, '#325');
+                    // Potions with different colors
+                    const potionColors = ['#f44', '#4f4', '#44f', '#ff4', '#f4f', '#4ff'];
+                    for (let i = 0; i < 6; i++) {
+                        const px = screenX + 4 + i * 7;
+                        const potionGlow = Math.sin(time * 3 + i) * 0.2 + 0.8;
+                        // Bottle
+                        Renderer.drawRect(px, screenY + 8, 6, 12, 'rgba(200,200,220,0.5)');
+                        // Liquid
+                        Renderer.ctx.fillStyle = potionColors[i];
+                        Renderer.ctx.globalAlpha = potionGlow;
+                        Renderer.ctx.fillRect(px + 1, screenY + 12, 4, 7);
+                        Renderer.ctx.globalAlpha = 1;
+                        // Cork
+                        Renderer.drawRect(px + 1, screenY + 6, 4, 3, '#a86');
+                    }
+                    break;
+
+                case 'spellbook_stand':
+                    // Open spellbook on a stand
+                    const pageGlow = Math.sin(time * 1.5) * 0.2 + 0.6;
+                    // Stand
+                    Renderer.drawRect(screenX + 8, screenY + 20, 8, 12, '#325');
+                    Renderer.drawRect(screenX + 6, screenY + 28, 12, 4, '#436');
+                    // Book base
+                    Renderer.drawRect(screenX, screenY + 8, 24, 14, '#214');
+                    // Open pages
+                    Renderer.drawRect(screenX + 2, screenY + 10, 9, 10, '#eee');
+                    Renderer.drawRect(screenX + 13, screenY + 10, 9, 10, '#eee');
+                    // Text lines
+                    for (let i = 0; i < 4; i++) {
+                        Renderer.drawRect(screenX + 3, screenY + 12 + i * 2, 7, 1, '#436');
+                        Renderer.drawRect(screenX + 14, screenY + 12 + i * 2, 7, 1, '#436');
+                    }
+                    // Magical glow from pages
+                    Renderer.ctx.fillStyle = `rgba(150,100,255,${pageGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 12, screenY + 14, 8, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Floating runes
+                    if (Math.sin(time * 2) > 0.3) {
+                        Renderer.drawRect(screenX + 8 + Math.sin(time * 3) * 4, screenY + 4, 3, 3, `rgba(200,150,255,${pageGlow})`);
+                    }
+                    break;
+
+                case 'magic_circle':
+                    // Glowing magic circle on floor
+                    const circleGlow = Math.sin(time * 2) * 0.3 + 0.5;
+                    const runeRotation = time * 0.5;
+                    // Outer circle
+                    Renderer.ctx.strokeStyle = `rgba(150,100,255,${circleGlow})`;
+                    Renderer.ctx.lineWidth = 2;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 16, screenY + 16, 14, 0, Math.PI * 2);
+                    Renderer.ctx.stroke();
+                    // Inner circle
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 16, screenY + 16, 10, 0, Math.PI * 2);
+                    Renderer.ctx.stroke();
+                    // Runes around circle
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (i / 6) * Math.PI * 2 + runeRotation;
+                        const rx = screenX + 16 + Math.cos(angle) * 12;
+                        const ry = screenY + 16 + Math.sin(angle) * 12;
+                        Renderer.drawRect(rx - 1, ry - 1, 3, 3, `rgba(200,150,255,${circleGlow})`);
+                    }
+                    // Center glow
+                    Renderer.ctx.fillStyle = `rgba(150,100,255,${circleGlow * 0.3})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 16, screenY + 16, 8, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'wand_display':
+                    // Display case with magical wands
+                    // Case back
+                    Renderer.drawRect(screenX, screenY, 20, 32, '#325');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 16, 28, '#436');
+                    // Glass front
+                    Renderer.drawRect(screenX + 2, screenY + 2, 16, 28, 'rgba(200,200,220,0.3)');
+                    // Wands
+                    const wandGlow = Math.sin(time * 3) * 0.3 + 0.7;
+                    // Wand 1
+                    Renderer.drawRect(screenX + 4, screenY + 6, 2, 12, '#654');
+                    Renderer.drawRect(screenX + 4, screenY + 4, 2, 3, `rgba(100,200,255,${wandGlow})`);
+                    // Wand 2
+                    Renderer.drawRect(screenX + 9, screenY + 8, 2, 10, '#543');
+                    Renderer.drawRect(screenX + 9, screenY + 6, 2, 3, `rgba(255,100,150,${wandGlow})`);
+                    // Wand 3
+                    Renderer.drawRect(screenX + 14, screenY + 5, 2, 14, '#432');
+                    Renderer.drawRect(screenX + 14, screenY + 3, 2, 3, `rgba(150,255,100,${wandGlow})`);
+                    break;
+
+                case 'cauldron':
+                    // Bubbling cauldron
+                    const bubbleTime = time * 4;
+                    // Cauldron body
+                    Renderer.ctx.fillStyle = '#333';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 12, screenY + 20, 12, 6, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    Renderer.drawRect(screenX + 2, screenY + 8, 20, 14, '#444');
+                    // Rim
+                    Renderer.ctx.fillStyle = '#555';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 12, screenY + 8, 10, 4, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Liquid
+                    Renderer.ctx.fillStyle = '#639';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 12, screenY + 10, 8, 3, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Bubbles
+                    for (let i = 0; i < 3; i++) {
+                        const bx = screenX + 8 + (i * 4) + Math.sin(bubbleTime + i * 2) * 2;
+                        const by = screenY + 6 - Math.abs(Math.sin(bubbleTime + i)) * 4;
+                        const bAlpha = 0.5 - Math.abs(Math.sin(bubbleTime + i)) * 0.3;
+                        Renderer.ctx.fillStyle = `rgba(180,140,220,${bAlpha})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(bx, by, 2, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                    }
+                    // Steam/mist
+                    const steamAlpha = Math.sin(time * 2) * 0.2 + 0.3;
+                    Renderer.ctx.fillStyle = `rgba(180,160,200,${steamAlpha})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 10 + Math.sin(time) * 3, screenY + 2, 4, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'floating_candles':
+                    // Magically floating candles
+                    for (let i = 0; i < 3; i++) {
+                        const floatY = Math.sin(time * 2 + i * 1.5) * 4;
+                        const candleX = screenX + i * 10;
+                        const candleY = screenY + 8 + floatY;
+                        // Candle
+                        Renderer.drawRect(candleX + 2, candleY, 4, 10, '#eee');
+                        // Flame
+                        const flameFlicker = Math.sin(time * 8 + i) * 0.2 + 0.8;
+                        Renderer.ctx.fillStyle = `rgba(255,200,50,${flameFlicker})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.moveTo(candleX + 4, candleY - 6);
+                        Renderer.ctx.lineTo(candleX + 6, candleY);
+                        Renderer.ctx.lineTo(candleX + 2, candleY);
+                        Renderer.ctx.fill();
+                        // Glow
+                        Renderer.ctx.fillStyle = `rgba(255,180,50,${flameFlicker * 0.3})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(candleX + 4, candleY - 2, 6, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                    }
+                    break;
+
+                case 'star_chart':
+                    // Mystical star chart on wall
+                    // Parchment
+                    Renderer.drawRect(screenX, screenY, 32, 24, '#d9c9a9');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 28, 20, '#e9d9b9');
+                    // Stars and constellations
+                    const starTwinkle = time * 3;
+                    const starPositions = [[6, 6], [14, 4], [24, 8], [8, 14], [18, 12], [26, 16], [12, 18]];
+                    starPositions.forEach((pos, i) => {
+                        const twinkle = Math.sin(starTwinkle + i * 1.2) * 0.3 + 0.7;
+                        Renderer.drawRect(screenX + pos[0], screenY + pos[1], 2, 2, `rgba(80,60,120,${twinkle})`);
+                    });
+                    // Constellation lines
+                    Renderer.ctx.strokeStyle = 'rgba(80,60,120,0.4)';
+                    Renderer.ctx.lineWidth = 1;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 7, screenY + 7);
+                    Renderer.ctx.lineTo(screenX + 15, screenY + 5);
+                    Renderer.ctx.lineTo(screenX + 19, screenY + 13);
+                    Renderer.ctx.lineTo(screenX + 9, screenY + 15);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.stroke();
+                    break;
+
+                case 'rune_stone':
+                    // Glowing rune stone
+                    const runeGlow = Math.sin(time * 2) * 0.3 + 0.6;
+                    // Stone
+                    Renderer.ctx.fillStyle = '#445';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 8, screenY);
+                    Renderer.ctx.lineTo(screenX + 16, screenY + 4);
+                    Renderer.ctx.lineTo(screenX + 16, screenY + 20);
+                    Renderer.ctx.lineTo(screenX, screenY + 20);
+                    Renderer.ctx.lineTo(screenX, screenY + 4);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Carved rune (glowing)
+                    Renderer.ctx.strokeStyle = `rgba(150,100,255,${runeGlow})`;
+                    Renderer.ctx.lineWidth = 2;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 8, screenY + 4);
+                    Renderer.ctx.lineTo(screenX + 8, screenY + 16);
+                    Renderer.ctx.moveTo(screenX + 4, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 12, screenY + 8);
+                    Renderer.ctx.moveTo(screenX + 4, screenY + 12);
+                    Renderer.ctx.lineTo(screenX + 12, screenY + 16);
+                    Renderer.ctx.stroke();
+                    break;
+
+                // ==================== BANK INTERIOR ====================
+                case 'bank_counter':
+                    // Fancy bank teller counter
+                    // Main counter
+                    Renderer.drawRect(screenX, screenY + 12, 56, 20, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 14, 52, 16, '#654');
+                    // Counter top (marble look)
+                    Renderer.drawRect(screenX, screenY + 8, 56, 6, '#889');
+                    Renderer.drawRect(screenX + 2, screenY + 10, 52, 2, '#99a');
+                    // Teller windows
+                    Renderer.drawRect(screenX + 6, screenY, 18, 10, '#432');
+                    Renderer.drawRect(screenX + 8, screenY + 2, 14, 6, '#221');
+                    Renderer.drawRect(screenX + 32, screenY, 18, 10, '#432');
+                    Renderer.drawRect(screenX + 34, screenY + 2, 14, 6, '#221');
+                    // Bars on windows
+                    for (let i = 0; i < 3; i++) {
+                        Renderer.drawRect(screenX + 10 + i * 4, screenY + 2, 1, 6, '#aa8');
+                        Renderer.drawRect(screenX + 36 + i * 4, screenY + 2, 1, 6, '#aa8');
+                    }
+                    break;
+
+                case 'gold_pile':
+                    // Pile of gold coins
+                    const goldShine = Math.sin(time * 4 + deco.x * 0.1) * 0.2 + 0.8;
+                    // Base pile
+                    Renderer.ctx.fillStyle = '#da0';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX, screenY + 16);
+                    Renderer.ctx.lineTo(screenX + 8, screenY + 4);
+                    Renderer.ctx.lineTo(screenX + 16, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 20, screenY + 16);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Individual coins
+                    Renderer.drawRect(screenX + 4, screenY + 10, 4, 2, '#fc0');
+                    Renderer.drawRect(screenX + 10, screenY + 8, 4, 2, '#fc0');
+                    Renderer.drawRect(screenX + 6, screenY + 6, 4, 2, '#fc0');
+                    // Sparkle
+                    if (Math.sin(time * 5 + deco.x) > 0.7) {
+                        Renderer.drawRect(screenX + 8, screenY + 4, 2, 2, `rgba(255,255,200,${goldShine})`);
+                    }
+                    break;
+
+                case 'vault_door':
+                    // Large vault door
+                    // Door frame
+                    Renderer.drawRect(screenX, screenY, 40, 48, '#444');
+                    // Door
+                    Renderer.drawRect(screenX + 4, screenY + 4, 32, 40, '#666');
+                    Renderer.drawRect(screenX + 6, screenY + 6, 28, 36, '#555');
+                    // Vault wheel
+                    const wheelRotation = time * 0.2;
+                    Renderer.ctx.strokeStyle = '#888';
+                    Renderer.ctx.lineWidth = 3;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 20, screenY + 24, 10, 0, Math.PI * 2);
+                    Renderer.ctx.stroke();
+                    // Wheel spokes
+                    for (let i = 0; i < 4; i++) {
+                        const angle = (i / 4) * Math.PI * 2 + wheelRotation;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.moveTo(screenX + 20, screenY + 24);
+                        Renderer.ctx.lineTo(screenX + 20 + Math.cos(angle) * 8, screenY + 24 + Math.sin(angle) * 8);
+                        Renderer.ctx.stroke();
+                    }
+                    // Locking bolts
+                    Renderer.drawRect(screenX + 4, screenY + 12, 4, 4, '#777');
+                    Renderer.drawRect(screenX + 4, screenY + 32, 4, 4, '#777');
+                    Renderer.drawRect(screenX + 32, screenY + 12, 4, 4, '#777');
+                    Renderer.drawRect(screenX + 32, screenY + 32, 4, 4, '#777');
+                    break;
+
+                case 'money_bag':
+                    // Bag of gold
+                    // Bag body
+                    Renderer.ctx.fillStyle = '#864';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 10, screenY + 14, 8, 10, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Bag top/tie
+                    Renderer.drawRect(screenX + 6, screenY + 2, 8, 6, '#864');
+                    Renderer.drawRect(screenX + 8, screenY + 6, 4, 2, '#642');
+                    // Dollar/gold symbol
+                    Renderer.ctx.fillStyle = '#fc0';
+                    Renderer.ctx.font = '10px monospace';
+                    Renderer.ctx.fillText('$', screenX + 6, screenY + 18);
+                    break;
+
+                case 'bank_pillar':
+                    // Ornate bank pillar
+                    // Base
+                    Renderer.drawRect(screenX, screenY + 44, 20, 8, '#776');
+                    // Shaft
+                    Renderer.drawRect(screenX + 4, screenY + 8, 12, 36, '#887');
+                    Renderer.drawRect(screenX + 6, screenY + 10, 8, 32, '#998');
+                    // Capital (top)
+                    Renderer.drawRect(screenX, screenY, 20, 10, '#887');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 16, 6, '#998');
+                    break;
+
+                case 'ledger_book':
+                    // Bank ledger on desk
+                    // Book
+                    Renderer.drawRect(screenX, screenY, 16, 20, '#432');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 12, 16, '#eec');
+                    // Lines (records)
+                    for (let i = 0; i < 5; i++) {
+                        Renderer.drawRect(screenX + 4, screenY + 4 + i * 3, 8, 1, '#666');
+                    }
+                    // Quill
+                    Renderer.drawRect(screenX + 14, screenY - 4, 2, 10, '#543');
+                    Renderer.drawRect(screenX + 13, screenY - 6, 4, 3, '#fff');
+                    break;
+
+                case 'coin_stack':
+                    // Neat stack of coins
+                    const stackShine = Math.sin(time * 3 + deco.y * 0.1) * 0.15 + 0.85;
+                    for (let i = 0; i < 5; i++) {
+                        Renderer.drawRect(screenX + 1, screenY + 12 - i * 3, 10, 4, '#ca0');
+                        Renderer.drawRect(screenX + 2, screenY + 13 - i * 3, 8, 2, `rgba(255,220,100,${stackShine})`);
+                    }
+                    break;
+
                 case 'banner':
                     // Decorative banner
                     const bannerWave = Math.sin(time * 2 + deco.x * 0.1) * 2;
@@ -1235,6 +2014,23 @@ const Overworld = {
                         Renderer.ctx.closePath();
                         Renderer.ctx.fill();
                         Renderer.drawRect(screenX + signWidth/2 - 1, screenY - 6, 2, 4, '#654');
+                    } else if (deco.icon === 'coin') {
+                        // Gold coin on top
+                        const coinShine = Math.sin(time * 3) * 0.2 + 0.8;
+                        Renderer.ctx.fillStyle = '#da0';
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(screenX + signWidth/2, screenY - 6, 6, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                        Renderer.ctx.fillStyle = `rgba(255,230,100,${coinShine})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(screenX + signWidth/2, screenY - 6, 4, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                        // $ symbol
+                        Renderer.ctx.fillStyle = '#a80';
+                        Renderer.ctx.font = '8px monospace';
+                        Renderer.ctx.textAlign = 'center';
+                        Renderer.ctx.fillText('$', screenX + signWidth/2, screenY - 3);
+                        Renderer.ctx.textAlign = 'left';
                     }
 
                     // Text
@@ -1245,6 +2041,61 @@ const Overworld = {
                         Renderer.ctx.fillText(deco.text, screenX + signWidth/2, screenY + 14);
                         Renderer.ctx.textAlign = 'left';
                     }
+                    break;
+
+                case 'crystal_formation':
+                    // Large crystal formation
+                    const formGlow = Math.sin(time * 2 + deco.x * 0.1) * 0.2 + 0.8;
+                    // Multiple crystals
+                    Renderer.ctx.fillStyle = `rgba(100,180,255,${formGlow})`;
+                    // Main crystal
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 8, screenY);
+                    Renderer.ctx.lineTo(screenX + 14, screenY + 24);
+                    Renderer.ctx.lineTo(screenX + 2, screenY + 24);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Side crystal left
+                    Renderer.ctx.fillStyle = `rgba(80,160,240,${formGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 4, screenY + 24);
+                    Renderer.ctx.lineTo(screenX - 4, screenY + 24);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Side crystal right
+                    Renderer.ctx.fillStyle = `rgba(120,200,255,${formGlow})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX + 14, screenY + 6);
+                    Renderer.ctx.lineTo(screenX + 18, screenY + 24);
+                    Renderer.ctx.lineTo(screenX + 10, screenY + 24);
+                    Renderer.ctx.closePath();
+                    Renderer.ctx.fill();
+                    // Sparkle
+                    if (Math.sin(time * 4 + deco.x) > 0.8) {
+                        Renderer.drawRect(screenX + 7, screenY + 2, 2, 2, '#fff');
+                    }
+                    break;
+
+                case 'ancient_plaque':
+                    // Ancient stone plaque with glowing runes
+                    const plaqueGlow = Math.sin(time * 1.5) * 0.3 + 0.7;
+                    // Stone slab
+                    Renderer.drawRect(screenX, screenY, 32, 24, '#555');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 28, 20, '#444');
+                    // Border ornament
+                    Renderer.drawRect(screenX + 1, screenY + 1, 30, 1, '#666');
+                    Renderer.drawRect(screenX + 1, screenY + 22, 30, 1, '#666');
+                    // Glowing runes
+                    Renderer.ctx.fillStyle = `rgba(100,200,255,${plaqueGlow})`;
+                    // Rune symbols
+                    Renderer.drawRect(screenX + 6, screenY + 6, 3, 1, `rgba(100,200,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 6, screenY + 6, 1, 4, `rgba(100,200,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 12, screenY + 8, 4, 1, `rgba(150,220,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 14, screenY + 6, 1, 6, `rgba(150,220,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 20, screenY + 6, 3, 3, `rgba(100,180,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 8, screenY + 14, 5, 1, `rgba(120,200,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX + 16, screenY + 14, 4, 1, `rgba(100,200,255,${plaqueGlow})`);
                     break;
             }
         }
@@ -1278,6 +2129,35 @@ const Overworld = {
                     // Keys
                     for (let i = 0; i < 4; i++) {
                         Renderer.drawRect(screenX + 4 + i * 7, screenY + interactable.height - 8, 6, 6, '#fff');
+                    }
+                    break;
+                case 'secret_door':
+                    // Secret door revealed in wall
+                    const doorGlow = Math.sin(performance.now() / 1000) * 0.2 + 0.8;
+                    // Dark doorway
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#111');
+                    // Glowing frame
+                    Renderer.drawRect(screenX, screenY, 2, interactable.height, `rgba(100,180,255,${doorGlow})`);
+                    Renderer.drawRect(screenX + interactable.width - 2, screenY, 2, interactable.height, `rgba(100,180,255,${doorGlow})`);
+                    Renderer.drawRect(screenX, screenY, interactable.width, 2, `rgba(100,180,255,${doorGlow})`);
+                    Renderer.drawRect(screenX, screenY + interactable.height - 2, interactable.width, 2, `rgba(100,180,255,${doorGlow})`);
+                    // Mysterious glow inside
+                    Renderer.ctx.fillStyle = `rgba(80,150,200,${doorGlow * 0.3})`;
+                    Renderer.ctx.fillRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4);
+                    break;
+                case 'lore_plaque':
+                    // Interactive ancient plaque
+                    const plaqueGlow = Math.sin(performance.now() / 1000) * 0.2 + 0.7;
+                    // Stone slab
+                    Renderer.drawRect(screenX, screenY, interactable.width, interactable.height, '#555');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, interactable.height - 4, '#444');
+                    // Glowing border
+                    Renderer.drawRect(screenX, screenY, interactable.width, 2, `rgba(100,200,255,${plaqueGlow})`);
+                    Renderer.drawRect(screenX, screenY + interactable.height - 2, interactable.width, 2, `rgba(100,200,255,${plaqueGlow})`);
+                    // Runes
+                    for (let i = 0; i < 3; i++) {
+                        Renderer.drawRect(screenX + 8 + i * 12, screenY + 10, 6, 2, `rgba(150,220,255,${plaqueGlow})`);
+                        Renderer.drawRect(screenX + 10 + i * 12, screenY + 14, 2, 6, `rgba(100,180,255,${plaqueGlow})`);
                     }
                     break;
                 case 'treasure_chest':
@@ -1457,47 +2337,30 @@ const Overworld = {
                     }
                     break;
                 case 'armor_chest':
-                    // Wooden chest for armor storage
+                case 'weapon_chest':
+                    // Storage chest (shared storage for all items)
+                    const isArmor = interactable.type === 'armor_chest';
                     // Chest body
-                    Renderer.drawRect(screenX, screenY + 6, interactable.width, interactable.height - 6, '#654');
-                    Renderer.drawRect(screenX + 2, screenY + 8, interactable.width - 4, interactable.height - 10, '#876');
+                    Renderer.drawRect(screenX, screenY + 6, interactable.width, interactable.height - 6, isArmor ? '#654' : '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 8, interactable.width - 4, interactable.height - 10, isArmor ? '#876' : '#765');
                     // Lid
-                    Renderer.drawRect(screenX, screenY, interactable.width, 8, '#765');
-                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, 4, '#987');
+                    Renderer.drawRect(screenX, screenY, interactable.width, 8, isArmor ? '#765' : '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, 4, isArmor ? '#987' : '#876');
                     // Metal bands
                     Renderer.drawRect(screenX, screenY + 4, interactable.width, 2, '#555');
                     Renderer.drawRect(screenX, screenY + interactable.height - 4, interactable.width, 2, '#555');
                     // Lock/clasp
-                    Renderer.drawRect(screenX + interactable.width/2 - 3, screenY + 6, 6, 6, '#fc0');
-                    // Armor indicator
-                    const storedArmorCount = Save.getFlag('stored_armor_count') || 0;
-                    if (storedArmorCount > 0) {
-                        Renderer.drawRect(screenX + 4, screenY + 12, 6, 8, '#88a');
+                    Renderer.drawRect(screenX + interactable.width/2 - 3, screenY + 6, 6, 6, isArmor ? '#fc0' : '#aaa');
+                    // Item count indicator (uses shared storage)
+                    const storedItems = Save.getFlag('stored_items') || [];
+                    if (storedItems.length > 0) {
+                        // Show count badge
+                        Renderer.drawRect(screenX + interactable.width - 10, screenY + 2, 10, 10, '#a44');
                         Renderer.ctx.fillStyle = '#fff';
-                        Renderer.ctx.font = '6px monospace';
-                        Renderer.ctx.fillText(storedArmorCount.toString(), screenX + interactable.width - 8, screenY + 18);
-                    }
-                    break;
-                case 'weapon_chest':
-                    // Wooden chest for weapon storage
-                    // Chest body
-                    Renderer.drawRect(screenX, screenY + 6, interactable.width, interactable.height - 6, '#543');
-                    Renderer.drawRect(screenX + 2, screenY + 8, interactable.width - 4, interactable.height - 10, '#765');
-                    // Lid
-                    Renderer.drawRect(screenX, screenY, interactable.width, 8, '#654');
-                    Renderer.drawRect(screenX + 2, screenY + 2, interactable.width - 4, 4, '#876');
-                    // Metal bands
-                    Renderer.drawRect(screenX, screenY + 4, interactable.width, 2, '#666');
-                    Renderer.drawRect(screenX, screenY + interactable.height - 4, interactable.width, 2, '#666');
-                    // Lock/clasp
-                    Renderer.drawRect(screenX + interactable.width/2 - 3, screenY + 6, 6, 6, '#aaa');
-                    // Weapon indicator
-                    const storedWeaponCount = Save.getFlag('stored_weapon_count') || 0;
-                    if (storedWeaponCount > 0) {
-                        Renderer.drawRect(screenX + 4, screenY + 14, 2, 8, '#aaa');
-                        Renderer.ctx.fillStyle = '#fff';
-                        Renderer.ctx.font = '6px monospace';
-                        Renderer.ctx.fillText(storedWeaponCount.toString(), screenX + interactable.width - 8, screenY + 18);
+                        Renderer.ctx.font = '7px monospace';
+                        Renderer.ctx.textAlign = 'center';
+                        Renderer.ctx.fillText(storedItems.length.toString(), screenX + interactable.width - 5, screenY + 10);
+                        Renderer.ctx.textAlign = 'left';
                     }
                     break;
                 case 'trophy_case':
@@ -1510,30 +2373,83 @@ const Overworld = {
                     // Shelves
                     Renderer.drawRect(screenX + 2, screenY + 16, interactable.width - 4, 2, '#654');
                     Renderer.drawRect(screenX + 2, screenY + 32, interactable.width - 4, 2, '#654');
-                    // Display trophies based on flags (items moved to case during crowning)
-                    let trophyY = screenY + 6;
-                    // Crown
-                    if (Save.getFlag('crowned_hero')) {
-                        Renderer.drawRect(screenX + 6, trophyY, 8, 3, '#fc0');
-                        Renderer.drawRect(screenX + 7, trophyY - 2, 2, 2, '#fc0');
-                        Renderer.drawRect(screenX + 11, trophyY - 2, 2, 2, '#fc0');
+
+                    // Display trophies from displayed_trophies array
+                    const displayedTrophies = Save.getFlag('displayed_trophies') || [];
+                    const trophyPositions = [
+                        { x: screenX + 6, y: screenY + 6 },
+                        { x: screenX + 18, y: screenY + 6 },
+                        { x: screenX + 6, y: screenY + 20 },
+                        { x: screenX + 18, y: screenY + 20 },
+                        { x: screenX + 6, y: screenY + 36 },
+                        { x: screenX + 18, y: screenY + 36 }
+                    ];
+
+                    for (let i = 0; i < Math.min(displayedTrophies.length, trophyPositions.length); i++) {
+                        const itemId = displayedTrophies[i];
+                        const pos = trophyPositions[i];
+                        const glow = Math.sin(performance.now() / 500 + i) * 0.3 + 0.7;
+
+                        switch(itemId) {
+                            case 'crystal_key':
+                                // Crystal key - sparkly crystal
+                                Renderer.drawRect(pos.x, pos.y + 2, 3, 6, `rgba(180,220,255,${glow})`);
+                                Renderer.drawRect(pos.x + 3, pos.y + 6, 5, 2, `rgba(180,220,255,${glow})`);
+                                break;
+                            case 'keeper_key':
+                                // Golden keeper's key
+                                Renderer.drawRect(pos.x, pos.y + 2, 3, 6, '#fc0');
+                                Renderer.drawRect(pos.x + 3, pos.y + 6, 4, 2, '#fc0');
+                                break;
+                            case 'guardian_crystal':
+                                // Large glowing crystal
+                                Renderer.drawRect(pos.x, pos.y, 6, 10, `rgba(100,200,255,${glow})`);
+                                Renderer.drawRect(pos.x + 2, pos.y + 2, 2, 6, `rgba(150,230,255,${glow})`);
+                                break;
+                            case 'destroyer_heart':
+                                // Dark pulsing heart
+                                const heartGlow = Math.sin(performance.now() / 200) * 0.3 + 0.7;
+                                Renderer.drawRect(pos.x, pos.y + 2, 8, 6, `rgba(100,20,60,${heartGlow})`);
+                                Renderer.drawRect(pos.x + 2, pos.y, 4, 2, `rgba(100,20,60,${heartGlow})`);
+                                Renderer.drawRect(pos.x + 3, pos.y + 4, 2, 2, `rgba(200,50,80,${heartGlow})`);
+                                break;
+                            case 'mega_core':
+                                // Glowing core with inner light
+                                const coreGlow = Math.sin(performance.now() / 300) * 0.3 + 0.7;
+                                Renderer.drawRect(pos.x, pos.y, 8, 8, `rgba(255,100,100,${coreGlow})`);
+                                Renderer.drawRect(pos.x + 2, pos.y + 2, 4, 4, `rgba(255,200,100,${coreGlow})`);
+                                break;
+                            case 'old_photo':
+                                // Faded photo frame
+                                Renderer.drawRect(pos.x, pos.y, 8, 10, '#654');
+                                Renderer.drawRect(pos.x + 1, pos.y + 1, 6, 8, '#876');
+                                Renderer.drawRect(pos.x + 2, pos.y + 3, 2, 2, '#543');
+                                break;
+                            case 'music_box':
+                                // Small music box
+                                Renderer.drawRect(pos.x, pos.y + 2, 8, 6, '#a86');
+                                Renderer.drawRect(pos.x + 1, pos.y + 3, 6, 4, '#c97');
+                                Renderer.drawRect(pos.x + 3, pos.y, 2, 3, '#fc0');
+                                break;
+                            case 'lore_tablet':
+                                // Stone tablet with runes
+                                Renderer.drawRect(pos.x, pos.y, 7, 10, '#666');
+                                Renderer.drawRect(pos.x + 1, pos.y + 2, 2, 1, '#8af');
+                                Renderer.drawRect(pos.x + 4, pos.y + 4, 2, 1, '#8af');
+                                Renderer.drawRect(pos.x + 1, pos.y + 6, 2, 1, '#8af');
+                                break;
+                            default:
+                                // Generic trophy - glowing orb
+                                Renderer.drawRect(pos.x + 1, pos.y + 1, 6, 6, `rgba(200,180,100,${glow})`);
+                                break;
+                        }
                     }
-                    // Crystal Guardian trophy
-                    if (Save.getFlag('crystal_guardian_killed') || Save.getFlag('crystal_guardian_spared')) {
-                        const crystalGlow = Math.sin(performance.now() / 500) * 0.3 + 0.7;
-                        Renderer.drawRect(screenX + 18, trophyY, 6, 8, `rgba(100,200,255,${crystalGlow})`);
-                    }
-                    trophyY = screenY + 20;
-                    // Mega Core (now displayed from flag, not inventory)
-                    if (Save.getFlag('trophy_mega_core')) {
-                        const coreGlow = Math.sin(performance.now() / 300) * 0.3 + 0.7;
-                        Renderer.drawRect(screenX + 6, trophyY, 8, 8, `rgba(255,100,100,${coreGlow})`);
-                        Renderer.drawRect(screenX + 8, trophyY + 2, 4, 4, `rgba(255,200,100,${coreGlow})`);
-                    }
-                    // Keeper's Key (now displayed from flag, not inventory)
-                    if (Save.getFlag('trophy_keepers_key')) {
-                        Renderer.drawRect(screenX + 18, trophyY + 2, 3, 6, '#fc0');
-                        Renderer.drawRect(screenX + 21, trophyY + 6, 4, 2, '#fc0');
+
+                    // Backwards compatibility: show crown if crowned_hero flag set
+                    if (Save.getFlag('crowned_hero') && displayedTrophies.length === 0) {
+                        Renderer.drawRect(screenX + 6, screenY + 6, 8, 3, '#fc0');
+                        Renderer.drawRect(screenX + 7, screenY + 4, 2, 2, '#fc0');
+                        Renderer.drawRect(screenX + 11, screenY + 4, 2, 2, '#fc0');
                     }
                     break;
                 default:

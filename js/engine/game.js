@@ -14,6 +14,9 @@ const Game = {
         MENU: 'menu',
         SAVE_MENU: 'save_menu',
         SHOP: 'shop',
+        BANK: 'bank',
+        STORAGE: 'storage',
+        TROPHY: 'trophy',
         ENDING: 'ending',
         GAME_OVER: 'game_over',
         SETTINGS: 'settings'
@@ -170,6 +173,15 @@ const Game = {
             case this.states.SHOP:
                 this.updateShop(dt);
                 break;
+            case this.states.BANK:
+                this.updateBank(dt);
+                break;
+            case this.states.STORAGE:
+                this.updateStorage(dt);
+                break;
+            case this.states.TROPHY:
+                this.updateTrophy(dt);
+                break;
             case this.states.GAME_OVER:
                 this.updateGameOver(dt);
                 break;
@@ -244,6 +256,18 @@ const Game = {
             case this.states.SHOP:
                 Overworld.render();
                 Inventory.renderShop();
+                break;
+            case this.states.BANK:
+                Overworld.render();
+                Inventory.renderBank();
+                break;
+            case this.states.STORAGE:
+                Overworld.render();
+                Inventory.renderStorage();
+                break;
+            case this.states.TROPHY:
+                Overworld.render();
+                Inventory.renderTrophyCase();
                 break;
             case this.states.GAME_OVER:
                 this.renderGameOver();
@@ -711,9 +735,11 @@ const Game = {
     // ==================== MENU STATE ====================
 
     menuSelection: 0,
-    menuOptions: ['ITEM', 'SETTINGS', 'SAVE', 'EXIT'],
+    menuOptions: ['ITEM', 'EQUIP', 'SETTINGS', 'SAVE', 'EXIT'],
     inItemMenu: false,
     itemMenuSelection: 0,
+    inEquipMenu: false,
+    equipMenuSelection: 0,
     showExitConfirm: false,
     exitConfirmSelection: 0,
 
@@ -721,6 +747,8 @@ const Game = {
         this.menuSelection = 0;
         this.inItemMenu = false;
         this.itemMenuSelection = 0;
+        this.inEquipMenu = false;
+        this.equipMenuSelection = 0;
         this.showExitConfirm = false;
         this.exitConfirmSelection = 0;
     },
@@ -728,6 +756,11 @@ const Game = {
     updateMenu(dt) {
         if (this.inItemMenu) {
             this.updateItemMenu(dt);
+            return;
+        }
+
+        if (this.inEquipMenu) {
+            this.updateEquipMenu(dt);
             return;
         }
 
@@ -756,14 +789,18 @@ const Game = {
                     this.inItemMenu = true;
                     this.itemMenuSelection = 0;
                     break;
-                case 1: // Settings
+                case 1: // Equip
+                    this.inEquipMenu = true;
+                    this.equipMenuSelection = 0;
+                    break;
+                case 2: // Settings
                     this.menuReturnState = this.states.MENU;
                     this.setState(this.states.SETTINGS);
                     break;
-                case 2: // Save
+                case 3: // Save
                     this.setState(this.states.SAVE_MENU, { mode: 'save' });
                     break;
-                case 3: // Exit
+                case 4: // Exit
                     this.showExitConfirm = true;
                     this.exitConfirmSelection = 0;
                     break;
@@ -856,6 +893,45 @@ const Game = {
         }
     },
 
+    updateEquipMenu(dt) {
+        const equipSlots = ['weapon', 'armor', 'backpack'];
+
+        if (Input.isPressed('up')) {
+            this.equipMenuSelection--;
+            if (this.equipMenuSelection < 0) this.equipMenuSelection = equipSlots.length - 1;
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('down')) {
+            this.equipMenuSelection++;
+            if (this.equipMenuSelection >= equipSlots.length) this.equipMenuSelection = 0;
+            Audio.playSFX('select');
+        }
+
+        if (Input.isPressed('confirm')) {
+            const slot = equipSlots[this.equipMenuSelection];
+            const equipped = Inventory.getEquipped(slot);
+
+            if (equipped) {
+                // Unequip the item
+                const result = Inventory.unequipItem(slot);
+                if (result.success) {
+                    Audio.playSFX('confirm');
+                } else {
+                    Audio.playSFX('cancel');
+                }
+            } else {
+                // Nothing equipped - play cancel sound
+                Audio.playSFX('cancel');
+            }
+        }
+
+        if (Input.isPressed('cancel')) {
+            Audio.playSFX('cancel');
+            this.inEquipMenu = false;
+        }
+    },
+
     renderMenu() {
         const save = Save.getCurrent();
         if (!save) return;
@@ -939,11 +1015,47 @@ const Game = {
                 Renderer.drawText(`${this.itemMenuSelection + 1}/${items.length}`, 250, 115, '#888');
             }
             Renderer.drawText('X to go back', 35, 195, '#555');
+        } else if (this.inEquipMenu) {
+            // Show equipment slots
+            Renderer.drawText('EQUIPMENT', 35, 115, '#ff0');
+
+            const save = Save.getCurrent();
+            const slots = [
+                { name: 'Weapon', key: 'weapon', equipped: save.weapon },
+                { name: 'Armor', key: 'armor', equipped: save.armor },
+                { name: 'Backpack', key: 'backpack', equipped: save.backpack }
+            ];
+
+            for (let i = 0; i < slots.length; i++) {
+                const y = 135 + i * 20;
+                const slot = slots[i];
+                const isSelected = i === this.equipMenuSelection;
+
+                if (isSelected) {
+                    Renderer.drawText('>', 35, y, '#ff0');
+                }
+
+                // Slot name
+                Renderer.drawText(slot.name + ':', 50, y, isSelected ? '#ff0' : '#aaa');
+
+                // Equipped item or (empty)
+                if (slot.equipped) {
+                    const item = Items.get(slot.equipped);
+                    const itemName = item ? item.name : slot.equipped;
+                    Renderer.drawText(itemName, 120, y, isSelected ? '#fff' : '#ccc');
+                } else {
+                    Renderer.drawText('(empty)', 120, y, '#666');
+                }
+            }
+
+            // Instructions
+            Renderer.drawText('Z to unequip', 35, 195, '#555');
+            Renderer.drawText('X to go back', 150, 195, '#555');
         } else {
             // Menu options
-            const optionStartY = 130;
+            const optionStartY = 125;
             for (let i = 0; i < this.menuOptions.length; i++) {
-                const y = optionStartY + i * 16;
+                const y = optionStartY + i * 14;
                 const isSelected = i === this.menuSelection;
 
                 if (isSelected) {
@@ -1057,6 +1169,33 @@ const Game = {
     updateShop(dt) {
         if (!Inventory.updateShop(dt)) {
             // Shop closed, return to overworld
+            this.setState(this.states.OVERWORLD);
+        }
+    },
+
+    // ==================== BANK STATE ====================
+
+    updateBank(dt) {
+        if (!Inventory.updateBank(dt)) {
+            // Bank closed, return to overworld
+            this.setState(this.states.OVERWORLD);
+        }
+    },
+
+    // ==================== STORAGE STATE ====================
+
+    updateStorage(dt) {
+        if (!Inventory.updateStorage(dt)) {
+            // Storage closed, return to overworld
+            this.setState(this.states.OVERWORLD);
+        }
+    },
+
+    // ==================== TROPHY STATE ====================
+
+    updateTrophy(dt) {
+        if (!Inventory.updateTrophyCase(dt)) {
+            // Trophy case closed, return to overworld
             this.setState(this.states.OVERWORLD);
         }
     },

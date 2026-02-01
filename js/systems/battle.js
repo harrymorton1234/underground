@@ -256,6 +256,10 @@ const Battle = {
                     this.setState(this.states.VICTORY);
                     this.showText(this.enemy.deathText);
                     Save.recordKill();
+                    // Set mega boss killed flag
+                    if (this.enemy.isMegaBoss) {
+                        Save.setFlag('mega_boss_killed', true);
+                    }
                 } else {
                     this.startEnemyTurn();
                 }

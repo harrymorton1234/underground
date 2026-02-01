@@ -136,40 +136,50 @@ const Items = {
             equipText: 'Better than nothing! Max HP +5!'
         },
 
-        // Key items
+        // Key items (can be displayed in trophy case)
         'crystal_key': {
             name: 'Crystal Key',
             type: 'key',
             description: 'A key made of pure crystal. Opens something...',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 100
         },
 
         'old_photo': {
             name: 'Old Photo',
             type: 'key',
             description: 'A faded photograph of... someone.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 50
         },
 
         'music_box': {
             name: 'Music Box',
             type: 'key',
             description: 'Plays a hauntingly familiar tune.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 75
         },
 
         'lore_tablet': {
             name: 'Lore Tablet',
             type: 'key',
             description: 'Contains ancient writings about this world.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 60
         },
 
         'keeper_key': {
             name: 'Keeper\'s Key',
             type: 'key',
             description: 'An ancient key dropped by The Keeper. Opens the path to the core.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 200
         },
 
         // Enemy drops
@@ -263,26 +273,32 @@ const Items = {
             battleText: '* You ate the Swamp Moss.\n* Slimy... but filling!'
         },
 
-        // Boss drops
+        // Boss drops (trophy items)
         'guardian_crystal': {
             name: 'Guardian Crystal',
             type: 'key',
             description: 'A large crystal from the Crystal Guardian. Opens the path forward.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 300
         },
 
-        'keeper_key': {
-            name: 'Keeper\'s Key',
+        'destroyer_heart': {
+            name: 'Destroyer Heart',
             type: 'key',
-            description: 'The key held by The Keeper. Unlocks the way to the next level.',
-            price: 0
+            description: 'The corrupted heart of The Destroyer. Pulses with dark energy.',
+            price: 0,
+            isTrophy: true,
+            trophyValue: 500
         },
 
         'mega_core': {
             name: 'Mega Core',
             type: 'key',
             description: 'The core of the Mega Boss. Radiates immense power.',
-            price: 0
+            price: 0,
+            isTrophy: true,
+            trophyValue: 1000
         },
 
         // Shields and armor

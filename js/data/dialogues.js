@@ -261,6 +261,23 @@ const Dialogues = {
             setFlags: { 'piano_played': true }
         },
 
+        'piano_playing': {
+            speaker: null,
+            lines: [
+                { text: 'You sit down at the piano...' },
+                { text: 'Your fingers move across the keys as if guided by memory...' },
+                { text: '...' }
+            ]
+        },
+
+        'piano_after_secret': {
+            speaker: null,
+            lines: [
+                { text: 'The old piano. Its melody still echoes in your mind.' },
+                { text: 'The secret passage to the left remains open.' }
+            ]
+        },
+
         'piano_secret': {
             speaker: null,
             lines: [
@@ -269,6 +286,41 @@ const Dialogues = {
                 { text: 'Something clicks in the distance.' }
             ],
             setFlags: { 'piano_secret_song': true }
+        },
+
+        'piano_song_complete': {
+            speaker: null,
+            lines: [
+                { text: 'The piano plays a beautiful, melancholic melody...' },
+                { text: 'The notes echo through the cavern...' },
+                { text: 'As the final note fades...' },
+                { text: '* A hidden passage has opened on the left wall!' }
+            ],
+            setFlags: { 'piano_secret_complete': true }
+        },
+
+        'secret_chamber_lore': {
+            speaker: null,
+            lines: [
+                { text: 'An ancient plaque, covered in dust...' },
+                { text: 'You wipe away the grime to reveal the inscription:' },
+                { text: '"Long ago, before the darkness came, this land flourished."' },
+                { text: '"The monsters you see were once guardians, protectors of this realm."' },
+                { text: '"But a corruption spread from deep within the earth..."' },
+                { text: '"It twisted their minds, made them forget who they were."' },
+                { text: '"Only one who proves their worth by defeating the Core..."' },
+                { text: '"...may learn the truth and perhaps... restore what was lost."' },
+                { text: '* You found 200G hidden behind the plaque!' }
+            ],
+            giveGold: 200
+        },
+
+        'secret_chamber_lore_read': {
+            speaker: null,
+            lines: [
+                { text: 'The ancient plaque. You\'ve already read its secrets.' },
+                { text: '"Only one who defeats the Core may restore what was lost..."' }
+            ]
         },
 
         // Crystal Guardian
@@ -1054,6 +1106,54 @@ const Dialogues = {
                 { text: "Wow! You're the Hero!" },
                 { text: 'Can you teach me how to fight?!' },
                 { text: '...Mom says no. But still! So cool!' }
+            ]
+        },
+
+        'fred_talk': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch*' },
+                { text: 'You... you feel it too, yes?' },
+                { text: 'The darkness... creeping in from FAR AWAY...' },
+                { text: "There's a land beyond the underground..." },
+                { text: 'A place where EVIL festers and grows!' },
+                { text: '*eye twitches*' },
+                { text: "They say it's just stories... but I KNOW!" },
+                { text: "I've SEEN it in my dreams!" },
+                { text: 'Shadows that walk... eyes in the void...' },
+                { text: "An ancient evil awakening in distant lands!" },
+                { text: '*mutters* They called me mad... MAD!' },
+                { text: "But you... you're the Hero, yes?" },
+                { text: 'Maybe YOU can stop it... when the time comes...' },
+                { text: 'Heheheh... or maybe not. WHO KNOWS?!' },
+                { text: '*stares with misaligned eyes*' }
+            ]
+        },
+
+        // Bank
+        'banker_intro': {
+            speaker: 'Goldsworth',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*adjusts monocle*' },
+                { text: 'Ah, welcome to Haven Vault & Trust!' },
+                { text: "I am Goldsworth, the bank's proprietor." },
+                { text: 'We offer secure storage for your gold.' },
+                { text: 'Your wealth will be safe here, I assure you!' },
+                { text: '*twirls mustache*' },
+                { text: 'Would you like to make a transaction?' }
+            ],
+            setFlags: { 'met_banker': true }
+        },
+
+        'banker_talk': {
+            speaker: 'Goldsworth',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*adjusts monocle*' },
+                { text: 'Welcome back to Haven Vault & Trust!' },
+                { text: 'How may I assist you today?' }
             ]
         },
 

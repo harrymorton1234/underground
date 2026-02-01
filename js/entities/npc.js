@@ -29,6 +29,9 @@ class NPC {
         this.isShop = config.isShop || false;
         this.shopItems = config.shopItems || [];
 
+        // Bank
+        this.isBank = config.isBank || false;
+
         // Boss
         this.isBoss = config.isBoss || false;
         this.enemyId = config.enemyId || null;
@@ -209,6 +212,51 @@ class NPC {
             const eyeGlow = Math.sin(time * 2) * 0.3 + 0.7;
             Renderer.drawRect(screenX + 5, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
             Renderer.drawRect(screenX + 9, screenY + 3, 2, 2, `rgba(150,200,255,${eyeGlow})`);
+        } else if (app.type === 'crazy_eye') {
+            // Character with misaligned eyes (one higher than the other)
+            const eyeOffset = app.eyeOffset || 2;
+            // Messy hair
+            Renderer.drawRect(screenX + 2, screenY - 1, 12, 4, app.hairColor || '#543');
+            Renderer.drawRect(screenX + 3, screenY - 2, 3, 2, app.hairColor || '#543');
+            Renderer.drawRect(screenX + 10, screenY - 2, 3, 2, app.hairColor || '#543');
+            // Redraw eyes with offset - left eye higher
+            Renderer.drawRect(screenX + 4, screenY + 3 - eyeOffset, 2, 2, '#222');
+            // Right eye lower and slightly wider (crazy look)
+            Renderer.drawRect(screenX + 9, screenY + 3 + 1, 3, 2, '#222');
+            // Eyebrows at different angles
+            Renderer.drawRect(screenX + 3, screenY + 1 - eyeOffset, 4, 1, app.hairColor || '#543');
+            Renderer.drawRect(screenX + 9, screenY + 2, 4, 1, app.hairColor || '#543');
+            // Slightly crooked mouth
+            Renderer.drawRect(screenX + 5, screenY + 5, 4, 1, '#644');
+            Renderer.drawRect(screenX + 8, screenY + 6, 2, 1, '#644');
+            // Tattered clothes
+            Renderer.drawRect(screenX + 3, screenY + 14, 4, 4, app.bodyColor || '#654');
+            Renderer.drawRect(screenX + 9, screenY + 14, 4, 5, app.bodyColor || '#654');
+        } else if (app.type === 'banker') {
+            // Professional banker with monocle and fancy clothes
+            // Top hat
+            Renderer.drawRect(screenX + 4, screenY - 6, 8, 4, '#222');
+            Renderer.drawRect(screenX + 2, screenY - 2, 12, 3, '#222');
+            // Monocle on right eye
+            Renderer.ctx.strokeStyle = '#fc0';
+            Renderer.ctx.lineWidth = 1;
+            Renderer.ctx.beginPath();
+            Renderer.ctx.arc(screenX + 10, screenY + 4, 3, 0, Math.PI * 2);
+            Renderer.ctx.stroke();
+            // Monocle chain
+            Renderer.drawRect(screenX + 12, screenY + 5, 3, 1, '#fc0');
+            // Mustache
+            Renderer.drawRect(screenX + 4, screenY + 5, 3, 2, app.hairColor || '#444');
+            Renderer.drawRect(screenX + 9, screenY + 5, 3, 2, app.hairColor || '#444');
+            // Bow tie
+            Renderer.drawRect(screenX + 6, screenY + 7, 4, 2, '#a22');
+            Renderer.drawRect(screenX + 5, screenY + 7, 2, 2, '#a22');
+            Renderer.drawRect(screenX + 9, screenY + 7, 2, 2, '#a22');
+            // Vest
+            Renderer.drawRect(screenX + 5, screenY + 9, 6, 5, '#654');
+            // Suit jacket
+            Renderer.drawRect(screenX + 3, screenY + 9, 3, 5, app.bodyColor || '#224');
+            Renderer.drawRect(screenX + 10, screenY + 9, 3, 5, app.bodyColor || '#224');
         }
     }
 
@@ -309,8 +357,18 @@ class NPC {
             Save.setFlag(this.setsFlag, true);
         }
 
+        // Determine interaction type
+        let interactionType = 'dialogue';
+        if (this.isBoss) {
+            interactionType = 'boss';
+        } else if (this.isBank) {
+            interactionType = 'bank';
+        } else if (this.isShop) {
+            interactionType = 'shop';
+        }
+
         return {
-            type: this.isBoss ? 'boss' : (this.isShop ? 'shop' : 'dialogue'),
+            type: interactionType,
             dialogueId,
             enemyId: this.enemyId,
             shopItems: this.shopItems,

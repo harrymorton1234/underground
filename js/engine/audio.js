@@ -78,7 +78,8 @@ const Audio = {
             { name: 'music_battle', fn: () => this.generateBattleMusic() },
             { name: 'music_boss', fn: () => this.generateBossMusic() },
             { name: 'music_mega', fn: () => this.generateMegaBossMusic() },
-            { name: 'music_title', fn: () => this.generateTitleMusic() }
+            { name: 'music_title', fn: () => this.generateTitleMusic() },
+            { name: 'music_piano_song', fn: () => this.generatePianoSong() }
         ];
 
         this.initTotal = musicGenerators.length;
@@ -1197,6 +1198,144 @@ const Audio = {
 
         this.normalizeBuffer(leftData, rightData, length);
         return buffer;
+    },
+
+    /**
+     * Generate a lovely piano song (plays after defeating mega boss)
+     */
+    generatePianoSong() {
+        const sampleRate = this.context.sampleRate;
+        const duration = 12; // 12 seconds
+        const length = duration * sampleRate;
+        const buffer = this.context.createBuffer(2, length, sampleRate);
+        const leftData = buffer.getChannelData(0);
+        const rightData = buffer.getChannelData(1);
+
+        for (let i = 0; i < length; i++) {
+            leftData[i] = 0;
+            rightData[i] = 0;
+        }
+
+        // A gentle, melancholic piano melody
+        // Notes in Hz - a peaceful, bittersweet tune
+        const melody = [
+            { note: 262, start: 0, dur: 0.5 },      // C4
+            { note: 294, start: 0.5, dur: 0.5 },    // D4
+            { note: 330, start: 1, dur: 1 },        // E4
+            { note: 294, start: 2, dur: 0.5 },      // D4
+            { note: 262, start: 2.5, dur: 1 },      // C4
+            { note: 247, start: 3.5, dur: 0.5 },    // B3
+            { note: 262, start: 4, dur: 1.5 },      // C4
+            { note: 330, start: 5.5, dur: 0.5 },    // E4
+            { note: 392, start: 6, dur: 1 },        // G4
+            { note: 440, start: 7, dur: 0.5 },      // A4
+            { note: 392, start: 7.5, dur: 0.5 },    // G4
+            { note: 330, start: 8, dur: 1 },        // E4
+            { note: 294, start: 9, dur: 0.5 },      // D4
+            { note: 262, start: 9.5, dur: 2 },      // C4 (long ending note)
+        ];
+
+        // Bass accompaniment
+        const bass = [
+            { note: 131, start: 0, dur: 2 },        // C3
+            { note: 110, start: 2, dur: 2 },        // A2
+            { note: 131, start: 4, dur: 2 },        // C3
+            { note: 147, start: 6, dur: 2 },        // D3
+            { note: 131, start: 8, dur: 4 },        // C3
+        ];
+
+        // Generate piano sound for each melody note
+        for (const n of melody) {
+            const startSample = Math.floor(n.start * sampleRate);
+            const noteSamples = Math.floor(n.dur * 1.5 * sampleRate); // Let notes ring
+
+            for (let i = 0; i < noteSamples && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                // Piano-like tone: fundamental + harmonics with quick decay
+                let piano = Math.sin(2 * Math.PI * n.note * t) * 0.3;
+                piano += Math.sin(2 * Math.PI * n.note * 2 * t) * 0.15;
+                piano += Math.sin(2 * Math.PI * n.note * 3 * t) * 0.08;
+                piano += Math.sin(2 * Math.PI * n.note * 4 * t) * 0.04;
+
+                // Piano envelope: quick attack, medium decay
+                let env = 1;
+                if (t < 0.01) env = t / 0.01;
+                env *= Math.exp(-t * 1.5);
+
+                // Stereo spread
+                const pan = (n.note % 100) / 100 * 0.3;
+                leftData[startSample + i] += piano * env * (0.5 + pan);
+                rightData[startSample + i] += piano * env * (0.5 - pan);
+            }
+        }
+
+        // Generate bass notes
+        for (const n of bass) {
+            const startSample = Math.floor(n.start * sampleRate);
+            const noteSamples = Math.floor(n.dur * 1.2 * sampleRate);
+
+            for (let i = 0; i < noteSamples && (startSample + i) < length; i++) {
+                const t = i / sampleRate;
+                let bassNote = Math.sin(2 * Math.PI * n.note * t) * 0.2;
+                bassNote += Math.sin(2 * Math.PI * n.note * 2 * t) * 0.1;
+
+                let env = 1;
+                if (t < 0.02) env = t / 0.02;
+                env *= Math.exp(-t * 0.8);
+
+                leftData[startSample + i] += bassNote * env;
+                rightData[startSample + i] += bassNote * env;
+            }
+        }
+
+        // Add some reverb/echo effect
+        const echoDelay = Math.floor(0.15 * sampleRate);
+        const echoDecay = 0.3;
+        for (let i = echoDelay; i < length; i++) {
+            leftData[i] += leftData[i - echoDelay] * echoDecay;
+            rightData[i] += rightData[i - echoDelay] * echoDecay;
+        }
+
+        this.normalizeBuffer(leftData, rightData, length);
+        return buffer;
+    },
+
+    /**
+     * Play music once (non-looping) with a callback when finished
+     */
+    playMusicOnce(name, callback, fadeIn = 0.3) {
+        if (!this.context) return;
+
+        // Stop current music
+        this.stopMusic(0.2);
+
+        const buffer = this.musicCache[name];
+        if (!buffer) return;
+
+        const source = this.context.createBufferSource();
+        source.buffer = buffer;
+        source.loop = false;
+
+        const gainNode = this.context.createGain();
+        gainNode.gain.value = 0;
+        gainNode.gain.linearRampToValueAtTime(this.musicVolume * this.masterVolume, this.context.currentTime + fadeIn);
+
+        source.connect(gainNode);
+        gainNode.connect(this.masterGain);
+
+        source.start(0);
+
+        this.musicSource = source;
+        this.currentMusic = gainNode;
+        this.currentMusicName = name;
+
+        // Call callback when music ends
+        source.onended = () => {
+            this.currentMusic = null;
+            this.musicSource = null;
+            this.currentMusicName = null;
+            if (callback) callback();
+        };
     },
 
     /**
