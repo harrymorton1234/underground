@@ -137,6 +137,15 @@ const Items = {
         },
 
         // Key items (can be displayed in trophy case)
+        'hero_crown': {
+            name: "Hero's Crown",
+            type: 'key',
+            description: 'The crown of the Hero of the Underground. A symbol of your triumph.',
+            price: 0,
+            isTrophy: true,
+            trophyValue: 5000
+        },
+
         'crystal_key': {
             name: 'Crystal Key',
             type: 'key',

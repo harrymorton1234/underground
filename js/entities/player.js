@@ -170,8 +170,8 @@ const Player = {
             this.renderWeapon(screenX, screenY, save.weapon);
         }
 
-        // Draw crown if crowned hero
-        if (Save.getFlag('crowned_hero')) {
+        // Draw crown if player has crown in inventory (not in trophy case)
+        if (Inventory.hasItem('hero_crown')) {
             this.renderCrown(screenX, screenY);
         }
 

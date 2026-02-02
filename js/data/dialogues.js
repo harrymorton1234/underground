@@ -1053,6 +1053,7 @@ const Dialogues = {
                 { text: 'Welcome home, Hero.' }
             ],
             setFlags: { 'crowned_hero': true, 'has_house': true, 'trophy_mega_core': true, 'trophy_keepers_key': true },
+            giveItems: ['hero_crown'],
             removeItems: ['mega_core', 'keepers_key']
         },
 
@@ -1274,10 +1275,24 @@ const Dialogues = {
 
         'house_mirror': {
             speaker: null,
+            dynamicDialogue: 'house_mirror'
+        },
+
+        'house_mirror_crowned': {
+            speaker: null,
             lines: [
                 { text: 'You look at yourself in the mirror.' },
                 { text: "Despite everything, it's still you." },
                 { text: '...But now with a crown!' }
+            ]
+        },
+
+        'house_mirror_no_crown': {
+            speaker: null,
+            lines: [
+                { text: 'You look at yourself in the mirror.' },
+                { text: "Despite everything, it's still you." },
+                { text: "The Hero of the Underground." }
             ]
         },
 

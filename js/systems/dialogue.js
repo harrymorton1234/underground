@@ -98,6 +98,14 @@ const Dialogue = {
             return 'fred_at_home_1';
         }
 
+        // House mirror - check if wearing crown
+        if (dynamicType === 'house_mirror') {
+            if (Inventory.hasItem('hero_crown')) {
+                return 'house_mirror_crowned';
+            }
+            return 'house_mirror_no_crown';
+        }
+
         return dialogueId;
     },
 
