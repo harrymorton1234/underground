@@ -182,6 +182,96 @@ const Items = {
             trophyValue: 200
         },
 
+        'freds_key': {
+            name: "Fred's Key",
+            type: 'key',
+            description: 'A rusty old key given to you by Fred. Opens the mines.',
+            price: 0
+        },
+
+        'ancient_heart': {
+            name: 'Ancient Heart',
+            type: 'key',
+            description: 'The crystallized heart of THE ANCIENT ONE. Pulses with forgotten memories.',
+            price: 0,
+            isTrophy: true,
+            trophyValue: 2000
+        },
+
+        // Mine enemy drops
+        'crawler_shell': {
+            name: 'Crawler Shell',
+            type: 'material',
+            description: 'A hard shell from a mine crawler.',
+            price: 20,
+            sellPrice: 10
+        },
+
+        'ore_chunk': {
+            name: 'Ore Chunk',
+            type: 'material',
+            description: 'A chunk of unrefined ore from the mines.',
+            price: 30,
+            sellPrice: 15
+        },
+
+        'rat_tail': {
+            name: 'Rat Tail',
+            type: 'consumable',
+            description: 'A shadow rat tail. Heals 8 HP. Creepy.',
+            healAmount: 8,
+            price: 12,
+            sellPrice: 6,
+            battleText: '* You ate the Rat Tail.\n* Chewy...'
+        },
+
+        'shadow_essence': {
+            name: 'Shadow Essence',
+            type: 'material',
+            description: 'Pure darkness in solid form.',
+            price: 60,
+            sellPrice: 30
+        },
+
+        'worm_segment': {
+            name: 'Worm Segment',
+            type: 'consumable',
+            description: 'A segment from a deep worm. Heals 20 HP.',
+            healAmount: 20,
+            price: 35,
+            sellPrice: 17,
+            battleText: '* You ate the Worm Segment.\n* Rubbery but nutritious!'
+        },
+
+        'nightmare_essence': {
+            name: 'Nightmare Essence',
+            type: 'material',
+            description: 'The essence of fear itself.',
+            price: 100,
+            sellPrice: 50
+        },
+
+        'shadow_cloak': {
+            name: 'Shadow Cloak',
+            type: 'armor',
+            description: 'A cloak woven from pure shadow. +45 HP',
+            defense: 9,
+            hpBonus: 45,
+            price: 400,
+            sellPrice: 200,
+            equipText: 'You blend with the darkness! Max HP +45!'
+        },
+
+        'nightmare_blade': {
+            name: 'Nightmare Blade',
+            type: 'weapon',
+            description: 'A blade forged from nightmares.',
+            attack: 22,
+            price: 550,
+            sellPrice: 275,
+            equipText: 'Fear itself bends to your will!'
+        },
+
         // Enemy drops
         'spider_leg': {
             name: 'Spider Leg',

@@ -1385,6 +1385,609 @@ const Dialogues = {
                 { text: 'Home sweet home.' },
                 { text: 'You feel safe here.' }
             ]
+        },
+
+        // ==================== FRED FRIENDSHIP ====================
+        'fred_talk_1': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch*' },
+                { text: 'You... you came back to talk to me?' },
+                { text: "Most people avoid me, you know..." },
+                { text: "They think I'm CRAZY!" },
+                { text: '*eye twitches*' },
+                { text: "But I've seen things... TERRIBLE things!" },
+                { text: "The darkness beyond... it's REAL!" },
+                { text: '...' },
+                { text: "You're... different. You listen." },
+                { text: 'Come visit me at my house sometime!' },
+                { text: "It's just to the left, near the blacksmith." },
+                { text: '*points with trembling hand*' }
+            ],
+            setFlags: { 'fred_talked_1': true }
+        },
+
+        'fred_talk_2': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: 'Oh! You again!' },
+                { text: '*twitch* Did you visit my house yet?' },
+                { text: "I have... THINGS to show you." },
+                { text: 'Evidence! Proof of what I speak!' },
+                { text: '*mutters* They all thought I was mad...' },
+                { text: "But YOU'LL understand!" }
+            ],
+            setFlags: { 'fred_talked_2': true }
+        },
+
+        'fred_talk_3': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch twitch*' },
+                { text: "You keep coming back... why?" },
+                { text: '...' },
+                { text: "You actually CARE, don't you?" },
+                { text: '*eye stops twitching for a moment*' },
+                { text: "It's been so long since anyone..." },
+                { text: 'Please. Visit my house. I have something important.' },
+                { text: 'Something about the OLD MINES.' }
+            ],
+            setFlags: { 'fred_talked_3': true }
+        },
+
+        'fred_talk_waiting': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch*' },
+                { text: "I'm waiting at my house, friend." },
+                { text: "There's something I need to show you..." },
+                { text: '*mumbles about shadows*' }
+            ]
+        },
+
+        'fred_house_enter': {
+            speaker: null,
+            lines: [
+                { text: "Fred's home. It's... cluttered." },
+                { text: 'Papers and drawings cover every surface.' },
+                { text: 'Strange symbols are scrawled on the walls.' }
+            ],
+            setFlags: { 'fred_visited_house': true }
+        },
+
+        'fred_at_home_1': {
+            speaker: 'Fred',
+            portrait: 'npc_happy',
+            lines: [
+                { text: 'You came! YOU ACTUALLY CAME!' },
+                { text: '*happy twitch*' },
+                { text: 'Let me show you... let me show you everything!' },
+                { text: '*gestures wildly at papers*' },
+                { text: 'These are my research notes!' },
+                { text: "The old mines beneath this village..." },
+                { text: 'They go DEEP. Deeper than anyone knows!' },
+                { text: 'I used to work there, you know. Before...' },
+                { text: '*shudders*' },
+                { text: 'Before I saw what lurks in the depths.' },
+                { text: 'Come back again. I have MORE to tell you!' }
+            ],
+            setFlags: { 'fred_hangout_1': true }
+        },
+
+        'fred_at_home_2': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch* Back again?' },
+                { text: "Good. Good! I've been preparing!" },
+                { text: '*shuffles through papers*' },
+                { text: "The mines go down 50 LEVELS!" },
+                { text: 'At the bottom... something ANCIENT sleeps.' },
+                { text: "I couldn't reach it. The creatures..." },
+                { text: '*eye twitches rapidly*' },
+                { text: 'They drove me back. EVERY TIME.' },
+                { text: 'But you... you defeated the MEGA DESTROYER!' },
+                { text: 'Maybe YOU can reach the bottom!' },
+                { text: 'One more visit. Then I show you the entrance.' }
+            ],
+            setFlags: { 'fred_hangout_2': true }
+        },
+
+        'fred_at_home_3': {
+            speaker: 'Fred',
+            portrait: 'npc_happy',
+            lines: [
+                { text: '*both eyes focus on you*' },
+                { text: "You've been so kind to me..." },
+                { text: "No one else ever listened." },
+                { text: '*wipes tear*' },
+                { text: "I trust you. I TRUST YOU!" },
+                { text: '*twitch*' },
+                { text: "The mine entrance... it's in the village." },
+                { text: 'At the bottom of Market Street.' },
+                { text: "I sealed it years ago, after what I saw." },
+                { text: "But for you... I'll open it." },
+                { text: '*hands you a rusty key*' },
+                { text: 'Meet me at the sealed door. South end of the street.' },
+                { text: "Together, we'll unseal what I've hidden!" }
+            ],
+            setFlags: { 'fred_hangout_3': true, 'fred_friendship_complete': true },
+            giveItem: 'freds_key'
+        },
+
+        'fred_at_home_complete': {
+            speaker: 'Fred',
+            portrait: 'npc_happy',
+            lines: [
+                { text: '*twitch*' },
+                { text: "The mines await you, friend!" },
+                { text: 'Remember: every 5 levels there is an elevator.' },
+                { text: "Use them wisely. Don't go too deep too fast!" },
+                { text: '*eye twitches*' },
+                { text: "And whatever you do... don't wake HIM." }
+            ]
+        },
+
+        'fred_at_door': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            lines: [
+                { text: '*twitch*' },
+                { text: "You're here. Good. GOOD!" },
+                { text: '*fumbles with the lock*' },
+                { text: 'This door... I sealed it myself.' },
+                { text: 'After what I saw down there...' },
+                { text: '*shudders*' },
+                { text: "But you're different. You're STRONG!" },
+                { text: '*click*' },
+                { text: "There. It's open." },
+                { text: '*steps back*' },
+                { text: 'The mines await, Hero.' },
+                { text: "Remember: every 5 levels there's an elevator." },
+                { text: "It'll remember how deep you've been." },
+                { text: 'Good luck... and be CAREFUL!' },
+                { text: '*eye twitches with concern*' }
+            ],
+            setFlags: { 'mines_unlocked': true }
+        },
+
+        'mines_door_locked': {
+            speaker: null,
+            lines: [
+                { text: 'A heavy iron door, sealed shut.' },
+                { text: 'Strange symbols are carved into the metal.' },
+                { text: 'You can feel cold air seeping through the cracks.' },
+                { text: '(You need to befriend Fred to open this door.)' }
+            ]
+        },
+
+        'fred_house_locked': {
+            speaker: null,
+            lines: [
+                { text: "Someone's house. The nameplate says 'FRED'." },
+                { text: "It would be rude to enter without being invited." },
+                { text: "(Maybe you should talk to Fred in the village first.)" }
+            ]
+        },
+
+        // ==================== MINES ====================
+        'mines_entrance': {
+            speaker: null,
+            lines: [
+                { text: 'Cold, stale air rushes up from below.' },
+                { text: 'The old mine shaft stretches into darkness.' },
+                { text: 'You can hear distant sounds echoing from the depths...' }
+            ]
+        },
+
+        'mines_save_point': {
+            speaker: null,
+            lines: [
+                { text: 'The faint glow pushes back the darkness.' },
+                { text: 'You steel yourself for what lies below.' },
+                { text: '(HP fully restored.)' }
+            ]
+        },
+
+        'mines_elevator_up': {
+            speaker: null,
+            lines: [
+                { text: 'An old mining elevator.' },
+                { text: 'It creaks but seems functional.' }
+            ],
+            choices: [
+                { text: 'Go to Surface', next: 'elevator_to_surface' },
+                { text: 'Stay here', next: null }
+            ]
+        },
+
+        'mines_elevator_with_levels': {
+            speaker: null,
+            lines: [
+                { text: 'An old mining elevator.' },
+                { text: 'It remembers where you have been.' },
+                { text: 'Where do you want to go?' }
+            ]
+        },
+
+        'elevator_to_surface': {
+            speaker: null,
+            lines: [
+                { text: 'The elevator groans to life...' },
+                { text: '*CLANK CLANK CLANK*' },
+                { text: 'You ascend through the darkness.' }
+            ]
+        },
+
+        'elevator_descend': {
+            speaker: null,
+            lines: [
+                { text: 'The elevator shudders...' },
+                { text: '*CLANK CLANK CLANK*' },
+                { text: 'You descend deeper into the mines.' }
+            ]
+        },
+
+        'mines_level_5': {
+            speaker: null,
+            lines: [
+                { text: 'Level -5: The Upper Mines' },
+                { text: 'Old mining equipment lies abandoned.' },
+                { text: 'The creatures here seem almost... normal.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_5': true }
+        },
+
+        'mines_level_10': {
+            speaker: null,
+            lines: [
+                { text: 'Level -10: The Forgotten Tunnels' },
+                { text: 'These tunnels are older than the village itself.' },
+                { text: 'Strange markings cover the walls.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_10': true }
+        },
+
+        'mines_level_15': {
+            speaker: null,
+            lines: [
+                { text: 'Level -15: The Crystal Veins' },
+                { text: 'Crystals grow from the walls here.' },
+                { text: 'But they pulse with an unnatural light...' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_15': true }
+        },
+
+        'mines_level_20': {
+            speaker: null,
+            lines: [
+                { text: 'Level -20: The Deep Dark' },
+                { text: 'Light seems to struggle to exist here.' },
+                { text: 'You can feel something watching you.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_20': true }
+        },
+
+        'mines_level_25': {
+            speaker: null,
+            lines: [
+                { text: 'Level -25: The Bone Gallery' },
+                { text: 'Fossils of creatures long extinct line the walls.' },
+                { text: 'Some of them are... enormous.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_25': true }
+        },
+
+        'mines_level_30': {
+            speaker: null,
+            lines: [
+                { text: 'Level -30: The Whisper Depths' },
+                { text: 'You can hear voices... but see no one.' },
+                { text: "They speak of things that shouldn't be." }
+            ],
+            setFlags: { 'mines_elevator_unlocked_30': true }
+        },
+
+        'mines_level_35': {
+            speaker: null,
+            lines: [
+                { text: 'Level -35: The Ancient Ruins' },
+                { text: 'A civilization existed here once.' },
+                { text: 'What happened to them?' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_35': true }
+        },
+
+        'mines_level_40': {
+            speaker: null,
+            lines: [
+                { text: 'Level -40: The Nightmare Caverns' },
+                { text: 'Reality feels... thin here.' },
+                { text: 'The creatures here defy explanation.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_40': true }
+        },
+
+        'mines_level_45': {
+            speaker: null,
+            lines: [
+                { text: 'Level -45: The Abyssal Gate' },
+                { text: 'Massive doors block further descent.' },
+                { text: 'But they stand open now... waiting.' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_45': true }
+        },
+
+        'mines_level_50': {
+            speaker: null,
+            lines: [
+                { text: 'Level -50: The Heart of Darkness' },
+                { text: 'This is it. The deepest point.' },
+                { text: 'Something ancient stirs ahead...' }
+            ],
+            setFlags: { 'mines_elevator_unlocked_50': true }
+        },
+
+        'mines_boss_intro': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...' },
+                { text: '...you have come...' },
+                { text: '...after all this time...' },
+                { text: '...a visitor...' },
+                { text: 'I have slumbered here for eons.' },
+                { text: 'Waiting... dreaming of the surface.' },
+                { text: 'Fred... I remember Fred.' },
+                { text: 'He ran. They all ran.' },
+                { text: 'But you... you came DOWN.' },
+                { text: 'Interesting.' },
+                { text: 'Let us see if you are worthy...' },
+                { text: '...of learning the truth.' }
+            ]
+        },
+
+        'mines_boss_spare': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...you would spare me?' },
+                { text: '...after all I have done?' },
+                { text: '...' },
+                { text: 'Perhaps... the surface has changed.' },
+                { text: 'Perhaps there is hope after all.' },
+                { text: 'Take this gift, young one.' },
+                { text: 'Tell Fred... I am sorry.' },
+                { text: 'I only wanted... to be remembered.' }
+            ],
+            setFlags: { 'mines_boss_spared': true },
+            giveItem: 'ancient_heart'
+        },
+
+        'mines_boss_defeat': {
+            speaker: null,
+            lines: [
+                { text: 'THE ANCIENT ONE crumbles to dust.' },
+                { text: '...' },
+                { text: 'The mines fall silent.' },
+                { text: 'Whatever lurked here is gone.' },
+                { text: 'But was this the right choice?' }
+            ],
+            setFlags: { 'mines_boss_killed': true, 'mines_boss_defeated': true }
+        },
+
+        'fred_mine_map': {
+            speaker: null,
+            lines: [
+                { text: 'A hand-drawn map of the mines.' },
+                { text: 'Levels are marked from -1 to -50.' },
+                { text: 'Every 5 levels, an "E" is marked - elevators?' },
+                { text: 'At the bottom, a large circle with "???" inside.' },
+                { text: 'Scrawled in the corner: "DON\'T WAKE HIM"' }
+            ]
+        },
+
+        'fred_conspiracy_board': {
+            speaker: null,
+            lines: [
+                { text: 'A wall covered in drawings and notes.' },
+                { text: 'Red string connects various points...' },
+                { text: '"THE DARKNESS SPREADS" is written in large letters.' },
+                { text: 'Drawings of eyes, shadows, and something massive...' },
+                { text: 'One note reads: "Level -50. I saw it. IT SAW ME."' },
+                { text: 'Another: "No one believes. But I KNOW."' }
+            ]
+        },
+
+        'fred_desk': {
+            speaker: null,
+            lines: [
+                { text: "Fred's research desk. Covered in papers and ink stains." },
+                { text: 'An open journal reads:' },
+                { text: '"Day 847: Still no one listens."' },
+                { text: '"Day 848: The dreams are getting worse."' },
+                { text: '"Day 849: I can hear it calling from below..."' },
+                { text: 'The rest of the pages are filled with frantic scribbles.' }
+            ]
+        },
+
+        'fred_bookshelf': {
+            speaker: null,
+            lines: [
+                { text: 'A bookshelf stuffed with old tomes and scrolls.' },
+                { text: 'Most titles are faded or in languages you don\'t recognize.' },
+                { text: 'One book stands out: "ENTITIES OF THE DEEP"' },
+                { text: 'It\'s been read so many times the spine is falling apart.' }
+            ]
+        },
+
+        'fred_floor_papers': {
+            speaker: null,
+            lines: [
+                { text: 'Papers scattered all over the floor...' },
+                { text: 'Drawings of mine tunnels, strange creatures...' },
+                { text: 'Notes about "elevator maintenance schedules"...' },
+                { text: 'A crumpled letter: "Fred, please come home. -Mom"' },
+                { text: '...it looks like it was never sent.' }
+            ]
+        },
+
+        // Dynamic Fred dialogue handlers
+        'fred_talk_dynamic': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            dynamicDialogue: 'fred',
+            lines: [
+                { text: '*twitch*' },
+                { text: 'You... you feel it too, yes?' }
+            ]
+        },
+
+        'fred_at_home_dynamic': {
+            speaker: 'Fred',
+            portrait: 'npc_neutral',
+            dynamicDialogue: 'fred_home',
+            lines: [
+                { text: '*twitch*' },
+                { text: 'Welcome to my humble home...' }
+            ]
+        },
+
+        // Ancient One phase dialogues
+        'ancient_phase2': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...you persist...' },
+                { text: '...why do you fight?' },
+                { text: '...I only wanted... company...' }
+            ]
+        },
+
+        'ancient_phase3': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...the loneliness... it consumes...' },
+                { text: '...Fred understood... once...' },
+                { text: '...but he ran... they all run...' }
+            ]
+        },
+
+        'ancient_phase4': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...I am... so tired...' },
+                { text: '...so very... tired...' },
+                { text: '...will no one... remember me?' }
+            ]
+        },
+
+        'ancient_final': {
+            speaker: 'THE ANCIENT ONE',
+            portrait: 'ancient_boss',
+            lines: [
+                { text: '...please...' },
+                { text: '...just... remember...' },
+                { text: '...that I existed...' }
+            ]
+        },
+
+        // Elevator dialogues for each level
+        'mines_elevator_5_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -5' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 5
+        },
+
+        'mines_elevator_10_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -10' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 10
+        },
+
+        'mines_elevator_15_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -15' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 15
+        },
+
+        'mines_elevator_20_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -20' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 20
+        },
+
+        'mines_elevator_25_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -25' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 25
+        },
+
+        'mines_elevator_30_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -30' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 30
+        },
+
+        'mines_elevator_35_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -35' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 35
+        },
+
+        'mines_elevator_40_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -40' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 40
+        },
+
+        'mines_elevator_45_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -45' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 45
+        },
+
+        'mines_elevator_50_use': {
+            speaker: null,
+            lines: [
+                { text: 'Mining Elevator - Level -50' },
+                { text: 'The deepest point.' },
+                { text: 'Where would you like to go?' }
+            ],
+            elevatorLevel: 50
         }
     },
 

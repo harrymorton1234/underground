@@ -55,7 +55,32 @@ const Flags = {
 
         // Misc
         'died_once': { default: false, description: 'Died at least once' },
-        'used_item': { default: false, description: 'Used an item in battle' }
+        'used_item': { default: false, description: 'Used an item in battle' },
+
+        // Fred friendship
+        'fred_talked_1': { default: false, description: 'First conversation with Fred' },
+        'fred_talked_2': { default: false, description: 'Second conversation with Fred' },
+        'fred_talked_3': { default: false, description: 'Third conversation with Fred' },
+        'fred_visited_house': { default: false, description: 'Visited Fred\'s house' },
+        'fred_hangout_1': { default: false, description: 'First hangout with Fred' },
+        'fred_hangout_2': { default: false, description: 'Second hangout with Fred' },
+        'fred_hangout_3': { default: false, description: 'Third hangout with Fred' },
+        'fred_friendship_complete': { default: false, description: 'Fred trusts you enough to open the mines' },
+        'mines_unlocked': { default: false, description: 'The mines door has been opened' },
+
+        // Mines progress
+        'mines_deepest_level': { default: 0, description: 'Deepest mine level reached (numeric)' },
+        'mines_elevator_unlocked_5': { default: false, description: 'Elevator at level -5 unlocked' },
+        'mines_elevator_unlocked_10': { default: false, description: 'Elevator at level -10 unlocked' },
+        'mines_elevator_unlocked_15': { default: false, description: 'Elevator at level -15 unlocked' },
+        'mines_elevator_unlocked_20': { default: false, description: 'Elevator at level -20 unlocked' },
+        'mines_elevator_unlocked_25': { default: false, description: 'Elevator at level -25 unlocked' },
+        'mines_elevator_unlocked_30': { default: false, description: 'Elevator at level -30 unlocked' },
+        'mines_elevator_unlocked_35': { default: false, description: 'Elevator at level -35 unlocked' },
+        'mines_elevator_unlocked_40': { default: false, description: 'Elevator at level -40 unlocked' },
+        'mines_elevator_unlocked_45': { default: false, description: 'Elevator at level -45 unlocked' },
+        'mines_elevator_unlocked_50': { default: false, description: 'Elevator at level -50 unlocked' },
+        'mines_boss_defeated': { default: false, description: 'Defeated the boss at level -50' }
     },
 
     /**

@@ -981,16 +981,18 @@ const Rooms = {
                 1000000001
                 1000000001
                 1000000001
-                1000030001
-                1111111111
+                1000000001
+                1111131111
             `,
             decorations: [
                 // Signs along the path showing shop/house names with themed colors and icons
                 { type: 'sign', x: 18, y: 36, text: 'Butcher', color: '#a66', borderColor: '#744', icon: 'meat' },
                 { type: 'sign', x: 18, y: 100, text: 'Blacksmith', color: '#777', borderColor: '#555', icon: 'sword' },
+                { type: 'sign', x: 18, y: 244, text: "Fred's", color: '#696', borderColor: '#474', icon: 'eye' },
                 { type: 'sign', x: 18, y: 308, text: 'Your Home', color: '#a86', borderColor: '#754', icon: 'home' },
                 { type: 'sign', x: 98, y: 100, text: 'Magic Shop', color: '#86a', borderColor: '#547', textColor: '#edf', icon: 'star' },
                 { type: 'sign', x: 98, y: 244, text: 'Bank', color: '#aa8', borderColor: '#886', textColor: '#432', icon: 'coin' },
+                { type: 'sign', x: 56, y: 412, text: 'The Mines', color: '#543', borderColor: '#321', icon: 'pickaxe' },
 
                 // Lanterns on walls - alternating sides for cozy lighting
                 { type: 'lantern', x: 16, y: 8 },
@@ -1039,8 +1041,8 @@ const Rooms = {
                 {
                     id: 'village_child',
                     sprite: 'npc',
-                    x: 80,
-                    y: 400,
+                    x: 112,
+                    y: 220,
                     dialogue: 'village_child',
                     appearance: { type: 'child', skinColor: '#fb9', bodyColor: '#e94', hairColor: '#741' }
                 },
@@ -1049,20 +1051,33 @@ const Rooms = {
                     sprite: 'npc',
                     x: 48,
                     y: 140,
-                    dialogue: 'fred_talk',
+                    dialogue: 'fred_talk_dynamic',
                     appearance: { type: 'crazy_eye', skinColor: '#da9', bodyColor: '#486', hairColor: '#732', eyeOffset: 2 }
+                },
+                {
+                    id: 'fred_at_mines_door',
+                    sprite: 'npc',
+                    x: 80,
+                    y: 400,
+                    dialogue: 'fred_at_door',
+                    appearance: { type: 'crazy_eye', skinColor: '#da9', bodyColor: '#486', hairColor: '#732', eyeOffset: 2 },
+                    requiresFlag: 'fred_friendship_complete',
+                    requiresNotFlag: 'mines_unlocked'
                 }
             ],
             transitions: [
                 // Top - back to staircase
                 { x: 64, y: 0, width: 16, height: 8, to: 'village_staircase', playerX: 48, playerY: 368 },
-                // Left doors - Butcher (row 3), Blacksmith (row 7), House (row 20)
+                // Left doors - Butcher (row 3), Blacksmith (row 7), Fred's House (row 16), Your House (row 20)
                 { x: 0, y: 48, width: 8, height: 16, to: 'village_butcher', playerX: 200, playerY: 100 },
                 { x: 0, y: 112, width: 8, height: 16, to: 'village_blacksmith', playerX: 200, playerY: 100 },
+                { x: 0, y: 256, width: 8, height: 16, to: 'fred_house', playerX: 120, playerY: 150, requiresFlag: 'fred_talked_1', lockedDialogue: 'fred_house_locked' },
                 { x: 0, y: 320, width: 8, height: 16, to: 'village_house', playerX: 120, playerY: 32, requiresFlag: 'has_house', lockedDialogue: 'house_not_yours' },
                 // Right doors - Magic shop (row 7), Bank (row 16)
                 { x: 152, y: 112, width: 8, height: 16, to: 'village_magic', playerX: 32, playerY: 100 },
-                { x: 152, y: 256, width: 8, height: 16, to: 'village_bank', playerX: 32, playerY: 100 }
+                { x: 152, y: 256, width: 8, height: 16, to: 'village_bank', playerX: 32, playerY: 100 },
+                // Bottom - Mines entrance (sealed until Fred opens it)
+                { x: 64, y: 432, width: 16, height: 8, to: 'mines_entrance', playerX: 80, playerY: 32, requiresFlag: 'mines_unlocked', lockedDialogue: 'mines_door_locked' }
             ],
             interactables: [],
             savePoints: [
@@ -1417,6 +1432,941 @@ const Rooms = {
             ],
             encounterRate: 0,
             music: 'music_village'
+        },
+
+        // ==================== FRED'S HOUSE ====================
+        'fred_house': {
+            name: "Fred's House",
+            area: 'village',
+            width: 15,
+            height: 12,
+            playerStart: { x: 120, y: 150 },
+            tileData: `
+                111111111111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000031
+                111111111111111
+            `,
+            onEnter: 'fred_house_enter',
+            onEnterOnce: true,
+            decorations: [
+                // Papers scattered EVERYWHERE on the floor
+                { type: 'paper_pile', x: 25, y: 50 },
+                { type: 'paper_pile', x: 175, y: 65 },
+                { type: 'paper_pile', x: 70, y: 130 },
+                { type: 'paper_pile', x: 150, y: 145 },
+                { type: 'scattered_paper', x: 90, y: 60 },
+                { type: 'scattered_paper', x: 130, y: 110 },
+                { type: 'scattered_paper', x: 55, y: 105 },
+                { type: 'scattered_paper', x: 180, y: 130 },
+                { type: 'scattered_paper', x: 105, y: 150 },
+                { type: 'crumpled_paper', x: 65, y: 80 },
+                { type: 'crumpled_paper', x: 170, y: 100 },
+                { type: 'crumpled_paper', x: 115, y: 70 },
+                { type: 'crumpled_paper', x: 40, y: 140 },
+
+                // Strange drawings and notes pinned to walls
+                { type: 'strange_drawing', x: 50, y: 22 },
+                { type: 'strange_drawing', x: 110, y: 20 },
+                { type: 'strange_drawing', x: 170, y: 22 },
+                { type: 'pinned_note', x: 80, y: 24 },
+                { type: 'pinned_note', x: 140, y: 22 },
+                { type: 'pinned_note', x: 200, y: 26 },
+
+                // Red string connecting drawings (conspiracy board style)
+                { type: 'string_web', x: 70, y: 22 },
+
+                // Fred's messy unmade bed
+                { type: 'messy_bed', x: 20, y: 75 },
+
+                // Research desk covered in stuff
+                { type: 'research_desk', x: 140, y: 75 },
+
+                // Old mine map on wall (important!)
+                { type: 'mine_map', x: 85, y: 22 },
+
+                // Candles (some burnt out)
+                { type: 'candle', x: 42, y: 60 },
+                { type: 'candle_burnt', x: 185, y: 55 },
+                { type: 'candle', x: 200, y: 140 },
+
+                // Dim lanterns
+                { type: 'lantern', x: 16, y: 50 },
+                { type: 'lantern', x: 205, y: 90 },
+
+                // Empty bottles and cups
+                { type: 'empty_bottle', x: 58, y: 135 },
+                { type: 'empty_bottle', x: 190, y: 150 },
+                { type: 'dirty_cup', x: 30, y: 120 },
+
+                // Old chest in corner
+                { type: 'old_chest', x: 185, y: 30 },
+
+                // Bookshelf overflowing
+                { type: 'messy_bookshelf', x: 18, y: 22 },
+
+                // Dust particles floating around
+                { type: 'dust_motes', x: 100, y: 90 },
+                { type: 'dust_motes', x: 160, y: 60 }
+            ],
+            npcs: [
+                {
+                    id: 'fred_home',
+                    sprite: 'npc',
+                    x: 100,
+                    y: 70,
+                    dialogue: 'fred_at_home_dynamic',
+                    appearance: { type: 'crazy_eye', skinColor: '#da9', bodyColor: '#486', hairColor: '#732', eyeOffset: 2 }
+                }
+            ],
+            interactables: [],
+            transitions: [
+                { x: 224, y: 160, width: 8, height: 16, to: 'village_square', playerX: 24, playerY: 264 }
+            ],
+            encounterRate: 0,
+            music: 'music_village'
+        },
+
+        // ==================== THE MINES ====================
+        'mines_entrance': {
+            name: 'Mine Entrance',
+            area: 'mines',
+            width: 12,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111311111
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000200001
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000000001
+                100000030001
+                111111111111
+            `,
+            onEnter: 'mines_entrance',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'mine_support', x: 32, y: 40 },
+                { type: 'mine_support', x: 144, y: 40 },
+                { type: 'mine_support', x: 32, y: 120 },
+                { type: 'mine_support', x: 144, y: 120 },
+                { type: 'mine_cart', x: 130, y: 180 },
+                { type: 'lantern', x: 16, y: 60 },
+                { type: 'lantern', x: 160, y: 100 },
+                { type: 'pickaxe_rack', x: 20, y: 30 }
+            ],
+            savePoints: [
+                { x: 80, y: 96, dialogue: 'mines_save_point' }
+            ],
+            transitions: [
+                { x: 80, y: 0, width: 16, height: 8, to: 'village_square', playerX: 80, playerY: 416 },
+                { x: 80, y: 224, width: 16, height: 8, to: 'mines_level_1', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines'
+        },
+
+        // Mine Level Template - Level 1-4 (repeat pattern with variations)
+        'mines_level_1': {
+            name: 'The Mines - Level 1',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            decorations: [
+                { type: 'mine_support', x: 40, y: 40 },
+                { type: 'mine_support', x: 180, y: 80 },
+                { type: 'lantern', x: 20, y: 50 },
+                { type: 'rock_pile', x: 160, y: 140 }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_entrance', playerX: 80, playerY: 200 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_2', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.12,
+            encounterEnemies: ['mine_crawler', 'rock_critter'],
+            music: 'music_mines'
+        },
+
+        'mines_level_2': {
+            name: 'The Mines - Level 2',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            decorations: [
+                { type: 'mine_support', x: 60, y: 60 },
+                { type: 'mine_support', x: 160, y: 40 },
+                { type: 'lantern', x: 200, y: 70 },
+                { type: 'ore_vein', x: 30, y: 100 }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_1', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_3', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.12,
+            encounterEnemies: ['mine_crawler', 'rock_critter'],
+            music: 'music_mines'
+        },
+
+        'mines_level_3': {
+            name: 'The Mines - Level 3',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            decorations: [
+                { type: 'mine_support', x: 40, y: 80 },
+                { type: 'mine_support', x: 180, y: 60 },
+                { type: 'lantern', x: 16, y: 100 },
+                { type: 'bone_pile', x: 140, y: 130 }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_2', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_4', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.14,
+            encounterEnemies: ['mine_crawler', 'rock_critter', 'cave_spider'],
+            music: 'music_mines'
+        },
+
+        'mines_level_4': {
+            name: 'The Mines - Level 4',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            decorations: [
+                { type: 'mine_support', x: 50, y: 50 },
+                { type: 'mine_support', x: 170, y: 90 },
+                { type: 'lantern', x: 180, y: 40 },
+                { type: 'crystal_vein', x: 25, y: 120 }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_3', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_elevator_5', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.14,
+            encounterEnemies: ['mine_crawler', 'rock_critter', 'cave_spider'],
+            music: 'music_mines'
+        },
+
+        // Elevator at Level 5
+        'mines_elevator_5': {
+            name: 'The Mines - Level 5 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_5',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_support', x: 40, y: 40 },
+                { type: 'mine_support', x: 180, y: 40 },
+                { type: 'lantern', x: 16, y: 60 },
+                { type: 'lantern', x: 200, y: 60 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -5' }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_5_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_5_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_4', playerX: 112, playerY: 152 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_level_6', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines'
+        },
+
+        // Levels 6-9
+        'mines_level_6': {
+            name: 'The Mines - Level 6',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            decorations: [
+                { type: 'mine_support', x: 40, y: 40 },
+                { type: 'mine_support', x: 180, y: 80 },
+                { type: 'lantern', x: 20, y: 90 }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_5', playerX: 112, playerY: 200 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_7', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.14,
+            encounterEnemies: ['mine_crawler', 'shadow_rat', 'cave_spider'],
+            music: 'music_mines'
+        },
+
+        'mines_level_7': {
+            name: 'The Mines - Level 7',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_6', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_8', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.15,
+            encounterEnemies: ['mine_crawler', 'shadow_rat', 'crystal_bat'],
+            music: 'music_mines'
+        },
+
+        'mines_level_8': {
+            name: 'The Mines - Level 8',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_7', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_level_9', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.15,
+            encounterEnemies: ['shadow_rat', 'crystal_bat', 'deep_worm'],
+            music: 'music_mines'
+        },
+
+        'mines_level_9': {
+            name: 'The Mines - Level 9',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_8', playerX: 112, playerY: 152 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_elevator_10', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.16,
+            encounterEnemies: ['shadow_rat', 'crystal_bat', 'deep_worm'],
+            music: 'music_mines'
+        },
+
+        // Elevator at Level 10
+        'mines_elevator_10': {
+            name: 'The Mines - Level 10 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_10',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -10' },
+                { type: 'lantern', x: 16, y: 60 },
+                { type: 'lantern', x: 200, y: 60 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_10_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_10_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_9', playerX: 112, playerY: 152 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_level_11', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_deep'
+        },
+
+        // Levels 11-49 would follow the same pattern...
+        // For brevity, let's add a few key levels and the final area
+
+        'mines_level_11': {
+            name: 'The Mines - Level 11',
+            area: 'mines',
+            width: 15,
+            height: 12,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_10', playerX: 112, playerY: 200 },
+                { x: 104, y: 168, width: 16, height: 8, to: 'mines_elevator_15', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0.16,
+            encounterEnemies: ['deep_worm', 'crystal_bat', 'shadow_stalker'],
+            music: 'music_mines_deep'
+        },
+
+        // Elevator at Level 15
+        'mines_elevator_15': {
+            name: 'The Mines - Level 15 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_15',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -15' },
+                { type: 'crystal_vein', x: 30, y: 60 },
+                { type: 'crystal_vein', x: 180, y: 80 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_15_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_15_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_level_11', playerX: 112, playerY: 152 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_20', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_deep'
+        },
+
+        // Elevator at Level 20
+        'mines_elevator_20': {
+            name: 'The Mines - Level 20 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_20',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -20' }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_20_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_20_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_15', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_25', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_abyss'
+        },
+
+        // Elevator at Level 25
+        'mines_elevator_25': {
+            name: 'The Mines - Level 25 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_25',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -25' },
+                { type: 'bone_pile', x: 40, y: 60 },
+                { type: 'fossil', x: 180, y: 50 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_25_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_25_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_20', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_30', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_abyss'
+        },
+
+        // Elevator at Level 30
+        'mines_elevator_30': {
+            name: 'The Mines - Level 30 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_30',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -30' }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_30_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_30_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_25', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_35', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_abyss'
+        },
+
+        // Elevator at Level 35
+        'mines_elevator_35': {
+            name: 'The Mines - Level 35 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_35',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -35' },
+                { type: 'ancient_pillar', x: 40, y: 50 },
+                { type: 'ancient_pillar', x: 180, y: 50 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_35_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_35_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_30', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_40', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_ancient'
+        },
+
+        // Elevator at Level 40
+        'mines_elevator_40': {
+            name: 'The Mines - Level 40 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_40',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -40' },
+                { type: 'nightmare_crystal', x: 30, y: 70 },
+                { type: 'nightmare_crystal', x: 190, y: 60 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_40_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_40_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_35', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_45', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_ancient'
+        },
+
+        // Elevator at Level 45
+        'mines_elevator_45': {
+            name: 'The Mines - Level 45 (Elevator)',
+            area: 'mines',
+            width: 15,
+            height: 15,
+            playerStart: { x: 80, y: 32 },
+            tileData: `
+                111111131111111
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000020000001
+                100000000000001
+                300000000000003
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000000000001
+                100000030000001
+                111111111111111
+            `,
+            onEnter: 'mines_level_45',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 70, y: 100 },
+                { type: 'mine_sign', x: 100, y: 20, text: 'Level -45' },
+                { type: 'abyssal_gate', x: 90, y: 180 }
+            ],
+            savePoints: [
+                { x: 104, y: 80, dialogue: 'mines_save_point' }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_45_use' },
+                { x: 224, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_45_use' }
+            ],
+            transitions: [
+                { x: 104, y: 0, width: 16, height: 8, to: 'mines_elevator_40', playerX: 112, playerY: 200 },
+                { x: 104, y: 224, width: 16, height: 8, to: 'mines_elevator_50', playerX: 80, playerY: 32 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_final'
+        },
+
+        // Final Level - 50
+        'mines_elevator_50': {
+            name: 'The Heart of Darkness',
+            area: 'mines',
+            width: 20,
+            height: 20,
+            playerStart: { x: 160, y: 32 },
+            tileData: `
+                11111111131111111111
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000020000000001
+                10000000000000000001
+                30000000000000000003
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                10000000000000000001
+                11111111111111111111
+            `,
+            onEnter: 'mines_level_50',
+            onEnterOnce: true,
+            decorations: [
+                { type: 'elevator_frame', x: 100, y: 110 },
+                { type: 'mine_sign', x: 150, y: 20, text: 'Level -50' },
+                { type: 'ancient_pillar', x: 40, y: 60 },
+                { type: 'ancient_pillar', x: 280, y: 60 },
+                { type: 'ancient_pillar', x: 40, y: 200 },
+                { type: 'ancient_pillar', x: 280, y: 200 },
+                { type: 'dark_altar', x: 140, y: 250 }
+            ],
+            savePoints: [
+                { x: 160, y: 80, dialogue: 'mines_save_point' }
+            ],
+            npcs: [
+                {
+                    id: 'ancient_one',
+                    sprite: 'ancient_boss',
+                    x: 152,
+                    y: 220,
+                    width: 48,
+                    height: 48,
+                    dialogue: 'mines_boss_intro',
+                    isBoss: true,
+                    enemyId: 'ancient_one',
+                    blocksPath: true,
+                    removeOnSpare: true,
+                    removeOnKill: true,
+                    interactionRadius: 48,
+                    requiresNotFlag: 'mines_boss_defeated'
+                }
+            ],
+            interactables: [
+                { x: 0, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_50_use' },
+                { x: 304, y: 104, width: 16, height: 32, type: 'elevator', dialogue: 'mines_elevator_50_use' }
+            ],
+            transitions: [
+                { x: 152, y: 0, width: 16, height: 8, to: 'mines_elevator_45', playerX: 112, playerY: 200 }
+            ],
+            encounterRate: 0,
+            music: 'music_mines_boss'
         },
 
         // ==================== SHOP ROOMS ====================

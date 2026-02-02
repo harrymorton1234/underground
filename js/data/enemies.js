@@ -377,6 +377,278 @@ const Enemies = {
             ]
         },
 
+        // ==================== MINE ENEMIES ====================
+        'mine_crawler': {
+            name: 'Mine Crawler',
+            hp: 28,
+            maxHp: 28,
+            attack: 8,
+            defense: 4,
+            exp: 12,
+            gold: 8,
+            flavorText: '* Scuttles through the dark tunnels.',
+            checkText: '* MINE CRAWLER - ATK 8 DEF 4\n* Once a normal bug, mutated by the mine\'s energy.',
+            canSpare: false,
+            spareCondition: 'talk_twice',
+            talkCount: 0,
+            spareTalkThreshold: 2,
+            actOptions: ['Check', 'Talk', 'Feed', 'Stomp'],
+            actResponses: {
+                'Talk': {
+                    text: '* You made soothing sounds.\n* The crawler seems calmer.',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                },
+                'Feed': {
+                    text: '* You offered some food.\n* It munches happily!',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                },
+                'Stomp': {
+                    text: '* You stomped your foot!\n* The crawler is terrified and attacks wildly!',
+                    effect: 'enrage'
+                }
+            },
+            patterns: ['crawler_scuttle', 'crawler_burrow'],
+            encounterText: '* A Mine Crawler emerges from the rocks!',
+            spareText: '* The Mine Crawler burrows away peacefully.',
+            deathText: '* The crawler curls up and stops moving.',
+            drops: [
+                { item: 'crawler_shell', chance: 0.5 },
+                { item: 'ore_chunk', chance: 0.3 },
+                { item: 'cave_water', chance: 0.2 }
+            ]
+        },
+
+        'shadow_rat': {
+            name: 'Shadow Rat',
+            hp: 22,
+            maxHp: 22,
+            attack: 10,
+            defense: 2,
+            exp: 10,
+            gold: 6,
+            flavorText: '* Its eyes glow in the darkness.',
+            checkText: '* SHADOW RAT - ATK 10 DEF 2\n* Quick and aggressive. Hates bright light.',
+            canSpare: false,
+            spareCondition: 'talk_twice',
+            talkCount: 0,
+            spareTalkThreshold: 2,
+            actOptions: ['Check', 'Talk', 'Shine Light', 'Offer Cheese'],
+            actResponses: {
+                'Talk': {
+                    text: '* You spoke softly.\n* The rat\'s aggression fades slightly.',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                },
+                'Shine Light': {
+                    text: '* You shined a light at it!\n* It screeches and attacks harder!',
+                    effect: 'enrage'
+                },
+                'Offer Cheese': {
+                    text: '* You offered some cheese.\n* The rat is delighted!',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                }
+            },
+            patterns: ['rat_dash', 'rat_swarm'],
+            encounterText: '* Shadow Rat leaps from the darkness!',
+            spareText: '* The Shadow Rat scurries into the shadows.',
+            deathText: '* The rat fades into nothing.',
+            drops: [
+                { item: 'rat_tail', chance: 0.4 },
+                { item: 'shadow_essence', chance: 0.3 },
+                { item: 'ore_chunk', chance: 0.2 }
+            ]
+        },
+
+        'deep_worm': {
+            name: 'Deep Worm',
+            hp: 35,
+            maxHp: 35,
+            attack: 12,
+            defense: 6,
+            exp: 18,
+            gold: 14,
+            flavorText: '* Burrows through solid rock.',
+            checkText: '* DEEP WORM - ATK 12 DEF 6\n* Ancient creature. Dislikes vibrations.',
+            canSpare: false,
+            spareCondition: 'compliment',
+            complimented: false,
+            actOptions: ['Check', 'Pet', 'Compliment', 'Dig'],
+            actResponses: {
+                'Pet': {
+                    text: '* You tried to pet the worm.\n* It\'s surprisingly soft!',
+                    spareable: false
+                },
+                'Compliment': {
+                    text: '* You complimented its burrowing skills.\n* It wiggles happily!',
+                    effect: 'compliment',
+                    spareable: true
+                },
+                'Dig': {
+                    text: '* You started digging near it.\n* It feels threatened!',
+                    effect: 'enrage'
+                }
+            },
+            patterns: ['worm_tunnel', 'worm_emerge'],
+            encounterText: '* Deep Worm bursts from the ground!',
+            spareText: '* Deep Worm burrows away contentedly.',
+            deathText: '* The worm collapses into dust.',
+            drops: [
+                { item: 'worm_segment', chance: 0.5 },
+                { item: 'crystal_shard', chance: 0.3 },
+                { item: 'ancient_fruit', chance: 0.1 }
+            ]
+        },
+
+        'shadow_stalker': {
+            name: 'Shadow Stalker',
+            hp: 40,
+            maxHp: 40,
+            attack: 14,
+            defense: 5,
+            exp: 22,
+            gold: 18,
+            flavorText: '* A shape that doesn\'t quite exist.',
+            checkText: '* SHADOW STALKER - ATK 14 DEF 5\n* Born from the darkness itself. Lonely.',
+            canSpare: false,
+            spareCondition: 'remember',
+            remembered: false,
+            actOptions: ['Check', 'Acknowledge', 'Ignore', 'Challenge'],
+            actResponses: {
+                'Acknowledge': {
+                    text: '* You acknowledged its existence.\n* It seems... grateful?',
+                    effect: 'remember',
+                    spareable: true
+                },
+                'Ignore': {
+                    text: '* You tried to ignore it.\n* It grows more solid, more angry!',
+                    effect: 'enrage'
+                },
+                'Challenge': {
+                    text: '* You challenged it!\n* It accepts with fury!',
+                    effect: 'enrage'
+                }
+            },
+            patterns: ['stalker_phase', 'stalker_strike', 'stalker_surround'],
+            encounterText: '* The shadows coalesce into... something.',
+            spareText: '* The Shadow Stalker fades peacefully.',
+            deathText: '* The shadows scatter and disperse.',
+            drops: [
+                { item: 'shadow_essence', chance: 0.6 },
+                { item: 'spirit_essence', chance: 0.3 },
+                { item: 'shadow_cloak', chance: 0.05 }
+            ]
+        },
+
+        'nightmare_beast': {
+            name: 'Nightmare Beast',
+            hp: 55,
+            maxHp: 55,
+            attack: 18,
+            defense: 8,
+            exp: 35,
+            gold: 30,
+            flavorText: '* A creature from your worst dreams.',
+            checkText: '* NIGHTMARE BEAST - ATK 18 DEF 8\n* Feeds on fear. Show it courage.',
+            canSpare: false,
+            spareCondition: 'talk_twice',
+            talkCount: 0,
+            spareTalkThreshold: 3,
+            actOptions: ['Check', 'Stand Firm', 'Show Courage', 'Run'],
+            actResponses: {
+                'Stand Firm': {
+                    text: '* You stood your ground!\n* The beast seems confused.',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                },
+                'Show Courage': {
+                    text: '* You showed no fear!\n* The beast grows weaker...',
+                    effect: 'incrementTalk',
+                    spareable: 'checkTalkCount'
+                },
+                'Run': {
+                    text: '* You tried to run!\n* The beast feeds on your fear!',
+                    effect: 'enrage'
+                }
+            },
+            patterns: ['nightmare_terror', 'nightmare_claw', 'nightmare_scream'],
+            encounterText: '* Your fears manifest before you!',
+            spareText: '* Without fear to feed on, the beast fades.',
+            deathText: '* The nightmare dissolves into mist.',
+            drops: [
+                { item: 'nightmare_essence', chance: 0.5 },
+                { item: 'shadow_essence', chance: 0.4 },
+                { item: 'nightmare_blade', chance: 0.08 }
+            ]
+        },
+
+        // ==================== MINES BOSS ====================
+        'ancient_one': {
+            name: 'THE ANCIENT ONE',
+            hp: 400,
+            maxHp: 400,
+            attack: 30,
+            defense: 18,
+            exp: 800,
+            gold: 500,
+            isBoss: true,
+            isFinalBoss: true,
+            flavorText: '* An entity older than the mountains themselves.',
+            checkText: '* THE ANCIENT ONE - ATK 30 DEF 18\n* Slumbered for eons in the depths.\n* It only wanted to be remembered.',
+            canSpare: false,
+            spareCondition: 'mercy_many',
+            mercyCount: 0,
+            spareTalkThreshold: 10,
+            actOptions: ['Check', 'Listen', 'Remember', 'Comfort', 'Promise'],
+            actResponses: {
+                'Listen': {
+                    text: '* You listened to its ancient voice.\n* "...so long... so lonely..."',
+                    effect: 'incrementMercy',
+                    spareable: 'checkMercyCount'
+                },
+                'Remember': {
+                    text: '* You promised to remember it.\n* Its attacks grow weaker...',
+                    effect: 'comfort',
+                    spareable: 'checkMercyCount'
+                },
+                'Comfort': {
+                    text: '* You told it that it\'s not alone anymore.\n* Something shifts in its ancient eyes...',
+                    effect: 'incrementMercy',
+                    spareable: 'checkMercyCount'
+                },
+                'Promise': {
+                    text: '* You promised to tell its story.\n* "...you would... do that... for me?"',
+                    effect: 'incrementMercy',
+                    spareable: 'checkMercyCount'
+                }
+            },
+            phases: [
+                { hpThreshold: 400, patterns: ['ancient_darkness', 'ancient_tendrils'], dialogue: null },
+                { hpThreshold: 300, patterns: ['ancient_roar', 'ancient_darkness', 'ancient_tendrils'], dialogue: 'ancient_phase2' },
+                { hpThreshold: 200, patterns: ['ancient_nightmare', 'ancient_roar', 'ancient_tendrils'], dialogue: 'ancient_phase3' },
+                { hpThreshold: 100, patterns: ['ancient_despair', 'ancient_nightmare'], dialogue: 'ancient_phase4' },
+                { hpThreshold: 50, patterns: ['ancient_final'], dialogue: 'ancient_final' }
+            ],
+            encounterText: '* The darkness itself awakens.\n* THE ANCIENT ONE rises before you.',
+            spareText: '* THE ANCIENT ONE closes its eyes.\n* "Thank you... for remembering..."',
+            deathText: '* THE ANCIENT ONE crumbles to dust.\n* The mines fall silent.',
+            violenceBoost: {
+                hp: 600,
+                attack: 40,
+                defense: 25,
+                patterns: ['ancient_rage', 'ancient_final', 'ancient_despair', 'ancient_nightmare']
+            },
+            drops: [
+                { item: 'ancient_heart', chance: 1.0 },
+                { item: 'ancient_blade', chance: 0.6 },
+                { item: 'ancient_robe', chance: 0.6 },
+                { item: 'nightmare_essence', chance: 1.0 },
+                { item: 'shadow_essence', chance: 1.0 }
+            ]
+        },
+
         // ==================== MEGA BOSS ====================
         'mega_destroyer': {
             name: 'MEGA DESTROYER',
@@ -488,7 +760,9 @@ const Enemies = {
         const areaEnemies = {
             'descent': ['cave_spider', 'rock_critter'],
             'caverns': ['crystal_bat', 'mushroom_dancer'],
-            'hall': ['ancient_spirit']
+            'hall': ['ancient_spirit'],
+            'swamp': ['swamp_creature', 'ancient_spirit'],
+            'mines': ['mine_crawler', 'shadow_rat', 'rock_critter', 'deep_worm', 'shadow_stalker', 'nightmare_beast']
         };
 
         const enemies = areaEnemies[areaId];

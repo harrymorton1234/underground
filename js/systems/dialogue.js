@@ -51,12 +51,66 @@ const Dialogue = {
     textSoundInterval: 0.05,
 
     /**
+     * Resolve dynamic dialogue ID based on flags
+     */
+    resolveDynamicDialogue(dialogueId) {
+        const dialogue = Dialogues.get(dialogueId);
+        if (!dialogue || !dialogue.dynamicDialogue) {
+            return dialogueId;
+        }
+
+        const dynamicType = dialogue.dynamicDialogue;
+
+        // Fred in village square - friendship progression
+        if (dynamicType === 'fred') {
+            if (Save.getFlag('mines_unlocked')) {
+                return 'fred_talk_waiting'; // After mines are open
+            }
+            if (Save.getFlag('fred_friendship_complete')) {
+                return 'fred_talk_waiting'; // Waiting at the door
+            }
+            if (Save.getFlag('fred_talked_3')) {
+                return 'fred_talk_waiting';
+            }
+            if (Save.getFlag('fred_talked_2')) {
+                return 'fred_talk_3';
+            }
+            if (Save.getFlag('fred_talked_1')) {
+                return 'fred_talk_2';
+            }
+            return 'fred_talk_1';
+        }
+
+        // Fred at home - hangout progression
+        if (dynamicType === 'fred_home') {
+            if (Save.getFlag('fred_friendship_complete')) {
+                return 'fred_at_home_complete';
+            }
+            if (Save.getFlag('fred_hangout_3')) {
+                return 'fred_at_home_complete';
+            }
+            if (Save.getFlag('fred_hangout_2')) {
+                return 'fred_at_home_3';
+            }
+            if (Save.getFlag('fred_hangout_1')) {
+                return 'fred_at_home_2';
+            }
+            return 'fred_at_home_1';
+        }
+
+        return dialogueId;
+    },
+
+    /**
      * Start dialogue
      */
     start(dialogueId, callback = null) {
-        const dialogue = Dialogues.get(dialogueId);
+        // Resolve dynamic dialogues
+        const resolvedId = this.resolveDynamicDialogue(dialogueId);
+        const dialogue = Dialogues.get(resolvedId);
+
         if (!dialogue) {
-            console.warn(`Dialogue not found: ${dialogueId}`);
+            console.warn(`Dialogue not found: ${resolvedId} (original: ${dialogueId})`);
             if (callback) callback();
             return;
         }
@@ -172,8 +226,17 @@ const Dialogue = {
 
         // Check if we've reached the end
         if (this.currentLine >= this.currentDialogue.lines.length) {
-            // Check for choices
-            if (this.currentDialogue.choices) {
+            // Check for elevator dialogue - generate dynamic choices
+            if (this.currentDialogue.elevatorLevel !== undefined) {
+                const elevatorChoices = this.generateElevatorChoices(this.currentDialogue.elevatorLevel);
+                if (elevatorChoices.length > 0) {
+                    this.showChoices(elevatorChoices);
+                } else {
+                    this.end();
+                }
+            }
+            // Check for regular choices
+            else if (this.currentDialogue.choices) {
                 this.showChoices(this.currentDialogue.choices);
             } else {
                 this.end();
@@ -182,6 +245,42 @@ const Dialogue = {
             Audio.playSFX('confirm', 0.3);
             this.startLine();
         }
+    },
+
+    /**
+     * Generate elevator choices based on unlocked levels
+     */
+    generateElevatorChoices(currentLevel) {
+        const choices = [];
+
+        // Always can go to surface
+        choices.push({
+            text: 'Surface (Mine Entrance)',
+            elevatorDestination: 'mines_entrance',
+            playerX: 80,
+            playerY: 180
+        });
+
+        // Add unlocked elevator levels
+        const elevatorLevels = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+        for (const level of elevatorLevels) {
+            if (level !== currentLevel && Save.getFlag(`mines_elevator_unlocked_${level}`)) {
+                choices.push({
+                    text: `Level -${level}`,
+                    elevatorDestination: `mines_elevator_${level}`,
+                    playerX: 80,
+                    playerY: 32
+                });
+            }
+        }
+
+        // Add "Stay here" option
+        choices.push({
+            text: 'Stay here',
+            next: null
+        });
+
+        return choices;
     },
 
     /**
@@ -227,6 +326,29 @@ const Dialogue = {
             for (const [flag, value] of Object.entries(choice.setFlags)) {
                 Save.setFlag(flag, value);
             }
+        }
+
+        // Handle elevator transportation
+        if (choice.elevatorDestination) {
+            Audio.playSFX('elevator', 0.5);
+            // End dialogue first
+            this.active = false;
+            this.callback = null;
+            this.currentDialogue = null;
+            this.choices = null;
+            this.displayedText = '';
+            this.fullText = '';
+            Player.unfreeze();
+
+            // Transport player to new room
+            if (typeof Overworld !== 'undefined' && Overworld.loadRoom) {
+                Overworld.loadRoom(choice.elevatorDestination, choice.playerX, choice.playerY);
+            } else if (typeof Game !== 'undefined' && Game.loadRoom) {
+                Game.loadRoom(choice.elevatorDestination, choice.playerX, choice.playerY);
+            }
+
+            Game.setState(Game.states.OVERWORLD);
+            return;
         }
 
         // Go to next dialogue or end

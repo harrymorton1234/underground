@@ -53,6 +53,11 @@ const Overworld = {
                     continue;
                 }
 
+                // Check if NPC should NOT appear based on flags
+                if (npcData.requiresNotFlag && this.checkFlag(npcData.requiresNotFlag)) {
+                    continue;
+                }
+
                 // Check if NPC was removed (boss defeated, etc.)
                 if (npcData.removeOnSpare && Save.getFlag(`${npcData.id}_spared`)) {
                     continue;
@@ -462,7 +467,19 @@ const Overworld = {
             if (Utils.rectCollision(playerHitbox, transitionRect)) {
                 // Check flag requirements
                 if (transition.requiresFlag && !this.checkFlag(transition.requiresFlag)) {
-                    // Can't use this transition yet
+                    // Show locked door dialogue if available and not shown recently
+                    const doorKey = `${this.roomId}_${transition.to}_flag`;
+                    if (transition.lockedDialogue && !this.lockedDoorsShown[doorKey]) {
+                        this.lockedDoorsShown[doorKey] = true;
+                        Audio.playSFX('cancel');
+                        Game.setState(Game.states.DIALOGUE, {
+                            dialogueId: transition.lockedDialogue
+                        });
+                        // Reset after a short delay so it can show again later
+                        setTimeout(() => {
+                            this.lockedDoorsShown[doorKey] = false;
+                        }, 3000);
+                    }
                     continue;
                 }
 
@@ -1203,6 +1220,248 @@ const Overworld = {
                     Renderer.ctx.beginPath();
                     Renderer.ctx.arc(screenX + 8, screenY + 16, 16, 0, Math.PI * 2);
                     Renderer.ctx.fill();
+                    break;
+
+                // ==================== FRED'S HOUSE ====================
+                case 'paper_pile':
+                    // Stack of messy papers
+                    Renderer.drawRect(screenX, screenY + 4, 16, 12, '#e8e4d4');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 14, 10, '#f5f0e0');
+                    Renderer.drawRect(screenX + 1, screenY, 12, 8, '#ebe6d6');
+                    // Ink marks
+                    Renderer.drawRect(screenX + 4, screenY + 3, 6, 1, '#333');
+                    Renderer.drawRect(screenX + 3, screenY + 5, 8, 1, '#333');
+                    Renderer.drawRect(screenX + 5, screenY + 7, 4, 1, '#333');
+                    break;
+
+                case 'scattered_paper':
+                    // Single scattered paper on floor
+                    const paperAngle = (deco.x * 0.3) % 0.5 - 0.25;
+                    Renderer.ctx.save();
+                    Renderer.ctx.translate(screenX + 6, screenY + 6);
+                    Renderer.ctx.rotate(paperAngle);
+                    Renderer.ctx.fillStyle = '#f0ebe0';
+                    Renderer.ctx.fillRect(-6, -5, 12, 10);
+                    // Text lines
+                    Renderer.ctx.fillStyle = '#444';
+                    Renderer.ctx.fillRect(-4, -3, 6, 1);
+                    Renderer.ctx.fillRect(-4, -1, 7, 1);
+                    Renderer.ctx.fillRect(-4, 1, 5, 1);
+                    Renderer.ctx.restore();
+                    break;
+
+                case 'crumpled_paper':
+                    // Crumpled paper ball
+                    Renderer.ctx.fillStyle = '#e5e0d0';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 5, screenY + 5, 5, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Crumple shadows
+                    Renderer.ctx.fillStyle = '#c5c0b0';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 6, screenY + 6, 3, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'strange_drawing':
+                    // Creepy drawing pinned to wall
+                    Renderer.drawRect(screenX, screenY, 20, 16, '#f0ebe0');
+                    // Red scribbles (eyes, symbols)
+                    Renderer.drawRect(screenX + 4, screenY + 4, 3, 3, '#a33');
+                    Renderer.drawRect(screenX + 12, screenY + 4, 3, 3, '#a33');
+                    Renderer.drawRect(screenX + 6, screenY + 10, 8, 2, '#a33');
+                    // Pin
+                    Renderer.drawRect(screenX + 9, screenY - 2, 3, 4, '#c44');
+                    break;
+
+                case 'pinned_note':
+                    // Small note pinned to wall
+                    Renderer.drawRect(screenX, screenY, 12, 10, '#ffffa0');
+                    // Text
+                    Renderer.drawRect(screenX + 2, screenY + 2, 6, 1, '#333');
+                    Renderer.drawRect(screenX + 2, screenY + 4, 8, 1, '#333');
+                    Renderer.drawRect(screenX + 2, screenY + 6, 5, 1, '#333');
+                    // Pin
+                    Renderer.drawRect(screenX + 5, screenY - 2, 2, 3, '#c44');
+                    break;
+
+                case 'string_web':
+                    // Red string connecting things (conspiracy board style)
+                    Renderer.ctx.strokeStyle = '#a33';
+                    Renderer.ctx.lineWidth = 1;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX, screenY + 5);
+                    Renderer.ctx.lineTo(screenX + 40, screenY + 10);
+                    Renderer.ctx.moveTo(screenX + 10, screenY);
+                    Renderer.ctx.lineTo(screenX + 50, screenY + 15);
+                    Renderer.ctx.moveTo(screenX + 20, screenY + 8);
+                    Renderer.ctx.lineTo(screenX + 60, screenY + 3);
+                    Renderer.ctx.stroke();
+                    break;
+
+                case 'messy_bed':
+                    // Unmade bed with sheets everywhere
+                    // Bed frame
+                    Renderer.drawRect(screenX, screenY + 20, 40, 24, '#654');
+                    // Mattress
+                    Renderer.drawRect(screenX + 2, screenY + 12, 36, 18, '#a98');
+                    // Messy blanket
+                    Renderer.drawRect(screenX + 4, screenY + 8, 28, 16, '#668');
+                    Renderer.drawRect(screenX + 8, screenY + 6, 20, 10, '#779');
+                    // Pillow (askew)
+                    Renderer.drawRect(screenX + 4, screenY + 4, 14, 8, '#ddd');
+                    // Papers on bed
+                    Renderer.drawRect(screenX + 24, screenY + 10, 8, 6, '#f0ebe0');
+                    break;
+
+                case 'research_desk':
+                    // Desk covered in research materials
+                    // Desk
+                    Renderer.drawRect(screenX, screenY + 16, 48, 20, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 8, 44, 12, '#765');
+                    // Papers everywhere
+                    Renderer.drawRect(screenX + 4, screenY + 4, 12, 8, '#f0ebe0');
+                    Renderer.drawRect(screenX + 14, screenY + 6, 10, 6, '#e8e4d4');
+                    Renderer.drawRect(screenX + 28, screenY + 4, 14, 10, '#f5f0e0');
+                    // Candle on desk
+                    Renderer.drawRect(screenX + 40, screenY + 2, 4, 8, '#eee');
+                    const deskCandleGlow = Math.sin(time * 6) * 0.2 + 0.8;
+                    Renderer.drawRect(screenX + 41, screenY - 2, 2, 4, `rgba(255,200,100,${deskCandleGlow})`);
+                    break;
+
+                case 'ink_bottle':
+                    // Small ink bottle
+                    Renderer.drawRect(screenX + 2, screenY + 4, 6, 8, '#223');
+                    Renderer.drawRect(screenX + 3, screenY + 2, 4, 4, '#334');
+                    break;
+
+                case 'quill':
+                    // Feather quill
+                    Renderer.ctx.strokeStyle = '#eee';
+                    Renderer.ctx.lineWidth = 2;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.moveTo(screenX, screenY + 12);
+                    Renderer.ctx.lineTo(screenX + 10, screenY);
+                    Renderer.ctx.stroke();
+                    // Tip
+                    Renderer.drawRect(screenX, screenY + 10, 2, 4, '#333');
+                    break;
+
+                case 'open_book':
+                    // Open book
+                    Renderer.drawRect(screenX, screenY, 16, 12, '#654');
+                    Renderer.drawRect(screenX + 1, screenY + 1, 6, 10, '#f5f0e0');
+                    Renderer.drawRect(screenX + 9, screenY + 1, 6, 10, '#f5f0e0');
+                    // Text lines
+                    Renderer.drawRect(screenX + 2, screenY + 3, 4, 1, '#333');
+                    Renderer.drawRect(screenX + 2, screenY + 5, 4, 1, '#333');
+                    Renderer.drawRect(screenX + 10, screenY + 3, 4, 1, '#333');
+                    Renderer.drawRect(screenX + 10, screenY + 5, 4, 1, '#333');
+                    break;
+
+                case 'mine_map':
+                    // Old map on wall showing mine levels
+                    Renderer.drawRect(screenX, screenY, 32, 24, '#d4c8a8');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 28, 20, '#e8dcc0');
+                    // Map lines (tunnels)
+                    Renderer.ctx.strokeStyle = '#654';
+                    Renderer.ctx.lineWidth = 1;
+                    Renderer.ctx.beginPath();
+                    for (let i = 0; i < 5; i++) {
+                        Renderer.ctx.moveTo(screenX + 4, screenY + 4 + i * 4);
+                        Renderer.ctx.lineTo(screenX + 28, screenY + 4 + i * 4);
+                    }
+                    Renderer.ctx.stroke();
+                    // Red X at bottom
+                    Renderer.drawRect(screenX + 14, screenY + 18, 4, 4, '#a33');
+                    break;
+
+                case 'candle':
+                    // Lit candle
+                    Renderer.drawRect(screenX + 3, screenY + 6, 4, 10, '#eee');
+                    const candleFlicker = Math.sin(time * 8 + deco.x) * 0.2 + 0.8;
+                    Renderer.ctx.fillStyle = `rgba(255,200,100,${candleFlicker})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 5, screenY + 4, 3, 5, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    // Glow
+                    Renderer.ctx.fillStyle = `rgba(255,180,80,${candleFlicker * 0.2})`;
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.arc(screenX + 5, screenY + 6, 10, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'candle_burnt':
+                    // Burnt out candle
+                    Renderer.drawRect(screenX + 3, screenY + 10, 4, 6, '#ccc');
+                    Renderer.drawRect(screenX + 4, screenY + 8, 2, 3, '#333');
+                    // Melted wax puddle
+                    Renderer.ctx.fillStyle = '#ddd';
+                    Renderer.ctx.beginPath();
+                    Renderer.ctx.ellipse(screenX + 5, screenY + 14, 5, 2, 0, 0, Math.PI * 2);
+                    Renderer.ctx.fill();
+                    break;
+
+                case 'empty_bottle':
+                    // Empty glass bottle
+                    Renderer.ctx.fillStyle = 'rgba(150,180,150,0.5)';
+                    Renderer.ctx.fillRect(screenX + 2, screenY + 4, 6, 10);
+                    Renderer.ctx.fillRect(screenX + 3, screenY, 4, 6);
+                    break;
+
+                case 'dirty_cup':
+                    // Dirty cup/mug
+                    Renderer.drawRect(screenX + 1, screenY + 4, 8, 8, '#876');
+                    Renderer.drawRect(screenX + 2, screenY + 5, 6, 6, '#654');
+                    // Handle
+                    Renderer.drawRect(screenX + 8, screenY + 5, 3, 6, '#876');
+                    break;
+
+                case 'old_chest':
+                    // Old wooden chest
+                    Renderer.drawRect(screenX, screenY + 8, 24, 16, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 10, 20, 12, '#654');
+                    // Lid
+                    Renderer.drawRect(screenX, screenY + 4, 24, 6, '#654');
+                    // Metal bands
+                    Renderer.drawRect(screenX + 4, screenY + 4, 2, 18, '#888');
+                    Renderer.drawRect(screenX + 18, screenY + 4, 2, 18, '#888');
+                    // Lock
+                    Renderer.drawRect(screenX + 10, screenY + 12, 4, 4, '#aa8');
+                    break;
+
+                case 'messy_bookshelf':
+                    // Bookshelf with books falling out
+                    // Shelf frame
+                    Renderer.drawRect(screenX, screenY, 24, 40, '#543');
+                    Renderer.drawRect(screenX + 2, screenY + 2, 20, 8, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 14, 20, 8, '#654');
+                    Renderer.drawRect(screenX + 2, screenY + 26, 20, 12, '#654');
+                    // Books (various colors, some tilted)
+                    Renderer.drawRect(screenX + 3, screenY + 3, 3, 6, '#833');
+                    Renderer.drawRect(screenX + 7, screenY + 2, 4, 7, '#383');
+                    Renderer.drawRect(screenX + 12, screenY + 4, 3, 5, '#338');
+                    Renderer.drawRect(screenX + 16, screenY + 3, 4, 6, '#883');
+                    // Second shelf
+                    Renderer.drawRect(screenX + 4, screenY + 15, 3, 6, '#448');
+                    Renderer.drawRect(screenX + 8, screenY + 16, 4, 5, '#844');
+                    Renderer.drawRect(screenX + 14, screenY + 15, 5, 6, '#484');
+                    // Bottom - books fallen over
+                    Renderer.drawRect(screenX + 3, screenY + 32, 8, 3, '#633');
+                    Renderer.drawRect(screenX + 12, screenY + 28, 3, 8, '#363');
+                    break;
+
+                case 'dust_motes':
+                    // Floating dust particles
+                    for (let i = 0; i < 5; i++) {
+                        const dustX = screenX + Math.sin(time * 0.5 + i * 2) * 20 + i * 10;
+                        const dustY = screenY + Math.cos(time * 0.3 + i * 1.5) * 15 + i * 8;
+                        const dustAlpha = Math.sin(time + i) * 0.2 + 0.3;
+                        Renderer.ctx.fillStyle = `rgba(200,190,170,${dustAlpha})`;
+                        Renderer.ctx.beginPath();
+                        Renderer.ctx.arc(dustX, dustY, 1, 0, Math.PI * 2);
+                        Renderer.ctx.fill();
+                    }
                     break;
 
                 // ==================== BUTCHER SHOP INTERIOR ====================
